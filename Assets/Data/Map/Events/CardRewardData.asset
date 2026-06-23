@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a22a3629df1b8fc4da96d9c299c729d2, type: 3}
+  m_Name: CardRewardData
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Map.CardReward
+  skillPool:
+  - {fileID: 11400000, guid: 98479f5428bbf5043b9ffd692a5a2cea, type: 2}
+  - {fileID: 11400000, guid: 4498d935812c7fd4caef6557d1e9dffe, type: 2}
+  - {fileID: 11400000, guid: 0ed21149571af894f93208911d0cbcd6, type: 2}
+  buildingPool: []
+  numberOfChoices: 3
+  allowSkip: 0

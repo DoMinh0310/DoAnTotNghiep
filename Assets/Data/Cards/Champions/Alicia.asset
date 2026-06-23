@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f893981490d9b84f9e410ad432cc7ed, type: 3}
+  m_Name: Alicia
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
+  cardName: Alicia
+  id: 1001
+  abilities: 
+  attack: 2
+  health: 6
+  speed: 3
+  ult: 0
+  cardType: 0
+  rarity: 0
+  cost: 1
+  description: 
+  characterArt: {fileID: -3471431714105583484, guid: fe4b657da8b9464449768ffc4278ddba, type: 3}
+  cardArtwork: {fileID: 0}
+  cardFrame: {fileID: 6520001055880521421, guid: 034f06a9399622344960d6e39408c3cf, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  elementalConfigs: []

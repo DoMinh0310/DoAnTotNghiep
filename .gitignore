@@ -1,0 +1,93 @@
+```gitignore
+# ==========================================================
+# Unity 6 / Unity 2022+ Git Ignore
+# Optimized for GitHub
+# ==========================================================
+
+# ==========================================================
+# Unity generated folders
+# ==========================================================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Pp]rofiler[Cc]aptur*
+[Rr]ecordings/
+
+# Unity Recovery
+Assets/_Recovery/
+
+# ==========================================================
+# Unity Version Control (Plastic SCM)
+# ==========================================================
+.plastic/
+
+# ==========================================================
+# Visual Studio / Rider / VS Code
+# ==========================================================
+.vs/
+.vscode/
+.idea/
+.consulo/
+
+# Solution & Project files (Unity will regenerate these)
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.tmp
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# ==========================================================
+# Build outputs
+# ==========================================================
+*.apk
+*.aab
+*.app
+*.exe
+*.unitypackage
+
+# ==========================================================
+# Unity Addressables
+# ==========================================================
+Assets/AddressableAssetsData/*/*.bin*
+Assets/StreamingAssets/aa.meta
+Assets/StreamingAssets/aa/*
+
+# ==========================================================
+# Unity IDE Packages
+# ==========================================================
+Packages/com.unity.ide*/
+
+# ==========================================================
+# Temporary / Debug
+# ==========================================================
+sysinfo.txt
+crashlytics-build.properties
+temp_*.txt
+
+# ==========================================================
+# OS Files
+# ==========================================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ==========================================================
+# Optional scripts (uncomment if desired)
+# ==========================================================
+# *.ps1
+```
