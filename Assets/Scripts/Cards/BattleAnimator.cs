@@ -93,20 +93,17 @@ namespace ProjectM.Cards
             Vector2 windupPos = origin - direction * attackWindupDistance;
             Vector2 lungePos  = origin + direction * attackLungeDistance;
 
-            // Y-flip: lật nhẹ theo hướng tấn công để tạo phối cảnh 3D
             float yRot  =  direction.x * attackYFlip;
-            // Z-tilt: cúi về phía địch (đỉnh thẻ ngả về hướng tấn công)
+           
             float zTilt = -direction.x * attackForwardTilt;
 
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.attackClip);
 
-            // ── Phase 1: Wind-up — lùi nhẹ ra sau ──
             yield return rectTransform
                 .DOAnchorPos(windupPos, attackWindupTime)
                 .SetEase(Ease.OutQuad)
                 .WaitForCompletion();
 
-            // ── Phase 2: Lao ra tấn công — vị trí + xoay Y + cúi Z cùng lúc ──
             Sequence lungeSeq = DOTween.Sequence();
             lungeSeq.Join(
                 rectTransform.DOAnchorPos(lungePos, attackLungeTime)
@@ -118,12 +115,8 @@ namespace ProjectM.Cards
             );
             yield return lungeSeq.WaitForCompletion();
 
-            // ★ Va chạm! Gọi onImpact ngay khi thẻ ở đỉnh lunge, trước khi quay về
-            // TakeDamage → PlayHitAnim của target sẽ bắt đầu đúng lúc này (zero delay)
             onImpact?.Invoke();
 
-            // ── Phase 3: Quay về dạng lò xo — dao động rồi ổn định ──
-            // PlayHitAnim của target chạy song song trong lúc Phase 3 này diễn ra
             Sequence returnSeq = DOTween.Sequence();
             returnSeq.Join(
                 rectTransform.DOAnchorPos(origin, attackReturnTime)

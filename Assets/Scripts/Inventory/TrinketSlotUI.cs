@@ -45,6 +45,7 @@ namespace ProjectM.Inventory
         private Tweener       _glowTween;
 
         private GameObject    _ghost;
+        private Vector3       _originalTooltipLocalPos = Vector3.zero;
 
         // ── Static drag state ─────────────────────────────────────────────
         public static TrinketSlotUI Dragging { get; private set; }
@@ -55,6 +56,8 @@ namespace ProjectM.Inventory
 
         private void Awake()
         {
+            if (tooltipPanel != null) _originalTooltipLocalPos = tooltipPanel.transform.localPosition;
+
             _canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
             _rootCanvas  = GetComponentInParent<Canvas>();
             _rootRect    = _rootCanvas?.GetComponent<RectTransform>();
@@ -265,6 +268,19 @@ namespace ProjectM.Inventory
 
             if (currentTrinket == null || tooltipPanel == null) return;
             
+            // Nếu tooltip đang bị quăng đi đâu đó, kéo nó về để sửa position
+            if (tooltipPanel.transform.parent != this.transform)
+                tooltipPanel.transform.SetParent(this.transform, false);
+
+            // Tự động đảo ngược hướng hiển thị (trái/phải)
+            Vector3 basePos = _originalTooltipLocalPos;
+            if (championIndex < 0)
+                basePos.x = -Mathf.Abs(basePos.x); // Sidebar: Ép văng sang trái
+            else
+                basePos.x = Mathf.Abs(basePos.x);  // Tướng: Ép văng sang phải
+            
+            tooltipPanel.transform.localPosition = basePos;
+
             Canvas rootCanvas = GetComponentInParent<Canvas>();
             if (rootCanvas != null && !tooltipPanel.activeSelf)
             {

@@ -895,6 +895,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: InventoryPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 4757580619307373710, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4757580619307373710, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4757580619307373710, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4757580619307373710, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4757580619307373710, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4757580619307373710, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5392854840289054857, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -8867,10 +8891,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
   m_Padding:
-    m_Left: 15
+    m_Left: 20
     m_Right: 20
     m_Top: 20
-    m_Bottom: 15
+    m_Bottom: 20
   m_ChildAlignment: 4
   m_Spacing: 0
   m_ChildForceExpandWidth: 0

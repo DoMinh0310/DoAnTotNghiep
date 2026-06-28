@@ -243,7 +243,20 @@ namespace ProjectM.Inventory
                 // Đọc bonus từ Smith Event (nếu có)
                 var bonus = GameManager.Instance?.RunData?.GetChampionBonus(champEntry.championData?.name ?? "")
                             ?? new Map.ChampionStatBonus();
-                invDisplay.InitChampion(champEntry.championData, bonus.attackBonus, bonus.healthBonus);
+
+                // Lấy mô tả từ Trinket và Relic đang gắn
+                string extraAbilities = "";
+                if (champEntry.equippedTrinket != null)
+                {
+                    extraAbilities += champEntry.equippedTrinket.description;
+                }
+                if (champEntry.equippedRelic != null)
+                {
+                    if (!string.IsNullOrEmpty(extraAbilities)) extraAbilities += "\n";
+                    extraAbilities += champEntry.equippedRelic.description;
+                }
+
+                invDisplay.InitChampion(champEntry.championData, bonus.attackBonus, bonus.healthBonus, extraAbilities);
 
                 // Toàn bộ thẻ là drop target cho relic (snap như nam châm)
                 champGo.AddComponent<ChampionCardRelicDrop>();

@@ -132,10 +132,12 @@ namespace ProjectM.Cards
             return null;
         }
 
+        private bool _hasLoadedData = false;
+
         // Hữu ích cho việc Test: Nếu bạn kéo sẵn CardData vào Inspector và ấn Play, thẻ bài sẽ tự động load.
         private void Start()
         {
-            if (cardData != null)
+            if (cardData != null && !_hasLoadedData)
             {
                 LoadData(cardData);
             }
@@ -149,6 +151,7 @@ namespace ProjectM.Cards
             if (data == null) return;
             
             cardData = data;
+            _hasLoadedData = true;
             
             nameText.text = cardData.cardName;
             int currentAtk = cardData.attack;

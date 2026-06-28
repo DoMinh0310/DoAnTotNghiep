@@ -32,8 +32,8 @@ namespace ProjectM.Inventory
             _display.LoadData(data);
         }
 
-        /// <summary>Hiển thị tướng với chỉ số đã cộng bonus từ Smith Event.</summary>
-        public void InitChampion(CardData data, int atkBonus, int hpBonus)
+        /// <summary>Hiển thị tướng với chỉ số đã cộng bonus từ Smith Event và skill thêm từ Trinket/Relic.</summary>
+        public void InitChampion(CardData data, int atkBonus, int hpBonus, string extraAbilities = "")
         {
             if (_display == null) _display = GetComponent<CardDisplay>();
             _display.LoadData(data);
@@ -43,6 +43,13 @@ namespace ProjectM.Inventory
                 _display.attackText.text = (data.attack + atkBonus).ToString();
             if (hpBonus != 0 && _display.healthText != null)
                 _display.healthText.text = (data.health + hpBonus).ToString();
+
+            // Append thêm text của Trinket/Relic (nếu có)
+            if (!string.IsNullOrEmpty(extraAbilities) && _display.abilitiesText != null)
+            {
+                // Thêm màu hoặc format tùy ý, ở đây thêm màu xanh lục nhạt để phân biệt
+                _display.abilitiesText.text += "\n\n<color=#A0FFA0>" + extraAbilities + "</color>";
+            }
         }
 
         public void InitSkill(SkillData data)
