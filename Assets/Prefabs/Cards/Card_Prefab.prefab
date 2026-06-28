@@ -1295,6 +1295,8 @@ GameObject:
   - component: {fileID: 3363174386952586429}
   - component: {fileID: 1809875142037019870}
   - component: {fileID: 5003577141381207210}
+  - component: {fileID: 5019350247106209834}
+  - component: {fileID: 7405089879916686389}
   m_Layer: 5
   m_Name: Card_Prefab
   m_TagString: Untagged
@@ -1479,6 +1481,33 @@ MonoBehaviour:
   baseYOffset: -20
   maxShadowXOffset: 45
   perspectiveMultiplier: 0.05
+--- !u!114 &5019350247106209834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4586905708703126521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b4c00e4910764948af4b210058bd756, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.RelicHandler
+  relicButton: {fileID: 3182940403413948443}
+  relicIconImage: {fileID: 0}
+  cooldownText: {fileID: 5386751592460005312}
+--- !u!114 &7405089879916686389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4586905708703126521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 336d78912039f704b9ce9e993be3d1d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.TrinketHandler
 --- !u!1 &4969088822480676386
 GameObject:
   m_ObjectHideFlags: 0
@@ -2351,7 +2380,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 1
-  m_Spacing: 10
+  m_Spacing: 23
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -3419,6 +3448,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 857958354750856146, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 857958354750856146, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 857958354750856146, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 857958354750856146, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 857958354750856146, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 857958354750856146, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6648607746248955884, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
       propertyPath: m_Name
       value: RelicIcon
@@ -3452,6 +3505,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+--- !u!114 &3182940403413948443 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6555679716809412070, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+  m_PrefabInstance: {fileID: 8563137942528366077}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &5386751592460005312 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4330200727936547389, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
+  m_PrefabInstance: {fileID: 8563137942528366077}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &8217480954905449573 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 350220795198292376, guid: ec04ac5f7634a6746b5f9ba0087db062, type: 3}
@@ -3563,6 +3638,30 @@ PrefabInstance:
       objectReference: {fileID: 2672789152951843797}
     - target: {fileID: 7464092745365860364, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
       propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8647409158629953924, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8647409158629953924, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8647409158629953924, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8647409158629953924, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8647409158629953924, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8647409158629953924, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}
+      propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8829057933886938725, guid: 3c7125c88ca950c4c82c87264f576cf4, type: 3}

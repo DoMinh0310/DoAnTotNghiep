@@ -286,9 +286,16 @@ namespace ProjectM.Skills
         {
             if (_isActivating) yield break;
             _isActivating = true;
+            
+            // Khóa chuột ngay lập tức khi bắt đầu dùng thẻ
+            Managers.BattleManager.IsInputLocked = true;
 
             var grid = BattleGrid.Instance;
-            if (grid == null) { _isActivating = false; yield break; }
+            if (grid == null) { 
+                _isActivating = false; 
+                Managers.BattleManager.IsInputLocked = false; 
+                yield break; 
+            }
 
             var playerCards = grid.GetAllPlayerCards();
             CardBattle caster = playerCards.Count > 0 ? playerCards[0] : null;
@@ -300,6 +307,7 @@ namespace ProjectM.Skills
             {
                 BattleDebugger.Warn($"[Skill] '{_executor.Data?.skillName}': Không tìm thấy mục tiêu!");
                 _isActivating = false;
+                Managers.BattleManager.IsInputLocked = false;
                 yield break;
             }
 
@@ -312,6 +320,10 @@ namespace ProjectM.Skills
             BattleDebugger.Log($"✅ '{_executor.Data?.skillName}' dùng xong.");
             SkillHandManager.Instance?.OnSkillUsed(this);
             BattleManager.Instance?.EndTurn(drawCard: false);
+            
+            // Mở lại chuột. Note: EndTurn sẽ lập tức khóa lại qua ProcessTurn, 
+            // set false ở đây để phòng hờ trường hợp không gọi được ProcessTurn.
+            Managers.BattleManager.IsInputLocked = false;
         }
 
         // ════════════════════════════════════════════════════════════════

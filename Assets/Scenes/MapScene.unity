@@ -767,6 +767,10 @@ PrefabInstance:
       propertyPath: 'allSkillAssets.Array.data[30]'
       value: 
       objectReference: {fileID: 11400000, guid: 3d1e106b25a2a3e47b671b3ebc9d94b5, type: 2}
+    - target: {fileID: 1547937495298158704, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2259711956288983273, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -809,7 +813,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2641333654157939818, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2641333654157939818, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_SizeDelta.y
@@ -845,7 +849,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2641333654157939818, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -1
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2641333654157939818, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -864,8 +868,28 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4329327483885849372, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4329327483885849372, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_Spacing
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 4329327483885849372, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_Padding.m_Top
       value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 4329327483885849372, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_ChildAlignment
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4329327483885849372, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_ChildForceExpandWidth
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4329327483885849372, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_ChildForceExpandHeight
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4703620980998918662, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_Name
@@ -919,6 +943,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6069512311839466640, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6103372595598306002, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -941,6 +969,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6103372595598306002, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6197086864643781404, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_Spacing
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6197086864643781404, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_ChildForceExpandWidth
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6197086864643781404, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_ChildForceExpandHeight
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7094175828402661768, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
@@ -990,6 +1030,10 @@ PrefabInstance:
     - target: {fileID: 7785342588713091212, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8372205424397403022, guid: 8bab1b6583b7ddf4f93de41d60bdc24d, type: 3}
+      propertyPath: m_Color.a
+      value: 0.7607843
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4154,7 +4198,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 746998981}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
   m_Name: 
@@ -9695,101 +9739,121 @@ MonoBehaviour:
     routeIndex: 1
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 010000000200000003000000
   - position: {x: 530, y: -920}
     routeIndex: 0
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 04000000
   - position: {x: 1050, y: -990}
     routeIndex: 1
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 0400000005000000
   - position: {x: 1600, y: -920}
     routeIndex: 2
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 0500000006000000
   - position: {x: 300, y: -1400}
     routeIndex: 0
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 07000000
   - position: {x: 1450, y: -1400}
     routeIndex: 1
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 0700000008000000
   - position: {x: 1800, y: -1450}
     routeIndex: 2
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 08000000
   - position: {x: 800, y: -1900}
     routeIndex: 0
     isCombat: 1
     isBoss: 0
+    customStageID: 
     nextSlots: 09000000
   - position: {x: 1650, y: -1850}
     routeIndex: 2
     isCombat: 1
     isBoss: 0
+    customStageID: 
     nextSlots: 09000000
   - position: {x: 600, y: -2350}
     routeIndex: 0
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 0a0000000b000000
   - position: {x: 330, y: -2700}
     routeIndex: 0
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 0c000000
   - position: {x: 1070, y: -2800}
     routeIndex: 1
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 0c0000000d000000
   - position: {x: 600, y: -3100}
     routeIndex: 0
     isCombat: 1
     isBoss: 0
+    customStageID: 
     nextSlots: 0e0000000f000000
   - position: {x: 1600, y: -3000}
     routeIndex: 2
     isCombat: 1
     isBoss: 0
+    customStageID: 
     nextSlots: 0f00000010000000
   - position: {x: 400, y: -3550}
     routeIndex: 0
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 11000000
   - position: {x: 1200, y: -3350}
     routeIndex: 1
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 1100000012000000
   - position: {x: 1600, y: -3650}
     routeIndex: 2
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 12000000
   - position: {x: 650, y: -4000}
     routeIndex: 0
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 13000000
   - position: {x: 1270, y: -4070}
     routeIndex: 2
     isCombat: 0
     isBoss: 0
+    customStageID: 
     nextSlots: 13000000
   - position: {x: 960, y: -5000}
     routeIndex: 1
     isCombat: 1
     isBoss: 1
+    customStageID: StageData_Boss
     nextSlots: 
 --- !u!4 &2084854695
 Transform:

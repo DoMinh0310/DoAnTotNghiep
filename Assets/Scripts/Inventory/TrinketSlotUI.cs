@@ -72,6 +72,7 @@ namespace ProjectM.Inventory
                     // Tự động tạo child ItemImage nếu prefab thiếu, KHÔNG dùng root Image (tránh đè background)
                     var iconGo = new GameObject("ItemImage");
                     iconGo.transform.SetParent(transform, false);
+                    iconGo.transform.SetAsFirstSibling(); // Đưa xuống lớp dưới cùng để text đè lên trên
                     trinketIconImage = iconGo.AddComponent<Image>();
                     var rt = trinketIconImage.GetComponent<RectTransform>();
                     rt.anchorMin = Vector2.zero;
@@ -130,13 +131,14 @@ namespace ProjectM.Inventory
             // Champion card slot không dùng placeholder — giống RelicSlotUI trên champion card luôn có emptyIconObj = null
             if (emptyIconObj != null) emptyIconObj.SetActive(!hasTrinket && championIndex < 0);
 
-            // Xóa TOÀN BỘ Image nền (kể cả child) trừ icon và glow
+            // Xóa TOÀN BỘ Image nền (kể cả child) trừ icon, glow, và TOOLTIP
             // Tránh trường hợp trinketIconImage == root Image bị clear xong lại set trắng
             var allImages = GetComponentsInChildren<Image>(true);
             foreach (var img in allImages)
             {
                 if (img == trinketIconImage) continue;        // bỏ qua icon
                 if (img == glowBorderImage)  continue;        // bỏ qua glow
+                if (tooltipPanel != null && (img.gameObject == tooltipPanel || img.transform.IsChildOf(tooltipPanel.transform))) continue; // BỎ QUA TOOLTIP ĐỂ KHÔNG BỊ TÀNG HÌNH NỀN
                 img.color = Color.clear;                      // ẩn mọi background
             }
 
@@ -262,7 +264,23 @@ namespace ProjectM.Inventory
             }
 
             if (currentTrinket == null || tooltipPanel == null) return;
+            
+            Canvas rootCanvas = GetComponentInParent<Canvas>();
+            if (rootCanvas != null && !tooltipPanel.activeSelf)
+            {
+                tooltipPanel.transform.SetParent(rootCanvas.rootCanvas.transform, true);
+                tooltipPanel.transform.SetAsLastSibling();
+                
+                // CHỈ phóng to nếu đang ở trên thẻ tướng (championIndex >= 0)
+                // Sidebar (championIndex < 0) giữ nguyên scale chuẩn
+                if (championIndex >= 0)
+                {
+                    tooltipPanel.transform.localScale *= 1.5f;
+                }
+            }
+
             tooltipPanel.SetActive(true);
+
             if (tooltipText != null)
                 tooltipText.text = $"<b>{currentTrinket.trinketName}</b>\n{currentTrinket.description}";
         }
@@ -275,7 +293,14 @@ namespace ProjectM.Inventory
                 ShowGlow(true);
             }
 
-            if (tooltipPanel != null) tooltipPanel.SetActive(false);
+            if (tooltipPanel != null) 
+            {
+                tooltipPanel.SetActive(false);
+                // Trả về chỗ cũ để dọn dẹp
+                tooltipPanel.transform.SetParent(this.transform, true);
+                // Reset lại đúng bằng 1 để không bị cộng dồn ở lần bật sau
+                tooltipPanel.transform.localScale = Vector3.one;
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════

@@ -1,7 +1,8 @@
 using UnityEngine;
 using System.Collections;
-using ProjectM.Elements;
+using System.Collections.Generic;
 using DG.Tweening;
+using ProjectM.Elements;
 
 namespace ProjectM.Cards
 {
@@ -169,37 +170,30 @@ namespace ProjectM.Cards
             RectTransform containerRect = counterContainer.GetComponent<RectTransform>();
             Vector3 originalScale = containerRect != null ? containerRect.localScale : Vector3.one;
 
-            // Lấy tốc độ tổng thể dựa trên số lượng tướng trên sàn
-            float speedMult = Managers.BattleManager.GlobalAnimationSpeed;
-            if (speedMult < 1f) speedMult = 1f;
-
-            // Phase 1: Phóng to (0.1s) - giữ màu gốc
-            float duration = 0.1f / speedMult;
-            float elapsed = 0f;
-            while (elapsed < duration)
+            if (containerRect != null)
             {
-                elapsed += Time.deltaTime;
-                if (containerRect != null)
-                    containerRect.localScale = Vector3.Lerp(originalScale, originalScale * 1.5f, elapsed / duration);
-                yield return null;
+                // Dùng DOTween làm hiệu ứng nảy (PunchScale) cho biểu tượng đồng hồ nhanh hơn
+                Sequence seq = DOTween.Sequence();
+                
+                // Phóng to nhanh
+                seq.Append(containerRect.DOScale(originalScale * 1.4f, 0.06f).SetEase(Ease.OutQuad));
+                
+                // Cập nhật số ở đỉnh của animation
+                seq.AppendCallback(() => {
+                    if (currentCounter > 0) currentCounter--;
+                    UpdateCounterUI();
+                });
+                
+                // Thu nhỏ về bình thường
+                seq.Append(containerRect.DOScale(originalScale, 0.1f).SetEase(Ease.OutBack));
+                
+                yield return seq.WaitForCompletion();
             }
-
-            // Cập nhật số tại đỉnh animation
-            if (currentCounter > 0) currentCounter--;
-            UpdateCounterUI();
-
-            // Phase 2: Thu nhỏ về bình thường (0.15s) - giữ màu gốc
-            duration = 0.15f / speedMult;
-            elapsed = 0f;
-            while (elapsed < duration)
+            else
             {
-                elapsed += Time.deltaTime;
-                if (containerRect != null)
-                    containerRect.localScale = Vector3.Lerp(originalScale * 1.5f, originalScale, elapsed / duration);
-                yield return null;
+                if (currentCounter > 0) currentCounter--;
+                UpdateCounterUI();
             }
-
-            if (containerRect != null) containerRect.localScale = originalScale;
         }
 
 
@@ -461,6 +455,8 @@ namespace ProjectM.Cards
                 }
             }
 
+            // Dọn dẹp tất cả các hiệu ứng DOTween đang chạy dở trên object này trước khi xóa
+            transform.DOKill();
             Destroy(gameObject);
         }
 

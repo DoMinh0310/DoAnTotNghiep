@@ -510,6 +510,11 @@ MonoBehaviour:
   speedText: {fileID: 0}
   ultText: {fileID: 0}
   abilitiesText: {fileID: 6449947762995434043}
+  heartIconImage: {fileID: 0}
+  normalHeartSprite: {fileID: 0}
+  heart2Sprite: {fileID: 0}
+  heart3Sprite: {fileID: 0}
+  shieldHeartSprite: {fileID: 0}
   iceIconObj: {fileID: 0}
   iceText: {fileID: 0}
   scorchIconObj: {fileID: 0}
@@ -608,6 +613,7 @@ MonoBehaviour:
   currentShield: 0
   hasThorns: 0
   permanentAttackBonus: 0
+  maxHP: 0
 --- !u!114 &1831533213191130250
 MonoBehaviour:
   m_ObjectHideFlags: 0

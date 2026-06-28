@@ -52,6 +52,22 @@ namespace ProjectM.UI
             InitializeVideoSettings();
         }
 
+        private void Update()
+        {
+            // Bấm ESC để bật/tắt bảng setting nhanh (Sử dụng New Input System)
+            if (UnityEngine.InputSystem.Keyboard.current != null && 
+                UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                if (settingsPanel != null)
+                {
+                    if (settingsPanel.activeSelf)
+                        CloseSettings();
+                    else
+                        OpenSettings();
+                }
+            }
+        }
+
         public void OpenSettings()
         {
             if (settingsPanel != null) settingsPanel.SetActive(true);

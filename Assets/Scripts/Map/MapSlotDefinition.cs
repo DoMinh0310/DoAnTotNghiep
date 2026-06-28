@@ -24,6 +24,9 @@ namespace ProjectM.Map
         [Tooltip("Nếu true: slot này là Boss cuối cùng")]
         public bool isBoss;
 
+        [Tooltip("Tên file StageData trong Resources/Stages (vd: StageData_1). Bỏ trống hệ thống sẽ tự động gán.")]
+        public string customStageID;
+
         [Tooltip("Chỉ số (index) các slot có thể đến từ slot này")]
         public List<int> nextSlots = new List<int>();
     }

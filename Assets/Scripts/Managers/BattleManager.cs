@@ -34,8 +34,8 @@ namespace ProjectM.Managers
         private bool isPreparationPhase = true;
         public bool IsPreparationPhase => isPreparationPhase;
 
-        /// <summary>True trong lúc animation deal skill — khóa mọi input của người chơi.</summary>
-        public static bool IsInputLocked { get; private set; } = false;
+        /// <summary>True trong lúc animation deal skill hoặc người chơi đang dùng thẻ — khóa mọi input của người chơi.</summary>
+        public static bool IsInputLocked { get; set; } = false;
 
         // ══════════════════════════════════════════
         // KHỞI TẠO
@@ -256,6 +256,7 @@ namespace ProjectM.Managers
         private IEnumerator ProcessTurn(bool drawCard = false)
         {
             isTurnProcessing = true;
+            IsInputLocked = true; // Bắt đầu lock chuột khi lượt đang chạy
             turnCount++;
             Debug.Log($"[BattleManager] ══ Lượt {turnCount} bắt đầu ══");
 
@@ -272,6 +273,7 @@ namespace ProjectM.Managers
             {
                 BattleDebugger.Log($"🌊 Lượt {turnCount}: Wave mới spawn — Bỏ qua combat lượt này!");
                 isTurnProcessing = false;
+                IsInputLocked = false; // Mở lại chuột
                 SetEndTurnButtonInteractable(true);
                 yield break;
             }
@@ -290,6 +292,7 @@ namespace ProjectM.Managers
             {
                 Debug.LogError("[BattleManager] Không tìm thấy BattleGrid!");
                 isTurnProcessing = false;
+                IsInputLocked = false; // Mở lại chuột
                 SetEndTurnButtonInteractable(true);
                 yield break;
             }
@@ -337,6 +340,7 @@ namespace ProjectM.Managers
             }
 
             isTurnProcessing = false;
+            IsInputLocked = false; // Xong lượt, thả lại chuột cho người chơi
             SetEndTurnButtonInteractable(true);
         }
 

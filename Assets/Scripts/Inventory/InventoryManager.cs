@@ -194,6 +194,11 @@ namespace ProjectM.Inventory
                 // Ép kích thước vừa khung sidebar
                 var slotRT = slot.GetComponent<RectTransform>();
                 if (slotRT != null) slotRT.sizeDelta = slotSize;
+
+                // FIX: Xóa nền trắng mặc định của clone (set Alpha = 0)
+                var rootImg = slot.GetComponent<UnityEngine.UI.Image>();
+                if (rootImg != null) rootImg.color = Color.clear;
+
                 slot.Setup(relic, -1);
                 relicCount++;
             }
@@ -212,6 +217,11 @@ namespace ProjectM.Inventory
                 var slot = Instantiate(trinketSlotPrefab, trinketSidebar);
                 var slotRT = slot.GetComponent<RectTransform>();
                 if (slotRT != null) slotRT.sizeDelta = slotSize;
+
+                // FIX: Xóa nền trắng mặc định của clone (set Alpha = 0) theo yêu cầu
+                var rootImg = slot.GetComponent<UnityEngine.UI.Image>();
+                if (rootImg != null) rootImg.color = Color.clear;
+
                 slot.Setup(trinket, -1);
                 trinketCount++;
             }
@@ -456,6 +466,12 @@ namespace ProjectM.Inventory
         {
             if (_setup == null || source.championIndex < 0) return;
 
+            // Đảm bảo Relic khởi đầu (chưa có trong túi) được tống vào túi trước khi tháo
+            if (source.currentRelic != null && !_setup.ownedRelics.Contains(source.currentRelic))
+            {
+                _setup.ownedRelics.Add(source.currentRelic);
+            }
+
             _setup.champions[source.championIndex].equippedRelic = null;
             Debug.Log($"[Inventory] Đã tháo Relic '{source.currentRelic?.relicName}' khỏi tướng #{source.championIndex}.");
 
@@ -521,6 +537,12 @@ namespace ProjectM.Inventory
         public void HandleTrinketUnequip(TrinketSlotUI source)
         {
             if (_setup == null || source.championIndex < 0) return;
+
+            // Đảm bảo Trinket khởi đầu được add vào danh sách túi đồ trước khi tháo
+            if (source.currentTrinket != null && !_setup.ownedTrinkets.Contains(source.currentTrinket))
+            {
+                _setup.ownedTrinkets.Add(source.currentTrinket);
+            }
 
             _setup.champions[source.championIndex].equippedTrinket = null;
             Debug.Log($"[Inventory] Đã tháo Trinket '{source.currentTrinket?.trinketName}' khỏi tướng #{source.championIndex}.");

@@ -583,12 +583,24 @@ namespace ProjectM.Map
                 _runData.nonCombatSinceLastCombat = 0;
                 
                 // Gán tên file StageData để BattleScene load
-                if (def.isBoss) {
-                    _runData.currentCombatStageID = "StageData_Boss";
-                } else if (idx == 7 || idx == 8) {
-                    _runData.currentCombatStageID = "StageData_1"; // Trận Combat 1
-                } else if (idx == 12 || idx == 13) {
-                    _runData.currentCombatStageID = "StageData_2"; // Trận Combat 2
+                if (!string.IsNullOrEmpty(def.customStageID))
+                {
+                    // Ưu tiên load ID đã được điền ở Inspector
+                    _runData.currentCombatStageID = def.customStageID;
+                }
+                else
+                {
+                    // Tự động gán (Dự phòng cho các node chưa điền)
+                    if (def.isBoss) {
+                        _runData.currentCombatStageID = "StageData_Boss";
+                    } else if (idx == 7 || idx == 8) {
+                        _runData.currentCombatStageID = "StageData_1"; 
+                    } else if (idx == 12 || idx == 13) {
+                        _runData.currentCombatStageID = "StageData_2"; 
+                    } else {
+                        // Mặc định luôn là Stage 1 nếu vào combat thường mà quên cài ID
+                        _runData.currentCombatStageID = "StageData_1"; 
+                    }
                 }
             }
 

@@ -34,6 +34,22 @@ namespace ProjectM.UI
             if (btnQuit != null)         btnQuit.onClick.AddListener(QuitGame);
         }
 
+        private void Update()
+        {
+            // Bấm ESC để bật/tắt menu nhanh (Sử dụng New Input System)
+            if (UnityEngine.InputSystem.Keyboard.current != null && 
+                UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                if (pausePanel != null)
+                {
+                    if (pausePanel.activeSelf)
+                        ResumeGame();
+                    else
+                        OpenPauseMenu();
+                }
+            }
+        }
+
         public void OpenPauseMenu()
         {
             if (pausePanel != null) pausePanel.SetActive(true);

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.ChampionSetup
   champions:
   - championData: {fileID: 11400000, guid: d17532f265edb0e4b860f34b32f6cd2e, type: 2}
-    equippedRelic: {fileID: 0}
+    equippedRelic: {fileID: 11400000, guid: f27e1c94bb5271541adac4cb0ed8638a, type: 2}
     equippedTrinket: {fileID: 11400000, guid: 2d3169cdc9b55ab4ea4d858c8900cf6d, type: 2}
   - championData: {fileID: 11400000, guid: 173f0048d3fc8904496091ce9eeaafde, type: 2}
     equippedRelic: {fileID: 0}
