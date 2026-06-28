@@ -116,12 +116,12 @@ TextureImporter:
       name: nekomancer_0
       rect:
         serializedVersion: 2
-        x: 27
-        y: 107
-        width: 417
-        height: 538
+        x: 0
+        y: 89
+        width: 512
+        height: 580
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 8e0dc0c813260794dafc78c2e770bb4c
     internalID: 0
     vertices: []
     indices: 

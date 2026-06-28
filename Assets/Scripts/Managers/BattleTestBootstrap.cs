@@ -39,12 +39,36 @@ namespace ProjectM.Managers
                 var shm = Object.FindAnyObjectByType<SkillHandManager>();
                 if (shm != null && shm.championSetup != null)
                 {
-                    runData.championSetup = shm.championSetup;
-                    foreach (var skill in shm.championSetup.supportDeck)
+                    // TẠO COPY CỦA STARTER DECK ĐỂ KHÔNG LÀM HỎNG ASSET GỐC
+                    var setupCopy = ScriptableObject.CreateInstance<ChampionSetup>();
+                    setupCopy.champions = new System.Collections.Generic.List<ChampionEntry>();
+                    
+                    foreach (var champ in shm.championSetup.champions)
+                    {
+                        if (champ != null)
+                        {
+                            setupCopy.champions.Add(new ChampionEntry
+                            {
+                                championData = champ.championData,
+                                equippedRelic = champ.equippedRelic,
+                                equippedTrinket = champ.equippedTrinket
+                            });
+                        }
+                    }
+                    setupCopy.supportDeck = new System.Collections.Generic.List<SkillData>(shm.championSetup.supportDeck);
+                    setupCopy.ownedRelics = new System.Collections.Generic.List<RelicData>(shm.championSetup.ownedRelics);
+                    setupCopy.ownedTrinkets = new System.Collections.Generic.List<TrinketData>(shm.championSetup.ownedTrinkets);
+
+                    runData.championSetup = setupCopy;
+                    foreach (var skill in setupCopy.supportDeck)
                         if (skill != null) runData.playerDeckIDs.Add(skill.name);
-                    foreach (var entry in shm.championSetup.champions)
+                    foreach (var entry in setupCopy.champions)
                         if (entry?.championData != null) runData.playerDeckIDs.Add(entry.championData.name);
-                    Debug.Log($"[BattleTestBootstrap] Đọc StarterDeck '{shm.championSetup.name}' từ SkillHandManager.");
+                    
+                    // Cập nhật lại vào SkillHandManager để nó dùng bản copy
+                    shm.championSetup = setupCopy;
+                    
+                    Debug.Log($"[BattleTestBootstrap] Đã nạp bản sao StarterDeck '{shm.championSetup.name}' vào RunData.");
                 }
                 else
                 {

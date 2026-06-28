@@ -1,0 +1,50 @@
+@startuml
+' THIẾT LẬP GIAO DIỆN
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign center
+
+actor "Người chơi" as Player
+participant "SkillDragHandler" as SDH
+participant "BattleAnimator" as Anim
+participant "CardBattle (Mục tiêu)" as Target
+participant "ElementalHandler" as Elem
+participant "CardDisplay (UI)" as UI
+
+Player -> SDH: Click Chọn mục tiêu hợp lệ
+activate SDH
+
+SDH -> SDH: Thoát Chế độ ngắm bắn (ExitTargetingMode)
+SDH -> Anim: Kích hoạt Hoạt ảnh Chiến đấu (PlayAnimation)
+activate Anim
+Anim --> SDH: 
+deactivate Anim
+
+SDH -> SDH: Tính toán Sát thương cơ bản\n(Cộng Buff từ Cổ vật/Phụ kiện)
+
+SDH -> Target: Gây sát thương (TakeDamage)
+activate Target
+
+Target -> Elem: Kiểm tra Đòn Vật lý
+activate Elem
+Elem -> Elem: Lưu Sát thương Chờ nổ (Pending Bleed)
+Elem --> Target: 
+deactivate Elem
+
+Target -> Target: Trừ máu (CurrentHP)
+Target -> UI: Cập nhật Thanh máu
+activate UI
+UI --> Target: 
+deactivate UI
+
+Target -> Target: Hiển thị Text Sát thương Nảy lên
+Target --> SDH: Trả về trạng thái sống/chết
+deactivate Target
+
+SDH -> SDH: Đẩy thẻ kỹ năng vào Mộ bài (DiscardPile)
+
+SDH --> Player: Mở khóa thẻ khác
+deactivate SDH
+
+@enduml

@@ -4,12 +4,16 @@ using UnityEngine;
 namespace ProjectM.Elements
 {
     /// <summary>
-    /// Nguyên tố Phân rã (Decay).
-    /// Cộng dồn stack. SAU KHI đơn vị bị nhiễm tấn công:
-    ///   - Gây sát thương = số lượt DoT còn lại (giảm dần mỗi lượt)
-    ///   - Ví dụ: 3 stack → lượt 1: -3, lượt 2: -2, lượt 3: -1 → tổng -6
-    /// Nếu nhiễm thêm phân rã khi đang phân rã: dotDuration cộng dồn thêm
-    ///   - Ví dụ: đang có duration=2, nhiễm thêm 3 → duration = 2+3 = 5
+    /// Nguyên tố Phân Rã (Decay) — Cơ chế mới (Leo thang vô hạn):
+    ///
+    /// Sau khi kẻ địch kết thúc lượt tấn công (TurnEnd):
+    ///   - Gây sát thương = số stack Decay hiện tại
+    ///   - Sau đó tăng số stack lên 1
+    ///   - Vòng tiếp theo: stack cao hơn → sát thương cao hơn → stack lại tăng → ...
+    ///
+    /// Ví dụ: 3 stack → gây 3 sát → tăng thành 4 → gây 4 sát → tăng thành 5 → ...
+    ///
+    /// Không có giới hạn trên và không bao giờ tự tắt trừ khi kẻ địch chết.
     /// </summary>
     public class DecayEffect : IElementalEffect
     {
@@ -17,45 +21,43 @@ namespace ProjectM.Elements
 
         public IEnumerator OnStackAdded(ElementalHandler handler, int totalStacks)
         {
-            // Khi nhận thêm stack phân rã, cộng dồn dotDuration
-            // (không phải ghi đè mà cộng thêm để stack cũ không bị mất)
-            int addedStacks = totalStacks - handler.GetDotDuration(ElementType.Decay);
-            if (addedStacks > 0)
-            {
-                int newDuration = handler.GetDotDuration(ElementType.Decay) + addedStacks;
-                handler.SetDotDuration(ElementType.Decay, newDuration);
-                Debug.Log($"[Decay] ☠️ {handler.gameObject.name} bị phân rã! Tổng DoT duration: {newDuration} lượt");
-            }
+            Debug.Log($"[Decay] ☠️ {handler.gameObject.name} bị phân rã! Tổng stack: {totalStacks}");
             yield break;
         }
 
         public IEnumerator OnTurnStart(ElementalHandler handler)
         {
-            yield break; // Decay không trigger trước khi đánh
+            // Decay không trigger trước khi địch đánh
+            yield break;
         }
 
         public IEnumerator OnTurnEnd(ElementalHandler handler)
         {
-            int duration = handler.GetDotDuration(ElementType.Decay);
-            if (duration <= 0) yield break;
+            int stacks = handler.GetStacks(ElementType.Decay);
+            if (stacks <= 0) yield break;
 
             var cardBattle = handler.CardBattle;
-            if (cardBattle?.Data == null) yield break;
+            if (cardBattle == null || cardBattle.IsDead) yield break;
 
-            float resist = cardBattle.Data.GetElementalResistance(ElementType.Decay);
+            float resist = cardBattle.Data?.GetElementalResistance(ElementType.Decay) ?? 0f;
 
-            // Gây sát thương = duration hiện tại
-            Debug.Log($"[Decay] ☠️ {cardBattle.Data.cardName} nhận phân rã {duration} sát thương (còn {duration - 1} lượt sau)");
-            handler.ApplyElementalDamage(duration, resist);
+            // 1. Gây sát thương bằng số stack hiện tại
+            Debug.Log($"[Decay] ☠️ {cardBattle.Data?.cardName} nhận {stacks} sát thương Phân Rã " +
+                      $"(kháng {resist * 100}%)");
+            handler.ApplyElementalDamage(stacks, resist);
 
-            // Giảm duration đi 1 mỗi lượt
-            handler.SetDotDuration(ElementType.Decay, duration - 1);
+            if (cardBattle.IsDead) yield break;
 
-            // Giảm stack display theo (để UI có thể hiển thị sau)
-            int currentStacks = handler.GetStacks(ElementType.Decay);
-            handler.SetStacks(ElementType.Decay, Mathf.Max(0, currentStacks - 1));
+            // 2. Tăng stack lên 1 (leo thang)
+            handler.SetStacks(ElementType.Decay, stacks + 1);
+            Debug.Log($"[Decay] ☠️ {cardBattle.Data?.cardName}: Stack Decay tăng lên {stacks + 1}");
 
-            // TODO: Thêm visual effect phân rã ở đây
+            yield break;
+        }
+
+        public IEnumerator OnAfterPlayerAction(ElementalHandler handler)
+        {
+            // Decay không trigger sau lượt đồng minh
             yield break;
         }
     }

@@ -93,6 +93,39 @@ namespace ProjectM.Skills
                     Debug.Log($"[Skill] {Data.skillName}: +{Data.effectValue} attack cho đòn thường tiếp theo của {caster.Data?.cardName}");
                     caster.AddAttackBonus(Data.effectValue);
                     break;
+
+                // ─ Thêm Khiên (Shield) ──────────────────────────────────
+                case SkillEffectType.AddShield:
+                    foreach (var target in targets)
+                    {
+                        if (target == null || target.IsDead) continue;
+                        Debug.Log($"[Skill] {Data.skillName}: +{Data.effectValue} khiên cho {target.Data?.cardName}");
+                        target.AddShield(Data.effectValue);
+                        yield return new WaitForSeconds(0.15f);
+                    }
+                    break;
+
+                // ─ Bật Phản Dame 50% (Thorns) ───────────────────────────
+                case SkillEffectType.ApplyThorns:
+                    foreach (var target in targets)
+                    {
+                        if (target == null || target.IsDead) continue;
+                        Debug.Log($"[Skill] {Data.skillName}: Bật phản dame 50% cho {target.Data?.cardName}");
+                        target.EnableThorns();
+                        yield return new WaitForSeconds(0.15f);
+                    }
+                    break;
+
+                // ─ Giảm Speed đếm ngược trong lượt ──────────────────────
+                case SkillEffectType.ReduceSpeed:
+                    foreach (var target in targets)
+                    {
+                        if (target == null || target.IsDead) continue;
+                        Debug.Log($"[Skill] {Data.skillName}: Giảm {Data.effectValue} speed đếm ngược cho {target.Data?.cardName}");
+                        target.ReduceCurrentSpeed(Data.effectValue);
+                        yield return new WaitForSeconds(0.15f);
+                    }
+                    break;
             }
         }
 

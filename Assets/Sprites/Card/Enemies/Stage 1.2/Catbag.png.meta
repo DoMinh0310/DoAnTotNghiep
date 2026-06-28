@@ -116,12 +116,12 @@ TextureImporter:
       name: Catbag_0
       rect:
         serializedVersion: 2
-        x: 48
-        y: 264
-        width: 413
-        height: 468
+        x: 0
+        y: 188
+        width: 512
+        height: 580
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: d77397af25b0d20428a0c4fc8063e4db
     internalID: 0
     vertices: []
     indices: 

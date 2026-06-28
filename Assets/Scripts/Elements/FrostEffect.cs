@@ -4,10 +4,11 @@ using UnityEngine;
 namespace ProjectM.Elements
 {
     /// <summary>
-    /// Nguyên tố Băng (Frost).
+    /// Nguyên tố Băng Giá (Frost) — Giữ nguyên cơ chế cũ:
+    ///
     /// - Khi nhận stack: Frost Counter += stack (cộng dồn).
     /// - Khi Frost Counter > 0: Speed của đơn vị bị ĐÓNG BĂNG (không giảm).
-    /// - Mỗi TurnStart: Frost Counter giảm 1. Khi Frost Counter về 0 → Speed tiếp tục bình thường.
+    /// - Mỗi TurnStart: Frost Counter giảm 1. Khi về 0 → Speed tiếp tục bình thường.
     /// </summary>
     public class FrostEffect : IElementalEffect
     {
@@ -15,7 +16,6 @@ namespace ProjectM.Elements
 
         public IEnumerator OnStackAdded(ElementalHandler handler, int totalStacks)
         {
-            // Stack Frost chính là Frost Counter — đã được cộng dồn trong ElementalHandler
             Debug.Log($"[Frost] ❄️ {handler.gameObject.name} bị đóng băng! Frost Counter: {totalStacks}");
             yield break;
         }
@@ -40,6 +40,11 @@ namespace ProjectM.Elements
         public IEnumerator OnTurnEnd(ElementalHandler handler)
         {
             yield break; // Frost không có hiệu ứng cuối lượt
+        }
+
+        public IEnumerator OnAfterPlayerAction(ElementalHandler handler)
+        {
+            yield break; // Frost không trigger sau lượt đồng minh
         }
     }
 }

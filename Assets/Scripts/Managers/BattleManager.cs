@@ -27,6 +27,7 @@ namespace ProjectM.Managers
 
         // Trạng thái
         private bool isTurnProcessing = false;
+        public bool IsTurnProcessing => isTurnProcessing;
         private int turnCount = 0;
 
         // Giai đoạn chuẩn bị: lượt free để đặt tướng, chưa có combat
@@ -118,7 +119,19 @@ namespace ProjectM.Managers
                 // Load hiển thị thẻ (ảnh, chỉ số, khung)
                 var display = go.GetComponentInChildren<CardDisplay>(true);
                 if (display != null)
+                {
                     display.LoadData(entry.championData);
+
+                    // Override chỉ số nếu có bonus từ Smith Event
+                    if (GameManager.Instance?.RunData != null)
+                    {
+                        var bonus = GameManager.Instance.RunData.GetChampionBonus(entry.championData.name);
+                        if (bonus.attackBonus != 0 && display.attackText != null)
+                            display.attackText.text = (entry.championData.attack + bonus.attackBonus).ToString();
+                        if (bonus.healthBonus != 0 && display.healthText != null)
+                            display.healthText.text = (entry.championData.health + bonus.healthBonus).ToString();
+                    }
+                }
                 else
                     Debug.LogWarning("[BattleManager] Card_Prefab thiếu CardDisplay!");
 
@@ -134,7 +147,16 @@ namespace ProjectM.Managers
                 if (entry.equippedRelic != null)
                     relicHandler.EquipRelic(entry.equippedRelic);
 
-                // Trinket sẽ được hook vào đây sau khi TrinketHandler được build
+                // Gắn và init Trinket Logic
+                var trinketHandler = go.GetComponent<TrinketHandler>() ?? go.AddComponent<TrinketHandler>();
+                if (entry.equippedTrinket != null)
+                {
+                    trinketHandler.EquipTrinket(entry.equippedTrinket);
+
+                    // Cập nhật phần Abilities của thẻ tướng để hiển thị mô tả nội tại Trinket
+                    if (display != null)
+                        display.UpdateTrinketDescription(entry.equippedTrinket);
+                }
 
                 BattleDebugger.Log($"  ✅ '{entry.championData.cardName}' | Relic: {entry.equippedRelic?.relicName ?? "none"} | Trinket: {entry.equippedTrinket?.trinketName ?? "none"}");
             }
@@ -302,6 +324,17 @@ namespace ProjectM.Managers
             }
 
             BattleDebugger.Log($"══ Lượt {turnCount} kết thúc ══");
+
+            // ── Phase 3: BLEED NỔ (sau khi đồng minh đã hành động xong) ──
+            // Trigger cho tất cả kẻ địch còn sống để Bleed tích lũy từ lượt này phát nổ
+            BattleDebugger.Log($"══ Lượt {turnCount} — Phase 3: Nguyên tố hậu kỳ (Bleed...) ══");
+            foreach (CardBattle card in enemyCards)
+            {
+                if (card == null || card.IsDead) continue;
+                var enemyElemental = card.GetComponent<ProjectM.Elements.ElementalHandler>();
+                if (enemyElemental != null)
+                    yield return StartCoroutine(enemyElemental.TriggerAfterPlayerAction());
+            }
 
             isTurnProcessing = false;
             SetEndTurnButtonInteractable(true);

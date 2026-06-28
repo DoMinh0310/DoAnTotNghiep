@@ -15,8 +15,10 @@ MonoBehaviour:
   skillName: Focus Up
   description: 'Self
 
-    Increase 1 attack for next turn'
+    Attack +1 next turn'
   artwork: {fileID: -8870633576284460081, guid: e03c0c424821d0c47997f1d7c5432fe6, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
   targetType: 3
   effectType: 3
   effectValue: 1

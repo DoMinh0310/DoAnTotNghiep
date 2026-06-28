@@ -15,8 +15,10 @@ MonoBehaviour:
   skillName: Flame Wall
   description: 'Row attack
 
-    Apply 3 scorch damage'
+    Apply 3 Bleed '
   artwork: {fileID: 419916788192596451, guid: fe297d92d62810f4cb506f2f9e072a77, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
   targetType: 2
   effectType: 1
   effectValue: 5

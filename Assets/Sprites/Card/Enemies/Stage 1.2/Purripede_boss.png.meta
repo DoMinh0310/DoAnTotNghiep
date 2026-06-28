@@ -116,12 +116,12 @@ TextureImporter:
       name: Purripede_boss_0
       rect:
         serializedVersion: 2
-        x: 12
-        y: 200
-        width: 500
-        height: 568
+        x: 0
+        y: 188
+        width: 512
+        height: 580
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 92fd5ae65b44b7d4b99b80953c6715ff
     internalID: 0
     vertices: []
     indices: 

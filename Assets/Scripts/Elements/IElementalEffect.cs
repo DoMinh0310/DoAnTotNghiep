@@ -14,20 +14,29 @@ namespace ProjectM.Elements
 
         /// <summary>
         /// Gọi ngay khi stack mới được cộng vào.
-        /// Dùng để cập nhật trạng thái nội bộ (ví dụ: DecayEffect cập nhật dotDuration).
+        /// Dùng để cập nhật trạng thái nội bộ.
         /// </summary>
         IEnumerator OnStackAdded(ElementalHandler handler, int totalStacks);
 
         /// <summary>
-        /// Gọi ngay TRƯỚC KHI đơn vị bắt đầu lượt của mình (trước khi trừ speed).
-        /// Bleed kích hoạt tại đây nếu đủ stack.
+        /// Gọi ngay TRƯỚC KHI đơn vị địch bắt đầu lượt tấn công.
+        /// Chain kích hoạt tại đây (khi stacks >= HP hiện tại).
+        /// Frost giảm counter tại đây.
         /// </summary>
         IEnumerator OnTurnStart(ElementalHandler handler);
 
         /// <summary>
-        /// Gọi ngay SAU KHI đơn vị kết thúc lượt của mình (ngay cả khi không đánh).
-        /// Decay tích/kích hoạt tại đây.
+        /// Gọi ngay SAU KHI đơn vị địch kết thúc lượt tấn công.
+        /// Decay tick tại đây (gây damage rồi tăng stack lên 1).
         /// </summary>
         IEnumerator OnTurnEnd(ElementalHandler handler);
+
+        /// <summary>
+        /// Gọi sau khi tất cả action của đồng minh trong 1 lượt hoàn thành,
+        /// ngay TRƯỚC KHI đến lượt địch đánh tiếp theo.
+        /// Bleed nổ tại đây (dựa trên sát thương vật lý tích lũy từ lượt đồng minh).
+        /// Các nguyên tố khác có thể để yield break.
+        /// </summary>
+        IEnumerator OnAfterPlayerAction(ElementalHandler handler);
     }
 }

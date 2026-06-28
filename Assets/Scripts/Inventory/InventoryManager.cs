@@ -109,10 +109,10 @@ namespace ProjectM.Inventory
         {
             if (_isOpen || inventoryPanel == null || circleReveal == null) return;
             
-            // Cập nhật lại _setup trong trường hợp vừa thay đổi
-            if (_setup == null && SkillHandManager.Instance != null)
+            // LUÔN cập nhật lại _setup từ dữ liệu runtime thực tế (tránh lỗi do gán cứng trong Inspector)
+            if (SkillHandManager.Instance != null)
                 _setup = SkillHandManager.Instance.championSetup;
-            if (_setup == null && GameManager.Instance?.RunData?.championSetup != null)
+            else if (GameManager.Instance?.RunData?.championSetup != null)
                 _setup = GameManager.Instance.RunData.championSetup;
 
             _isOpen = true;
@@ -229,7 +229,11 @@ namespace ProjectM.Inventory
                 // Spawn Thẻ Tướng
                 var champGo = Instantiate(cardPrefab, championRow);
                 var invDisplay = champGo.AddComponent<InventoryCardDisplay>();
-                invDisplay.InitChampion(champEntry.championData);
+
+                // Đọc bonus từ Smith Event (nếu có)
+                var bonus = GameManager.Instance?.RunData?.GetChampionBonus(champEntry.championData?.name ?? "")
+                            ?? new Map.ChampionStatBonus();
+                invDisplay.InitChampion(champEntry.championData, bonus.attackBonus, bonus.healthBonus);
 
                 // Toàn bộ thẻ là drop target cho relic (snap như nam châm)
                 champGo.AddComponent<ChampionCardRelicDrop>();
@@ -239,6 +243,9 @@ namespace ProjectM.Inventory
                 if (rSlot != null)
                 {
                     rSlot.gameObject.SetActive(true);          // đảm bảo không bị ẩn bởi Awake()
+                    // Ép cùng kích thước với TrinketSlot để đồng bộ
+                    var rSlotRT = rSlot.GetComponent<RectTransform>();
+                    if (rSlotRT != null) rSlotRT.sizeDelta = slotSize;
                     rSlot.Setup(champEntry.equippedRelic, i);
                 }
 
@@ -246,15 +253,21 @@ namespace ProjectM.Inventory
                 if (tSlot != null)
                 {
                     tSlot.gameObject.SetActive(true);
+                    var tSlotRT = tSlot.GetComponent<RectTransform>();
+                    if (tSlotRT != null) tSlotRT.sizeDelta = slotSize;
                     tSlot.Setup(champEntry.equippedTrinket, i);
                 }
 
                 // 3. Active Skills Row (Skill sinh ra từ Relic)
-                if (champEntry.equippedRelic != null && champEntry.equippedRelic.spawnedSkill != null)
+                if (champEntry.equippedRelic != null && champEntry.equippedRelic.possibleSkills != null)
                 {
-                    var aSkillGo = Instantiate(skillPrefab, activeSkillRow);
-                    var skillDisplay = aSkillGo.AddComponent<InventoryCardDisplay>();
-                    skillDisplay.InitSkill(champEntry.equippedRelic.spawnedSkill);
+                    foreach (var pSkill in champEntry.equippedRelic.possibleSkills)
+                    {
+                        if (pSkill == null) continue;
+                        var aSkillGo = Instantiate(skillPrefab, activeSkillRow);
+                        var skillDisplay = aSkillGo.AddComponent<InventoryCardDisplay>();
+                        skillDisplay.InitSkill(pSkill);
+                    }
                 }
             }
 
@@ -418,15 +431,20 @@ namespace ProjectM.Inventory
             RelicData relicA = source.currentRelic;
             RelicData relicB = target.currentRelic;
 
-            // Xử lý logic hoán đổi (Swap)
-            // Nếu slot là tướng (index >= 0) thì cập nhật data tương ứng
+            // Swap data giữa 2 slot
             if (source.championIndex >= 0)
                 _setup.champions[source.championIndex].equippedRelic = relicB;
             
             if (target.championIndex >= 0)
                 _setup.champions[target.championIndex].equippedRelic = relicA;
 
-            // Reload lại UI để hiện đúng icon mới và cập nhật Active Skills
+            // Đảm bảo cả 2 relic đều còn trong ownedRelics để khi unequip thì tự động hiện lại sidebar
+            if (relicA != null && !_setup.ownedRelics.Contains(relicA))
+                _setup.ownedRelics.Add(relicA);
+            if (relicB != null && !_setup.ownedRelics.Contains(relicB))
+                _setup.ownedRelics.Add(relicB);
+
+            // Reload lại UI
             PopulateInventory();
         }
 
@@ -440,6 +458,72 @@ namespace ProjectM.Inventory
 
             _setup.champions[source.championIndex].equippedRelic = null;
             Debug.Log($"[Inventory] Đã tháo Relic '{source.currentRelic?.relicName}' khỏi tướng #{source.championIndex}.");
+
+            PopulateInventory();
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // XỬ LÝ SWAP TRINKET
+        // ══════════════════════════════════════════════════════════════════
+
+        public void OnTrinketDragStart(TrinketSlotUI sourceSlot)
+        {
+            ShowPlaceholders(true);
+
+            // Dùng true để tìm CẢ slot đang ẩn (champion slot trống)
+            var allSlots = inventoryPanel.GetComponentsInChildren<TrinketSlotUI>(true);
+            foreach (var slot in allSlots)
+            {
+                if (slot == sourceSlot) continue;
+                slot.gameObject.SetActive(true); // Bật champion slot ẩn thành drop target
+                slot.ShowGlow(true);
+            }
+        }
+
+        public void OnTrinketDragEnd()
+        {
+            ShowPlaceholders(false);
+
+            var allSlots = inventoryPanel.GetComponentsInChildren<TrinketSlotUI>();
+            foreach (var slot in allSlots)
+                slot.ShowGlow(false);
+
+            // Re-sync UI để đảm bảo trinket không mất khi thả vào vùng không hợp lệ
+            if (_setup != null)
+                PopulateInventory();
+        }
+
+        public void HandleTrinketDrop(TrinketSlotUI source, TrinketSlotUI target)
+        {
+            if (_setup == null) return;
+
+            TrinketData trinketA = source.currentTrinket;
+            TrinketData trinketB = target.currentTrinket;
+
+            // Swap data giữa 2 slot
+            if (source.championIndex >= 0)
+                _setup.champions[source.championIndex].equippedTrinket = trinketB;
+            
+            if (target.championIndex >= 0)
+                _setup.champions[target.championIndex].equippedTrinket = trinketA;
+
+            // Đảm bảo cả 2 trinket đều còn trong ownedTrinkets.
+            // Quan trọng: khi trinketB bị đẩy khỏi chỗ của tướng nó phải được trở về sidebar.
+            if (trinketA != null && !_setup.ownedTrinkets.Contains(trinketA))
+                _setup.ownedTrinkets.Add(trinketA);
+            if (trinketB != null && !_setup.ownedTrinkets.Contains(trinketB))
+                _setup.ownedTrinkets.Add(trinketB);
+
+            // Reload lại UI
+            PopulateInventory();
+        }
+
+        public void HandleTrinketUnequip(TrinketSlotUI source)
+        {
+            if (_setup == null || source.championIndex < 0) return;
+
+            _setup.champions[source.championIndex].equippedTrinket = null;
+            Debug.Log($"[Inventory] Đã tháo Trinket '{source.currentTrinket?.trinketName}' khỏi tướng #{source.championIndex}.");
 
             PopulateInventory();
         }

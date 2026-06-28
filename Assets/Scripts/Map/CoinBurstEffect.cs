@@ -23,9 +23,15 @@ namespace ProjectM.Map
         [SerializeField] private int coinCount = 14;
 
         [Header("Phase 1 – Burst & Fall")]
-        [SerializeField] private float burstSpeedMin = 250f;
-        [SerializeField] private float burstSpeedMax = 650f;
-        [SerializeField] private float gravity       = 1400f;
+        [Tooltip("Lực văng ngang tối thiểu (px/s) — giảm xuống để xu ít văng sang 2 bên")]
+        [SerializeField] private float horizontalSpeedMin = 50f;
+        [Tooltip("Lực văng ngang tối đa (px/s)")]
+        [SerializeField] private float horizontalSpeedMax = 220f;
+        [Tooltip("Lực bắt đầu nảy lên tối thiểu (px/s)")]
+        [SerializeField] private float verticalSpeedMin = 350f;
+        [Tooltip("Lực bắt đầu nảy lên tối đa (px/s)")]
+        [SerializeField] private float verticalSpeedMax = 650f;
+        [SerializeField] private float gravity = 1400f;
         [SerializeField] private float burstDuration = 1.0f; // Tăng lên 1 tí để xu nằm im trên đất trước khi bay đi
 
         [Header("Floor (Mặt đất)")]
@@ -112,15 +118,11 @@ namespace ProjectM.Map
                 img.sprite        = coinSprite;
                 img.raycastTarget = false;
 
-                // Velocity: góc ngẫu nhiên
-                float rad   = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
-                float speed = UnityEngine.Random.Range(burstSpeedMin, burstSpeedMax);
-                float vx = Mathf.Cos(rad) * speed;
-                float vy = Mathf.Sin(rad) * speed;
-                
-                // Giảm lực cắm thẳng xuống đất để nó nảy lên đẹp hơn
-                if (vy < 0) vy *= 0.3f; 
-                vy += 150f; // luôn ưu tiên nẩy nhẹ lên trên lúc xuất hiện
+                // Velocity: parabol lên cao rồi rơi xuống
+                // — chỉ văng ngang 1 chút, chủ yếu nảy thẳng lên
+                float vx = UnityEngine.Random.Range(horizontalSpeedMin, horizontalSpeedMax)
+                           * (UnityEngine.Random.value > 0.5f ? 1f : -1f); // ngẫu nhiên trái/phải
+                float vy = UnityEngine.Random.Range(verticalSpeedMin, verticalSpeedMax); // luôn nảy lên
 
                 vels.Add(new Vector2(vx, vy));
                 coins.Add(rt);

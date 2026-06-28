@@ -116,10 +116,10 @@ TextureImporter:
       name: Chain_0
       rect:
         serializedVersion: 2
-        x: 4
-        y: 11
-        width: 138
-        height: 133
+        x: 0
+        y: 3
+        width: 149
+        height: 145
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

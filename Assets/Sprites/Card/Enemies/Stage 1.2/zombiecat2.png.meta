@@ -116,12 +116,12 @@ TextureImporter:
       name: zombiecat2_0
       rect:
         serializedVersion: 2
-        x: 85
-        y: 217
-        width: 355
-        height: 507
+        x: 0
+        y: 188
+        width: 512
+        height: 580
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: d670281acbe2a8746bf256f9341acc88
     internalID: 0
     vertices: []
     indices: 

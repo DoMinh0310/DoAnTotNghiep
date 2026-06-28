@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: Freeze Spell
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Freeze Spell
-  description: 'Single Enemy
-
-    Apply 5 frost'
+  description: "Single \nFrost +5 "
   artwork: {fileID: 1925524008857957554, guid: 21b01d5ed569a1b4fa5ac59b3d631644, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bdab57665510e245aef13c5fb607973, type: 3}
+  m_Name: Plaster
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
+  skillName: Plaster
+  description: 'Single
+
+    HP +3'
+  artwork: {fileID: 4034979744300668655, guid: d98d49fe72210bd4dadcc29101f32cc7, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  targetType: 4
+  effectType: 2
+  effectValue: 3
+  elementType: 4
+  customOverride: {fileID: 0}

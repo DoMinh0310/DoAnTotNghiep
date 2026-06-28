@@ -18,6 +18,9 @@ namespace ProjectM.Skills
         ApplyElement = 1, // Cộng stack nguyên tố vào mục tiêu
         HealTarget   = 2, // Hồi máu cho mục tiêu (thay thế HealSelf)
         AttackBuff   = 3, // Tăng sát thương đòn thường tiếp theo của bản thân
+        AddShield    = 4, // Nhận khiên chặn sát thương trước khi mất máu
+        ApplyThorns  = 5, // Bật phản lại 50% sát thương khi bị đánh
+        ReduceSpeed  = 6, // Giảm speed đếm ngược hiện tại trong chu kỳ lượt
     }
 
     /// <summary>

@@ -1,0 +1,84 @@
+@startuml
+' THIẾT LẬP GIAO DIỆN (Trắng Đen truyền thống)
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Arial
+
+' Xóa nền và đặt viền đen cơ bản
+skinparam usecase {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+}
+
+skinparam actor {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+}
+
+skinparam rectangle {
+    BackgroundColor transparent
+    BorderColor Black
+    FontColor Black
+}
+
+left to right direction
+
+actor "Người chơi"
+actor "Hệ thống trò chơi"
+
+rectangle "Hệ thống Trò chơi Chiến thuật Thẻ bài" {
+    
+    (Bắt đầu chuyến đi mới)
+    (Xem bản đồ)
+    (Chọn điểm đến tiếp theo)
+    
+    (Mở túi đồ)
+    (Xem bộ bài)
+    (Trang bị Cổ vật và Phụ kiện)
+    
+    (Bắt đầu trận đấu)
+    (Kéo thả và đánh bài)
+    (Kích hoạt kỹ năng)
+    (Kích hoạt hiệu ứng nguyên tố)
+    (Kết thúc lượt)
+    (Xoay vòng lượt của địch)
+    
+    (Nhận vàng)
+    (Chọn thẻ bài thưởng)
+    (Nhận Cổ vật và Phụ kiện)
+}
+
+' KẾT NỐI (Dùng đường kẻ thẳng không mũi tên "--")
+
+"Người chơi" -- (Bắt đầu chuyến đi mới)
+"Người chơi" -- (Xem bản đồ)
+"Người chơi" -- (Chọn điểm đến tiếp theo)
+
+"Người chơi" -- (Mở túi đồ)
+"Người chơi" -- (Xem bộ bài)
+"Người chơi" -- (Trang bị Cổ vật và Phụ kiện)
+
+"Người chơi" -- (Kéo thả và đánh bài)
+"Người chơi" -- (Kết thúc lượt)
+
+"Người chơi" -- (Chọn thẻ bài thưởng)
+"Người chơi" -- (Nhận Cổ vật và Phụ kiện)
+
+' Include / Extend
+(Chọn điểm đến tiếp theo) .> (Bắt đầu trận đấu) : <<include>>
+(Mở túi đồ) .> (Xem bộ bài) : <<include>>
+(Mở túi đồ) .> (Trang bị Cổ vật và Phụ kiện) : <<extend>>
+
+(Kéo thả và đánh bài) .> (Kích hoạt kỹ năng) : <<include>>
+(Kích hoạt kỹ năng) .> (Kích hoạt hiệu ứng nguyên tố) : <<extend>>
+
+(Bắt đầu trận đấu) .> (Xoay vòng lượt của địch) : <<extend>>
+
+' Actor Hệ thống (Nằm bên phải, đường nối ngược lại)
+(Xoay vòng lượt của địch) -- "Hệ thống trò chơi"
+(Nhận vàng) -- "Hệ thống trò chơi"
+(Bắt đầu trận đấu) -- "Hệ thống trò chơi"
+
+@enduml

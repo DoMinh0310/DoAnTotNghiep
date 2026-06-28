@@ -59,9 +59,9 @@ namespace ProjectM.Cards
         {
             if (_relic == null)            return;
             if (SkillPending)              return; // Chưa dùng skill cũ → không đếm
-            if (_relic.spawnedSkill == null)
+            if (_relic.possibleSkills == null || _relic.possibleSkills.Count == 0)
             {
-                Debug.LogWarning($"[RelicHandler] Relic '{_relic.relicName}' chưa config spawnedSkill!");
+                Debug.LogWarning($"[RelicHandler] Relic '{_relic.relicName}' chưa config possibleSkills!");
                 return;
             }
 
@@ -97,9 +97,10 @@ namespace ProjectM.Cards
             SkillPending     = true;
             _currentCooldown = _relic.cycleSpeed; // Reset ngay để UI không hiện số âm
 
-            // Spawn thẻ skill, đánh dấu nguồn gốc từ relic này
-            handManager.SpawnRelicSkillCard(_relic.spawnedSkill, this);
-            Debug.Log($"[RelicHandler] ★ Relic '{_relic.relicName}' kích hoạt! Spawn '{_relic.spawnedSkill.skillName}' vào tay.");
+            // 4. Nếu dùng thẻ thành công, Spawn 1 Skill ngẫu nhiên từ Relic
+            var skillToSpawn = _relic.possibleSkills[Random.Range(0, _relic.possibleSkills.Count)];
+            handManager.SpawnRelicSkillCard(skillToSpawn, this);
+            Debug.Log($"[RelicHandler] ★ Relic '{_relic.relicName}' kích hoạt! Spawn '{skillToSpawn.skillName}' vào tay.");
         }
     }
 }

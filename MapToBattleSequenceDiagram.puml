@@ -1,0 +1,65 @@
+@startuml
+' THIẾT LẬP GIAO DIỆN
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign center
+
+actor "Người chơi" as Player
+participant "MapManager" as Map
+participant "GameManager" as GM
+participant "BattleManager" as BM
+participant "EnemyWaveManager" as EWM
+participant "SkillHandManager" as SHM
+
+Player -> Map: Click Node Trận chiến (Battle/Boss)
+activate Map
+
+Map -> GM: OnCombatNodeEntered()
+activate GM
+GM -> GM: SaveGame() (Lưu RunData)
+GM -> GM: LoadBattleScene() (Chuyển Scene)
+Map --> Player: 
+deactivate Map
+
+== Chuyển sang BattleScene ==
+
+BM -> BM: Khởi tạo (Start)
+activate BM
+
+BM -> SHM: Lấy ChampionSetup
+activate SHM
+SHM --> BM: Trả về danh sách Tướng
+deactivate SHM
+
+BM -> BM: Sinh Tướng (Spawn) vào Tay (HandRegion)
+
+BM -> EWM: StartStage()
+activate EWM
+EWM -> EWM: Sinh Quái vật (Wave đầu tiên)
+EWM --> BM: 
+deactivate EWM
+
+BM -> BM: Khóa Nút Kết thúc lượt\n(Chờ người chơi thả Tướng)
+BM --> Player: Bắt đầu Pha Chuẩn bị (Preparation Phase)
+deactivate BM
+
+note over Player, BM
+  Người chơi kéo thả Tướng từ Tay xuống Bàn cờ (BattleGrid)
+end note
+
+Player -> BM: Đặt xong Tướng cuối cùng
+activate BM
+
+BM -> BM: Kết thúc Pha Chuẩn bị
+BM -> SHM: DealSkillsWithAnimation()
+activate SHM
+SHM -> SHM: Rút bài Kỹ năng (Theo Deck)
+SHM --> BM: 
+deactivate SHM
+
+BM -> BM: Mở khóa Nút Kết thúc lượt
+BM --> Player: Bắt đầu Chiến đấu thực sự
+deactivate BM
+
+@enduml

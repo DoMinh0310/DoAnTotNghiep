@@ -32,6 +32,19 @@ namespace ProjectM.Inventory
             _display.LoadData(data);
         }
 
+        /// <summary>Hiển thị tướng với chỉ số đã cộng bonus từ Smith Event.</summary>
+        public void InitChampion(CardData data, int atkBonus, int hpBonus)
+        {
+            if (_display == null) _display = GetComponent<CardDisplay>();
+            _display.LoadData(data);
+
+            // Override chỉ số nếu có bonus
+            if (atkBonus != 0 && _display.attackText != null)
+                _display.attackText.text = (data.attack + atkBonus).ToString();
+            if (hpBonus != 0 && _display.healthText != null)
+                _display.healthText.text = (data.health + hpBonus).ToString();
+        }
+
         public void InitSkill(SkillData data)
         {
             if (_display == null) _display = GetComponent<CardDisplay>();

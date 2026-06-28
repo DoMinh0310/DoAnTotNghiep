@@ -116,12 +116,12 @@ TextureImporter:
       name: Kytten_0
       rect:
         serializedVersion: 2
-        x: 54
-        y: 264
-        width: 424
-        height: 450
+        x: 0
+        y: 188
+        width: 512
+        height: 580
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 771e6c5717e618e489e1c82e67e0b8a7
     internalID: 0
     vertices: []
     indices: 

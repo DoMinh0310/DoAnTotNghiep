@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Healing Spell
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Healing Spell
-  description: Heal target by 2 hp
+  description: 'Ally
+
+    HP +2'
   artwork: {fileID: 1106409471906836885, guid: fdaa2d2f63aecb1469bccf7d69c88b30, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1

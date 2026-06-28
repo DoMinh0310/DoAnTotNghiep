@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using DG.Tweening;
 using ProjectM.Skills;
 
 namespace ProjectM.Inventory
@@ -15,7 +16,10 @@ namespace ProjectM.Inventory
     ///     ├── EmptyIcon       : Image/GameObject (khi không có trinket)
     ///     └── TrinketNameText : TMP_Text (tên trinket)
     /// </summary>
-    public class TrinketSlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class TrinketSlotUI : MonoBehaviour,
+        IBeginDragHandler, IDragHandler, IEndDragHandler,
+        IDropHandler, IPointerEnterHandler, IPointerExitHandler,
+        IPointerClickHandler
     {
         // ── Data ──────────────────────────────────────────────────────────
         public TrinketData currentTrinket;
@@ -34,18 +38,46 @@ namespace ProjectM.Inventory
         public GameObject tooltipPanel;
         public TMP_Text   tooltipText;
 
+        // ── Private state ─────────────────────────────────────────────────
+        private CanvasGroup   _canvasGroup;
+        private Canvas        _rootCanvas;
+        private RectTransform _rootRect;
+        private Tweener       _glowTween;
+
+        private GameObject    _ghost;
+
+        // ── Static drag state ─────────────────────────────────────────────
+        public static TrinketSlotUI Dragging { get; private set; }
+
         // ══════════════════════════════════════════════════════════════════
         // SETUP
         // ══════════════════════════════════════════════════════════════════
 
         private void Awake()
         {
+            _canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            _rootCanvas  = GetComponentInParent<Canvas>();
+            _rootRect    = _rootCanvas?.GetComponent<RectTransform>();
+
             // Auto-find theo tên nếu chưa kéo vào Inspector
             if (trinketIconImage == null)
             {
                 var t = transform.Find("ItemImage");
-                if (t != null) trinketIconImage = t.GetComponent<Image>();
-                else           trinketIconImage = GetComponent<Image>(); // fallback: dùng root Image
+                if (t != null)
+                {
+                    trinketIconImage = t.GetComponent<Image>();
+                }
+                else
+                {
+                    // Tự động tạo child ItemImage nếu prefab thiếu, KHÔNG dùng root Image (tránh đè background)
+                    var iconGo = new GameObject("ItemImage");
+                    iconGo.transform.SetParent(transform, false);
+                    trinketIconImage = iconGo.AddComponent<Image>();
+                    var rt = trinketIconImage.GetComponent<RectTransform>();
+                    rt.anchorMin = Vector2.zero;
+                    rt.anchorMax = Vector2.one;
+                    rt.sizeDelta = Vector2.zero;
+                }
             }
             if (glowBorderImage == null)
             {
@@ -59,6 +91,21 @@ namespace ProjectM.Inventory
             RefreshDisplay();
         }
 
+        private void OnDestroy()
+        {
+            if (_ghost != null)
+            {
+                Destroy(_ghost);
+                _ghost = null;
+            }
+            
+            _glowTween?.Kill();
+            transform.DOKill();
+
+            if (Dragging == this)
+                Dragging = null;
+        }
+
         public void Setup(TrinketData trinket, int champIndex)
         {
             currentTrinket = trinket;
@@ -70,22 +117,36 @@ namespace ProjectM.Inventory
         {
             bool hasTrinket = currentTrinket != null;
 
-            // Nếu không có trinket VÀ không có icon "ô trống" → ẩn toàn bộ slot
-            if (!hasTrinket && emptyIconObj == null)
+            // Slot của tướng (championIndex >= 0) LUÔN hiển thị — cần là drop target.
+            // Sidebar slot (championIndex = -1) mới ẩn khi rỗng và không có emptyIconObj.
+            if (!hasTrinket && emptyIconObj == null && championIndex < 0)
             {
                 gameObject.SetActive(false);
                 return;
             }
 
             gameObject.SetActive(true);
-            if (emptyIconObj != null) emptyIconObj.SetActive(!hasTrinket);
+            // emptyIconObj chỉ hiện trên sidebar (championIndex < 0)
+            // Champion card slot không dùng placeholder — giống RelicSlotUI trên champion card luôn có emptyIconObj = null
+            if (emptyIconObj != null) emptyIconObj.SetActive(!hasTrinket && championIndex < 0);
 
-            // Dùng color thay vì SetActive để tránh ẩn cả slot khi root Image là icon
+            // Xóa TOÀN BỘ Image nền (kể cả child) trừ icon và glow
+            // Tránh trường hợp trinketIconImage == root Image bị clear xong lại set trắng
+            var allImages = GetComponentsInChildren<Image>(true);
+            foreach (var img in allImages)
+            {
+                if (img == trinketIconImage) continue;        // bỏ qua icon
+                if (img == glowBorderImage)  continue;        // bỏ qua glow
+                img.color = Color.clear;                      // ẩn mọi background
+            }
+
             if (trinketIconImage != null)
             {
                 bool showIcon = hasTrinket && currentTrinket.icon != null;
                 trinketIconImage.sprite = showIcon ? currentTrinket.icon : null;
-                trinketIconImage.color  = showIcon ? Color.white : Color.clear;
+                trinketIconImage.color  = showIcon  ? Color.white
+                                        : (championIndex >= 0 ? new Color(1f, 1f, 1f, 0.15f)
+                                                              : Color.clear);
             }
 
             if (trinketNameText != null) trinketNameText.text = "";
@@ -109,11 +170,97 @@ namespace ProjectM.Inventory
         }
 
         // ══════════════════════════════════════════════════════════════════
-        // HOVER — Hiển thị tooltip mô tả
+        // DRAG
+        // ══════════════════════════════════════════════════════════════════
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (IsCombatLocked() || currentTrinket == null) return;
+
+            Dragging = this;
+            InventoryManager.Instance?.OnTrinketDragStart(this);
+
+            _ghost = new GameObject("TrinketGhost");
+            _ghost.transform.SetParent(_rootCanvas.transform, false);
+            _ghost.transform.SetAsLastSibling();
+
+            var img = _ghost.AddComponent<Image>();
+            img.sprite        = trinketIconImage?.sprite;
+            img.raycastTarget = false;
+            img.preserveAspect = true;
+
+            var rt = _ghost.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(72f, 72f);
+            MoveGhostTo(eventData.position);
+
+            _canvasGroup.alpha = 0.4f;
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (_ghost == null) return;
+            MoveGhostTo(eventData.position);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (_ghost != null) { Destroy(_ghost); _ghost = null; }
+            _canvasGroup.alpha = 1f;
+
+            Dragging = null;
+            InventoryManager.Instance?.OnTrinketDragEnd();
+        }
+
+        private void MoveGhostTo(Vector2 screenPos)
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _rootRect, screenPos, null, out var local);
+            _ghost.GetComponent<RectTransform>().anchoredPosition = local;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // DROP TARGET
+        // ══════════════════════════════════════════════════════════════════
+
+        public void OnDrop(PointerEventData eventData)
+        {
+            if (Dragging == null || Dragging == this) return;
+            InventoryManager.Instance?.HandleTrinketDrop(Dragging, this);
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // CLICK — Right-click để tháo
+        // ══════════════════════════════════════════════════════════════════
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Right) return;
+            if (championIndex < 0 || currentTrinket == null) return;
+            if (IsCombatLocked()) return;
+
+            InventoryManager.Instance?.HandleTrinketUnequip(this);
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // HOVER — Hiển thị tooltip mô tả & highlight drag
         // ══════════════════════════════════════════════════════════════════
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (Dragging != null && Dragging != this)
+            {
+                _glowTween?.Kill();
+                if (glowBorderImage != null)
+                {
+                    glowBorderImage.gameObject.SetActive(true);
+                    glowBorderImage.color = new Color(1f, 1f, 0.3f, 1f);
+                    _glowTween = glowBorderImage
+                        .DOColor(new Color(1f, 0.7f, 0f, 1f), 0.2f)
+                        .SetLoops(-1, DG.Tweening.LoopType.Yoyo);
+                }
+                transform.DOScale(1.08f, 0.15f);
+            }
+
             if (currentTrinket == null || tooltipPanel == null) return;
             tooltipPanel.SetActive(true);
             if (tooltipText != null)
@@ -122,7 +269,24 @@ namespace ProjectM.Inventory
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (Dragging != null && Dragging != this)
+            {
+                transform.DOScale(1f, 0.1f);
+                ShowGlow(true);
+            }
+
             if (tooltipPanel != null) tooltipPanel.SetActive(false);
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // HELPERS
+        // ══════════════════════════════════════════════════════════════════
+
+        private static bool IsCombatLocked()
+        {
+            var bm = ProjectM.Managers.BattleManager.Instance;
+            if (bm == null) return false;
+            return !bm.IsPreparationPhase;
         }
     }
 }

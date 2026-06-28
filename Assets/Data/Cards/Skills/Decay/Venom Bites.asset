@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bdab57665510e245aef13c5fb607973, type: 3}
   m_Name: Venom Bites
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
-  skillName: Venom Bites
+  skillName: Deadly Bites
   description: 'Single Target
 
-    Venom'
+    Decay +2'
   artwork: {fileID: 272409631353793060, guid: ed63fbc7e16159841b2e7ba178e9c02b, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
   targetType: 0
   effectType: 1
-  effectValue: 4
+  effectValue: 2
   elementType: 1
   customOverride: {fileID: 0}

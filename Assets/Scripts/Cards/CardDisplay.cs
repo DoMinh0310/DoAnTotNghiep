@@ -11,6 +11,10 @@ namespace ProjectM.Cards
         [Header("Card Data")]
         public CardData cardData;
 
+        [Header("Keyword Coloring")]
+        [Tooltip("Kéo asset KeywordDatabase vào đây để tự động nhuộm màu từ khoá trong description.")]
+        public Skills.KeywordDatabase keywordDatabase;
+
         [Header("UI References")]
         public GameObject cardBack;     // Layer 1
         public GameObject cardFront;    // Group chứa từ Layer 2 đến 6
@@ -24,6 +28,22 @@ namespace ProjectM.Cards
         public TextMeshProUGUI speedText; // Layer 6 (Nằm dưới SpeedIcon)
         public TextMeshProUGUI ultText;
         public TextMeshProUGUI abilitiesText; // Layer 6 (Hiển thị skill/nội tại)
+        
+        [Header("Shield Display")]
+        [Tooltip("Image icon trái tim bình thường (HP > 2/3).")]
+        public Image heartIconImage;          // Icon trái tim bên cạnh số HP
+        
+        [Tooltip("Sprite trái tim bình thường (HP > 2/3).")]
+        public Sprite normalHeartSprite;
+        
+        [Tooltip("Sprite trái tim khi HP <= 2/3.")]
+        public Sprite heart2Sprite;
+        
+        [Tooltip("Sprite trái tim khi HP <= 1/3 (sẽ đập thình thịch).")]
+        public Sprite heart3Sprite;
+
+        [Tooltip("Sprite trái tim giáp — hiện khi đang có khiên (ưu tiên cao nhất).")]
+        public Sprite shieldHeartSprite;
 
         [Header("Elemental UI")]
         public GameObject iceIconObj;
@@ -63,6 +83,20 @@ namespace ProjectM.Cards
                 Transform frameTransform = FindChildByName(transform, "CardFrame");
                 if (frameTransform != null)
                     cardFrameImage = frameTransform.GetComponent<Image>();
+            }
+
+            if (heartIconImage == null)
+            {
+                Transform heartTransform = FindChildByName(transform, "HeartIcon");
+                if (heartTransform != null)
+                    heartIconImage = heartTransform.GetComponent<Image>();
+            }
+
+            if (abilitiesText == null)
+            {
+                Transform abilitiesTransform = FindChildByName(transform, "AbilitiesText");
+                if (abilitiesTransform != null)
+                    abilitiesText = abilitiesTransform.GetComponent<TextMeshProUGUI>();
             }
 
             // Tự động tìm icon nguyên tố theo tên nếu chưa kéo vào Inspector
@@ -117,11 +151,23 @@ namespace ProjectM.Cards
             cardData = data;
             
             nameText.text = cardData.cardName;
-            attackText.text = cardData.attack.ToString();
-            healthText.text = cardData.health.ToString();
+            int currentAtk = cardData.attack;
+            int currentHp = cardData.health;
+
+            // Lấy bonus từ RunData nếu có (Upgrade Event)
+            if (ProjectM.GameManager.Instance != null && ProjectM.GameManager.Instance.RunData != null)
+            {
+                var bonus = ProjectM.GameManager.Instance.RunData.GetChampionBonus(cardData.name);
+                currentAtk += bonus.attackBonus;
+                currentHp += bonus.healthBonus;
+            }
+
+            attackText.text = currentAtk.ToString();
+            healthText.text = currentHp.ToString();
             if (speedText != null) speedText.text = cardData.speed.ToString();
             if (ultText != null) ultText.text = cardData.ult.ToString();
-            if (abilitiesText != null) abilitiesText.text = cardData.abilities;
+            if (abilitiesText != null)
+                abilitiesText.text = Skills.TextFormatter.Process(cardData.abilities, keywordDatabase);
 
             if (cardData.characterArt != null)
             {
@@ -164,14 +210,26 @@ namespace ProjectM.Cards
         {
             if (abilitiesText == null || cardData == null) return;
             
+            // Ép Auto Sizing để text tự thu nhỏ lại vừa khung khi có thêm mô tả của Trinket
+            abilitiesText.enableAutoSizing = true;
+            abilitiesText.fontSizeMin = 10;
+            if (abilitiesText.fontSizeMax > 50) abilitiesText.fontSizeMax = 24; 
+
             if (trinket == null)
             {
-                abilitiesText.text = cardData.abilities; // Trả về mặc định của thẻ
+                abilitiesText.text = Skills.TextFormatter.Process(cardData.abilities, keywordDatabase);
             }
             else
             {
-                // Thêm text của Trinket vào dưới cùng
-                abilitiesText.text = cardData.abilities + $"\n<color=#F1C40F>[Trinket]</color> {trinket.description}";
+                string raw = string.IsNullOrWhiteSpace(cardData.abilities)
+                    ? trinket.description
+                    : cardData.abilities + $"\n{trinket.description}";
+                    
+                abilitiesText.text = Skills.TextFormatter.Process(raw, keywordDatabase);
+                
+                // DIAGNOSTIC LOG
+                var rect = abilitiesText.rectTransform;
+                Debug.Log($"[Diagnostic] Card '{cardData.cardName}' AbilitiesText -> Text: '{abilitiesText.text}', Active: {abilitiesText.gameObject.activeInHierarchy}, Color: {abilitiesText.color}, FontAuto: {abilitiesText.enableAutoSizing}, Overflow: {abilitiesText.overflowMode}, RectSize: {rect.rect.size}, Scale: {rect.localScale}");
             }
         }
 
@@ -222,7 +280,8 @@ namespace ProjectM.Cards
             if (nameText != null) nameText.text = data.skillName;
 
             // Mô tả thay vì abilities
-            if (abilitiesText != null) abilitiesText.text = data.description;
+            if (abilitiesText != null)
+                abilitiesText.text = Skills.TextFormatter.Process(data.description, keywordDatabase);
 
             if (data.artwork != null && characterArtImage != null)
             {

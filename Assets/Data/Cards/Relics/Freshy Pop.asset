@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bdab57665510e245aef13c5fb607973, type: 3}
+  m_Name: Freshy Pop
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
+  skillName: Freshy Pop
+  description: 'Single
+
+    Chain +2'
+  artwork: {fileID: -5480455227388725430, guid: a3fa46ac56e1bea4eb2a69293ff81e8f, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  targetType: 0
+  effectType: 1
+  effectValue: 2
+  elementType: 3
+  customOverride: {fileID: 0}

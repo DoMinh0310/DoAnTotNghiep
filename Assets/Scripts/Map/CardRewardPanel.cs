@@ -193,16 +193,29 @@ namespace ProjectM.Map
             // Thêm thẻ vào Deck trong RunData
             if (GameManager.Instance?.RunData != null)
             {
-                // Dùng tên asset làm ID (kể cả SkillData hay CardData)
-                string itemID = chosen.name; 
-                GameManager.Instance.RunData.playerDeckIDs.Add(itemID);
+                var runData = GameManager.Instance.RunData;
+
+                // 1. Lưu ID vào RunData (cho Save/Load)
+                string itemID = chosen.name;
+                runData.playerDeckIDs.Add(itemID);
+
+                // 2. Sync vào championSetup.supportDeck trong RAM
+                // (Inventory và SkillHandManager đọc từ đây, cho phép lấy trùng thẻ có sẵn)
+                if (runData.championSetup != null && chosen is ProjectM.Skills.SkillData sd)
+                {
+                    runData.championSetup.supportDeck.Add(sd);
+                    Debug.Log($"[CardReward] Synced '{sd.skillName}' vào championSetup.supportDeck " +
+                              $"(total: {runData.championSetup.supportDeck.Count}).");
+                }
+
                 GameManager.Instance.SaveGame();
-                Debug.Log($"[CardReward] Đã thêm thẻ '{itemID}' vào Deck.");
+                Debug.Log($"[CardReward] Đã thêm thẻ '{itemID}' vào Deck (playerDeckIDs count: {runData.playerDeckIDs.Count}).");
             }
             else
             {
                 Debug.LogWarning("[CardRewardPanel] GameManager hoặc RunData là null! Thẻ không được lưu.");
             }
+
 
             // Vô hiệu hóa raycast của Panel để người chơi không click thêm thẻ khác
             _canvasGroup.blocksRaycasts = false;
@@ -246,7 +259,7 @@ namespace ProjectM.Map
             // Báo cho MapManager biết là Event vẫn đang dở dang
             if (MapManager.Instance != null)
             {
-                MapManager.Instance.SetEventInProgress(true, this);
+                MapManager.Instance.SetEventInProgress(true, Reopen);
             }
         }
 
@@ -262,7 +275,7 @@ namespace ProjectM.Map
             if (MapManager.Instance != null)
             {
                 // Giữ nguyên trạng thái khóa Map vì Event vẫn đang diễn ra
-                MapManager.Instance.SetEventInProgress(true, this);
+                MapManager.Instance.SetEventInProgress(true, Reopen);
             }
         }
 

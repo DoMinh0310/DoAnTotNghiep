@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000015258789, y: -51.70099}
-  m_SizeDelta: {x: -0.000030518, y: -103.4}
+  m_AnchoredPosition: {x: -0.000015258789, y: -30.3403}
+  m_SizeDelta: {x: -0, y: -60.6785}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5257808133702499538
 CanvasRenderer:
@@ -69,8 +69,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: f0a7c9916e8c85b4a80555b154a79323, type: 2}
-  m_sharedMaterial: {fileID: -8411134927012131527, guid: f0a7c9916e8c85b4a80555b154a79323, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: fee8cb335035e9049a39ee4f28912dc0, type: 2}
+  m_sharedMaterial: {fileID: -2568958029662867366, guid: fee8cb335035e9049a39ee4f28912dc0, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -94,18 +94,18 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48
+  m_fontSize: 42
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 48
+  m_fontSizeMax: 42
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
-  m_characterHorizontalScale: 0.8
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -125,7 +125,7 @@ MonoBehaviour:
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
-  m_horizontalMapping: 1
+  m_horizontalMapping: 0
   m_verticalMapping: 0
   m_uvLineOffset: 0
   m_geometrySortingOrder: 0
@@ -960,8 +960,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000015258789, y: 78}
-  m_SizeDelta: {x: 0, y: -171.86}
+  m_AnchoredPosition: {x: -0.000015258789, y: 80.10889}
+  m_SizeDelta: {x: 0, y: -160.2177}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7622789939521958503
 CanvasRenderer:
@@ -991,9 +991,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Name
-
-'
+  m_text: NAME
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fee8cb335035e9049a39ee4f28912dc0, type: 2}
   m_sharedMaterial: {fileID: -2568958029662867366, guid: fee8cb335035e9049a39ee4f28912dc0, type: 2}
@@ -1020,17 +1018,17 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 45.15
+  m_fontSize: 54
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 65
-  m_fontStyle: 0
+  m_fontSizeMax: 54
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: 2
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -1338,6 +1336,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardDisplay
   cardData: {fileID: 0}
+  keywordDatabase: {fileID: 11400000, guid: ddbe9c1a4da713a4c8af9457dcf1f1c7, type: 2}
   cardBack: {fileID: 7570691703660762269}
   cardFront: {fileID: 2682526530735235068}
   cardFrameImage: {fileID: 0}
@@ -1348,6 +1347,11 @@ MonoBehaviour:
   speedText: {fileID: 6364822680542080612}
   ultText: {fileID: 0}
   abilitiesText: {fileID: 6449947762995434043}
+  heartIconImage: {fileID: 0}
+  normalHeartSprite: {fileID: -205270267638800340, guid: 8e1ed6b321e559349ba3e6e516fef44f, type: 3}
+  heart2Sprite: {fileID: 8932816462020887068, guid: cfa68f77897e8194c97ed6983eaeff8c, type: 3}
+  heart3Sprite: {fileID: -654001644439941744, guid: 95b04f59121818a4f9fa17c05a431fcd, type: 3}
+  shieldHeartSprite: {fileID: -5094262295271195082, guid: c4c06bce5c8a39f4086a87d4c5fa53f6, type: 3}
   iceIconObj: {fileID: 0}
   iceText: {fileID: 0}
   scorchIconObj: {fileID: 0}
@@ -1441,6 +1445,12 @@ MonoBehaviour:
   isPlayerCard: 0
   isDead: 0
   elementalDamageDelay: 0.4
+  applyFrostOnNextAttack: 0
+  bonusDecayOnPhysicalAttack: 0
+  currentShield: 0
+  hasThorns: 0
+  permanentAttackBonus: 0
+  maxHP: 0
 --- !u!114 &1809875142037019870
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2415,7 +2425,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 5718475510316302315, guid: ddc15db7199ccd045ad8231f9eb5da81, type: 3}
+  m_Sprite: {fileID: 8842744376882955741, guid: ddc15db7199ccd045ad8231f9eb5da81, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

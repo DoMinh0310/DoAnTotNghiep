@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccb28ec152d5ce044a218232dad2e821, type: 3}
+  m_Name: Survival Guide
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.TrinketData
+  trinketName: Survival Guide
+  description: Each time hit, gain 1 Plaster
+  icon: {fileID: 6516894753562499260, guid: 6fbcbd603c7ca6644a167ec9e0376093, type: 3}
+  effectType: 2
+  bonusHP: 0
+  bonusATK: 0
+  speedReduction: 0
+  elementType: 4
+  elementStackPerTrigger: 1
+  elementTrigger: 1
+  conditionalTrigger: 0
+  conditionalEffect: 2
+  conditionalValue: 1
+  rarity: 0

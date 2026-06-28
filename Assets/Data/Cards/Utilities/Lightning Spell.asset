@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Lightning Spell
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Lightning Spell
-  description: 'Enemy Row
+  description: 'Single Target
 
-    Apply lightning 3 damage '
+    Chain +3 '
   artwork: {fileID: 8550163409021738965, guid: 2c44bab390a2a4a439de302f31ac732f, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1

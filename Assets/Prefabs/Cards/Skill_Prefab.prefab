@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -2.237503, y: -59.714203}
-  m_SizeDelta: {x: -4.475, y: -69.4574}
+  m_AnchoredPosition: {x: -2.237503, y: -30.864}
+  m_SizeDelta: {x: -4.475, y: -61.729}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5257808133702499538
 CanvasRenderer:
@@ -69,8 +69,8 @@ MonoBehaviour:
 
     Ability 2'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 065dc09fd2bbd944fa1674c0f177f4bb, type: 2}
-  m_sharedMaterial: {fileID: 2569101504067824150, guid: 065dc09fd2bbd944fa1674c0f177f4bb, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: f0a7c9916e8c85b4a80555b154a79323, type: 2}
+  m_sharedMaterial: {fileID: -8411134927012131527, guid: f0a7c9916e8c85b4a80555b154a79323, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -94,12 +94,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48
+  m_fontSize: 42
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 48
+  m_fontSizeMax: 42
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -173,8 +173,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 1.2282104, y: -191.67123}
-  m_SizeDelta: {x: -88.9518, y: -512.6675}
+  m_AnchoredPosition: {x: 1.2282104, y: -222.35}
+  m_SizeDelta: {x: -88.9518, y: -516.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2682526530735235068
 GameObject:
@@ -338,8 +338,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.00024414062, y: 67}
-  m_SizeDelta: {x: -0.00054932, y: -198.6809}
+  m_AnchoredPosition: {x: 0.00024414062, y: 96.427}
+  m_SizeDelta: {x: -0.0005, y: -186.89}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7622789939521958503
 CanvasRenderer:
@@ -396,17 +396,17 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48.85
+  m_fontSize: 54
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 52
+  m_fontSizeMax: 54
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: 2
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -499,6 +499,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardDisplay
   cardData: {fileID: 0}
+  keywordDatabase: {fileID: 11400000, guid: ddbe9c1a4da713a4c8af9457dcf1f1c7, type: 2}
   cardBack: {fileID: 7570691703660762269}
   cardFront: {fileID: 2682526530735235068}
   cardFrameImage: {fileID: 0}
@@ -602,6 +603,11 @@ MonoBehaviour:
   isPlayerCard: 0
   isDead: 0
   elementalDamageDelay: 0.4
+  applyFrostOnNextAttack: 0
+  bonusDecayOnPhysicalAttack: 0
+  currentShield: 0
+  hasThorns: 0
+  permanentAttackBonus: 0
 --- !u!114 &1831533213191130250
 MonoBehaviour:
   m_ObjectHideFlags: 0

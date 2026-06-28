@@ -64,8 +64,21 @@ namespace ProjectM.Inventory
             if (relicIconImage == null)
             {
                 var t = transform.Find("ItemImage");
-                if (t != null) relicIconImage = t.GetComponent<Image>();
-                else           relicIconImage = GetComponent<Image>(); // fallback: dùng root Image
+                if (t != null)
+                {
+                    relicIconImage = t.GetComponent<Image>();
+                }
+                else
+                {
+                    // Tự động tạo child ItemImage nếu prefab thiếu, KHÔNG dùng root Image (tránh đè background)
+                    var iconGo = new GameObject("ItemImage");
+                    iconGo.transform.SetParent(transform, false);
+                    relicIconImage = iconGo.AddComponent<Image>();
+                    var rt = relicIconImage.GetComponent<RectTransform>();
+                    rt.anchorMin = Vector2.zero;
+                    rt.anchorMax = Vector2.one;
+                    rt.sizeDelta = Vector2.zero;
+                }
             }
             if (glowBorderImage == null)
             {

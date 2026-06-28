@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccb28ec152d5ce044a218232dad2e821, type: 3}
+  m_Name: Decay Trinket
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.TrinketData
+  trinketName: Decay Gem
+  description: 'Apply Decay
+
+'
+  icon: {fileID: 6773527130151612309, guid: 49339d9df17ae2545a751f3e32c0bca5, type: 3}
+  effectType: 1
+  bonusHP: 0
+  bonusATK: 0
+  speedReduction: 0
+  elementType: 1
+  elementStackPerTrigger: 1
+  elementTrigger: 1
+  conditionalTrigger: 0
+  conditionalEffect: 1
+  conditionalValue: 1
+  rarity: 0

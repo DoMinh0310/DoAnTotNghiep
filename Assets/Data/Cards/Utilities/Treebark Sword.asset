@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Treebark Sword
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Treebark Sword
-  description: 'Deal Damge
+  description: 'Deal 3 Damage
 
 '
   artwork: {fileID: -1716223577464485481, guid: 4bb026b3dfb80624e986fc1007cd17f2, type: 3}
@@ -22,5 +22,5 @@ MonoBehaviour:
   targetType: 0
   effectType: 0
   effectValue: 3
-  elementType: 0
+  elementType: 4
   customOverride: {fileID: 0}

@@ -15,8 +15,10 @@ MonoBehaviour:
   skillName: Thunder Beam
   description: 'Single
 
-    Row trigger'
+    Apply 5 Chain'
   artwork: {fileID: -7851675375143972867, guid: 83e3487398c1afa458f193b816758ea7, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
   targetType: 0
   effectType: 1
   effectValue: 5

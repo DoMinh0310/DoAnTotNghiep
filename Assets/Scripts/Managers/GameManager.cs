@@ -45,12 +45,33 @@ namespace ProjectM
         // NEW GAME / CONTINUE
         // ════════════════════════════════════════════
 
-        /// <summary>Bắt đầu run mới, xóa save cũ.</summary>
-        public void StartNewRun()
+        public void StartNewRun(Skills.ChampionSetup selectedSetup)
         {
             RunData = new Map.MapRunData();
             int seed = Random.Range(0, 99999);
             RunData.InitNewRun(seed);
+            RunData.championSetup = selectedSetup; // Lưu setup đã chọn từ màn hình chọn tướng
+            
+            // Đồng bộ Starter Deck sang RunData lists (dùng cho hệ thống Event và Save/Load)
+            if (selectedSetup.supportDeck != null)
+                foreach (var skill in selectedSetup.supportDeck)
+                    if (skill != null) RunData.playerDeckIDs.Add(skill.name);
+
+            if (selectedSetup.champions != null)
+                foreach (var entry in selectedSetup.champions)
+                {
+                    if (entry?.championData != null) RunData.playerDeckIDs.Add(entry.championData.name);
+                    if (entry?.equippedTrinket != null) RunData.playerTrinketIDs.Add(entry.equippedTrinket.name);
+                }
+
+            if (selectedSetup.ownedRelics != null)
+                foreach (var r in selectedSetup.ownedRelics)
+                    if (r != null) RunData.ownedRelicIDs.Add(r.name);
+            
+            if (selectedSetup.ownedTrinkets != null)
+                foreach (var t in selectedSetup.ownedTrinkets)
+                    if (t != null) RunData.ownedTrinketIDs.Add(t.name);
+
             SaveGame();
             LoadMapScene();
         }

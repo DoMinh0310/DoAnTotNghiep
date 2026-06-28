@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: Thunder Storm
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Thunder Storm
-  description: 'Single
+  description: 'Row
 
-    Row Trigger'
+    A'
   artwork: {fileID: -4886897744106333637, guid: cc74ff19b49b6f148b95a609cd0cbc75, type: 3}
-  targetType: 0
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  targetType: 2
   effectType: 0
   effectValue: 5
-  elementType: 0
+  elementType: 3
   customOverride: {fileID: 0}

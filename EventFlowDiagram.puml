@@ -1,0 +1,73 @@
+@startuml
+' THIẾT LẬP GIAO DIỆN
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Arial
+skinparam conditionStyle diamond
+skinparam defaultFontSize 16
+skinparam wrapWidth 220
+
+start
+:Người chơi Click chọn Cột mốc Sự kiện (Event Node) trên Bản đồ;
+:Hệ thống di chuyển Token nhân vật;
+:Khóa Bản đồ (Bật cờ IsEventInProgress = true);
+
+if (Loại Sự kiện (Node Type) là gì?) then (Cửa hàng - Shop)
+  :Tạo Giao diện Cửa hàng (ShopEventPanel);
+  :Sinh ngẫu nhiên Thẻ Kỹ năng (Hàng trên) \nvà Cổ vật/Phụ kiện (Hàng dưới);
+  
+  while (Người chơi tương tác) is (Click Vật phẩm)
+    if (Vật phẩm là gì?) then (Thẻ Kỹ năng)
+      if (Đủ Vàng?) then (Đủ)
+        :Trừ Vàng (Gold);
+        :Thêm Thẻ bài vào Bộ bài;
+        :Hiệu ứng Vật phẩm bay vào Túi;
+      else (Thiếu)
+      endif
+    else (Cổ vật / Phụ kiện)
+      :Mở Bảng Chi tiết Vật phẩm (Item Detail Popup);
+      :Hiển thị Kỹ năng Preview và Nút Mua;
+      if (Click Mua & Đủ Vàng?) then (Có)
+        :Trừ Vàng;
+        :Thêm vào danh sách Cổ vật/Phụ kiện đã sở hữu;
+        :Đóng Popup & Hiệu ứng bay vào Túi;
+      else (Hủy / Thiếu Vàng)
+      endif
+    endif
+  endwhile (Rời Cửa hàng)
+
+elseif (Cổ vật - Relic)
+  :Tạo Giao diện Cổ vật (RelicEventPanel);
+  :Sinh ngẫu nhiên 1 Cổ vật hoặc Phụ kiện lơ lửng;
+  
+  :Người chơi Di chuột (Hover);
+  :Hiển thị Bảng thông tin Kỹ năng & Mô tả;
+  
+  :Người chơi Click chọn Cổ vật;
+  :Hiển thị Nút "Trang bị ngay" và "Cất vào túi";
+  
+  if (Người chơi chọn?) then (Trang bị ngay)
+    :Lưu vào danh sách sở hữu;
+    :Mở Giao diện Túi đồ (Inventory) lập tức;
+  else (Cất vào túi)
+    :Lưu vào danh sách sở hữu;
+  endif
+
+elseif (Tài nguyên - Resource)
+  :Hệ thống tự động quay số Vàng ngẫu nhiên (10-20);
+  :Cộng thẳng Vàng vào Túi (Không cần mở Giao diện);
+  :Phát hoạt ảnh Vàng rơi (Coin Burst Effect);
+
+elseif (Hiến tế / Nâng cấp - Sacrifice / Smith)
+  :Mở Giao diện Hiến tế hoặc Lò rèn;
+  :Người chơi chọn Đánh đổi HP/Thẻ hoặc Nâng cấp Thẻ;
+  
+elseif (Thẻ bài - Card)
+  :Mở Giao diện Phần thưởng Thẻ bài (Card Reward Panel);
+  :Chọn 1 thẻ bài thêm vào bộ;
+endif
+
+:Hoàn thành Sự kiện (Complete Event);
+:Mở khóa Bản đồ (IsEventInProgress = false);
+stop
+@enduml

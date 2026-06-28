@@ -1,0 +1,45 @@
+@startuml
+' THIẾT LẬP GIAO DIỆN
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Arial
+skinparam conditionStyle diamond
+
+start
+:Đến lượt Người chơi (Player Turn);
+
+while (Còn thẻ bài muốn sử dụng?) is (Có)
+  :Người chơi di chuột (Hover) vào Thẻ Kỹ năng;
+  :Thẻ bài nổi lên trên cùng (Focus Lock);
+  
+  :Người chơi Click chuột trái vào Thẻ bài;
+  :Vào Chế độ Nhắm Mục tiêu (Targeting Mode);
+  :Hệ thống hiển thị Mũi tên ngắm bắn (Targeting Arrow);
+  
+  repeat :Di chuyển chuột;
+    :Vẽ đường cong ngắm bắn (UI Bezier Line);
+    :Cập nhật tọa độ mũi tên bám theo chuột;
+    
+    if (Chuột chỉ vào Mục tiêu hợp lệ?) then (Có)
+      :Phát sáng mục tiêu bên dưới (Target Highlight);
+    else (Không)
+      :Tắt phát sáng mục tiêu;
+    endif
+    
+  repeat while (Người chơi Click chuột trái lần nữa?) is (Chưa Click)
+  
+  if (Vị trí Click có hợp lệ? (Quái/Đồng minh)) then (Hợp lệ)
+    :Thoát Chế độ Nhắm Mục tiêu (Exit Targeting Mode);
+    :Xóa Mũi tên ngắm bắn;
+    :Phát Hoạt ảnh Chiến đấu (Battle Animator);
+    :Thực thi Kỹ năng lên Mục tiêu;
+  else (Không hợp lệ / Click ra ngoài)
+    :Thoát Chế độ Nhắm Mục tiêu;
+    :Xóa Mũi tên ngắm bắn;
+    :Hủy lệnh đánh bài, giữ nguyên thẻ trên tay;
+  endif
+  
+endwhile (Chuyển lượt)
+
+stop
+@enduml

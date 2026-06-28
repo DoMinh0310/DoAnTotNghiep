@@ -48,6 +48,32 @@ namespace ProjectM.Map
         [Tooltip("Số vàng thưởng tối đa khi vào event Resource")]
         public int resourceGoldRewardMax = 20;
 
+        [Header("Relic Event")]
+        [Tooltip("Script điều khiển Relic Event Panel (gắn sẵn trong scene)")]
+        public RelicEventPanel relicEventPanel;
+
+        [Header("Sacrifice Event")]
+        [Tooltip("Script điều khiển Sacrifice Event Panel (gắn sẵn trong scene)")]
+        public SacrificeEventPanel sacrificeEventPanel;
+
+        [Header("Smith Event")]
+        [Tooltip("Script điều khiển Smith Event Panel (gắn sẵn trong scene)")]
+        public SmithEventPanel smithEventPanel;
+
+        [Header("Shop Event")]
+        [Tooltip("Script điều khiển Shop Event Panel (gắn sẵn trong scene)")]
+        public ShopEventPanel shopEventPanel;
+
+        [Tooltip("Pool Relic có thể xuất hiện trong event (kéo các RelicData asset vào)")]
+        public List<ProjectM.Skills.RelicData> relicPool = new List<ProjectM.Skills.RelicData>();
+
+        [Tooltip("Pool Trinket có thể xuất hiện trong event (kéo các TrinketData asset vào)")]
+        public List<ProjectM.Skills.TrinketData> trinketPool = new List<ProjectM.Skills.TrinketData>();
+
+        [Tooltip("Xác suất nhận Relic thay vì Trinket (0-1). 0.5 = 50% Relic, 50% Trinket.")]
+        [Range(0f, 1f)]
+        public float relicChance = 0.5f;
+
         [Tooltip("Kéo các MapNodeData asset vào đây (theo NodeType)")]
         public List<MapNodeData> allNodeDataAssets;
 
@@ -76,10 +102,11 @@ namespace ProjectM.Map
         // ══════════════════════════════════════════════════════════════
         private MapNode[] _spawnedNodes;           // Index khớp với slots[]
         private MapRunData _runData;
+        private int[] _slotDepths;                 // Cache độ sâu của mỗi slot (cùng hàng = cùng depth)
 
         // Trạng thái: Đang trong Event (đang chọn thẻ, mua đồ...) nhưng người chơi tạm ẩn UI để xem Map.
         public bool IsEventInProgress { get; private set; }
-        private CardRewardPanel _activeEventPanel;
+        private System.Action _reopenActiveEventAction;
 
         // Pool event types có thể random (không phải combat)
         private static readonly NodeType[] NonCombatPool =
@@ -118,6 +145,7 @@ namespace ProjectM.Map
                 GenerateRandomEventTypes();
 
             BuildAllNodes();
+            CacheSlotDepths();   // Tính và cache độ sâu của các slot
             RestoreMapState();
             ScrollToCurrentNode(instant: true);
         }
@@ -437,9 +465,51 @@ namespace ProjectM.Map
                     _spawnedNodes[i].SetCompleted();
                 else if (IsReachable(i))
                     _spawnedNodes[i].Activate();
+                else if (IsSiblingSkipped(i))
+                    _spawnedNodes[i].SetDimmed();   // Cùng hàng nhưng bị bỏ qua → mờ đi
                 else
-                    _spawnedNodes[i].SetDimmed();
+                    _spawnedNodes[i].SetDimmed();   // Node tương lai chưa tới
             }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // DEPTH CACHE
+        // ══════════════════════════════════════════════════════════════
+        private void CacheSlotDepths()
+        {
+            _slotDepths = new int[slots.Count];
+            for (int i = 0; i < slots.Count; i++)
+            {
+                foreach (int nextIdx in slots[i].nextSlots)
+                {
+                    if (nextIdx >= 0 && nextIdx < slots.Count)
+                    {
+                        if (_slotDepths[i] + 1 > _slotDepths[nextIdx])
+                            _slotDepths[nextIdx] = _slotDepths[i] + 1;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra xem slot i có phải là "anh/em bị bỏ qua" không.
+        /// Tức là: có 1 slot khác cùng độ sâu (cùng hàng) đã được ghé thăm, và slot i lại không thể đến được nữa.
+        /// </summary>
+        private bool IsSiblingSkipped(int i)
+        {
+            if (_slotDepths == null) return false;
+            if (_runData.HasVisited(i) || IsReachable(i)) return false;
+
+            int myDepth = _slotDepths[i];
+
+            // Kiểm tra xem có slot nào cùng độ sâu đã được ghé thăm không
+            for (int j = 0; j < slots.Count; j++)
+            {
+                if (j == i) continue;
+                if (_slotDepths[j] == myDepth && _runData.HasVisited(j))
+                    return true;
+            }
+            return false;
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -476,15 +546,22 @@ namespace ProjectM.Map
             // CHỈ CHO PHÉP BẤM VÀO ĐÚNG NODE HIỆN TẠI ĐỂ MỞ LẠI PANEL!
             if (IsEventInProgress)
             {
-                if (idx == _runData.currentSlotIndex && _activeEventPanel != null)
+                if (idx == _runData.currentSlotIndex && _reopenActiveEventAction != null)
                 {
-                    _activeEventPanel.Reopen();
+                    _reopenActiveEventAction.Invoke();
                 }
                 else
                 {
-                    Debug.Log("[MapManager] Đang bận chọn phần thưởng! Vui lòng chọn thẻ để đi tiếp.");
+                    Debug.Log("[MapManager] Đang bận sự kiện! Vui lòng chọn node hiện tại để quay lại sự kiện.");
                 }
                 return; // Chặn hoàn toàn các xử lý di chuyển khác
+            }
+
+            // Nếu bấm vào đúng node hiện tại đang đứng, và node đó là Shop -> mở lại Shop
+            if (idx == _runData.currentSlotIndex && node.NodeType == NodeType.Shop)
+            {
+                shopEventPanel?.Reopen();
+                return;
             }
 
             if (!IsReachable(idx)) return;
@@ -496,11 +573,24 @@ namespace ProjectM.Map
             _runData.visitedSlots.Add(idx);
             _runData.currentSlotIndex = idx;
 
-            // Cập nhật counter
+            // Cập nhật counter và StageData
             if (!def.isCombat && !def.isBoss)
+            {
                 _runData.nonCombatSinceLastCombat++;
+            }
             else
+            {
                 _runData.nonCombatSinceLastCombat = 0;
+                
+                // Gán tên file StageData để BattleScene load
+                if (def.isBoss) {
+                    _runData.currentCombatStageID = "StageData_Boss";
+                } else if (idx == 7 || idx == 8) {
+                    _runData.currentCombatStageID = "StageData_1"; // Trận Combat 1
+                } else if (idx == 12 || idx == 13) {
+                    _runData.currentCombatStageID = "StageData_2"; // Trận Combat 2
+                }
+            }
 
             // Refresh trạng thái node
             RefreshAllNodeStates();
@@ -537,16 +627,18 @@ namespace ProjectM.Map
                     node.SetCompleted();
                 else if (IsReachable(i))
                     node.Activate();
+                else if (IsSiblingSkipped(i))
+                    node.SetDimmed(skipped: true);  // Cùng hàng bị bỏ qua → mờ hơn
                 else
-                    node.SetDimmed();
+                    node.SetDimmed(skipped: false);  // Node tương lai
             }
         }
 
         // Bật/tắt cờ chặn Map khi người chơi bấm nút "Tạm ẩn để xem Map"
-        public void SetEventInProgress(bool inProgress, CardRewardPanel panel)
+        public void SetEventInProgress(bool inProgress, System.Action reopenAction = null)
         {
             IsEventInProgress = inProgress;
-            _activeEventPanel = panel;
+            _reopenActiveEventAction = reopenAction;
             
             // Highlight node hiện tại để người chơi biết phải bấm vào đâu để quay lại
             if (inProgress && _runData.currentSlotIndex >= 0)
@@ -673,11 +765,22 @@ namespace ProjectM.Map
                 case NodeType.Card:
                     TriggerCardRewardEvent();
                     break;
+                case NodeType.Relic:
+                    TriggerRelicEvent();
+                    break;
                 case NodeType.Resource:
                     // Xử lý bằng TriggerResourceEvent (có node rect)
-                    // nếu bằng cách nào khác không có node thì fallback
                     Debug.Log("[MapManager] Resource event không có node rect, tự hoàn thành.");
                     CompleteCurrentEvent();
+                    break;
+                case NodeType.Sacrifice:
+                    TriggerSacrificeEvent();
+                    break;
+                case NodeType.Smith:
+                    TriggerSmithEvent();
+                    break;
+                case NodeType.Shop:
+                    TriggerShopEvent();
                     break;
                 default:
                     Debug.Log($"[MapManager] Event {type} chưa có chức năng. Tự động hoàn thành!");
@@ -685,6 +788,86 @@ namespace ProjectM.Map
                     break;
             }
         }
+
+        private void TriggerRelicEvent()
+        {
+            if (relicEventPanel == null)
+            {
+                Debug.LogWarning("[MapManager] RelicEventPanel chưa được gán! Tự hoàn thành event.");
+                CompleteCurrentEvent();
+                return;
+            }
+
+            var runData = GameManager.Instance?.RunData;
+
+            // Quyết định random Relic hay Trinket
+            bool pickRelic = UnityEngine.Random.value < relicChance;
+
+            if (pickRelic && relicPool != null && relicPool.Count > 0)
+            {
+                // Lấy 1 relic chưa sở hữu
+                var available = relicPool.FindAll(r => r != null &&
+                    (runData == null || !runData.ownedRelicIDs.Contains(r.name)));
+
+                if (available.Count == 0) available = relicPool.FindAll(r => r != null); // fallback
+
+                var chosen = available[UnityEngine.Random.Range(0, available.Count)];
+                relicEventPanel.ShowRelic(chosen, () => CompleteCurrentEvent());
+            }
+            else if (!pickRelic && trinketPool != null && trinketPool.Count > 0)
+            {
+                var available = trinketPool.FindAll(t => t != null &&
+                    (runData == null || !runData.ownedTrinketIDs.Contains(t.name)));
+
+                if (available.Count == 0) available = trinketPool.FindAll(t => t != null);
+
+                var chosen = available[UnityEngine.Random.Range(0, available.Count)];
+                relicEventPanel.ShowTrinket(chosen, () => CompleteCurrentEvent());
+            }
+            else
+            {
+                // Pool rỗng — fallback
+                Debug.LogWarning("[MapManager] Relic/Trinket pool rỗng! Tự hoàn thành.");
+                CompleteCurrentEvent();
+            }
+        }
+
+        private void TriggerSacrificeEvent()
+        {
+            if (sacrificeEventPanel == null)
+            {
+                Debug.LogWarning("[MapManager] SacrificeEventPanel chưa được gán! Tự hoàn thành event.");
+                CompleteCurrentEvent();
+                return;
+            }
+
+            sacrificeEventPanel.Open(() => CompleteCurrentEvent());
+        }
+
+        private void TriggerSmithEvent()
+        {
+            if (smithEventPanel == null)
+            {
+                Debug.LogWarning("[MapManager] SmithEventPanel chưa được gán! Tự hoàn thành event.");
+                CompleteCurrentEvent();
+                return;
+            }
+
+            smithEventPanel.Open(() => CompleteCurrentEvent());
+        }
+
+        private void TriggerShopEvent()
+        {
+            if (shopEventPanel == null)
+            {
+                Debug.LogWarning("[MapManager] ShopEventPanel chưa được gán! Tự hoàn thành event.");
+                CompleteCurrentEvent();
+                return;
+            }
+
+            shopEventPanel.Open(() => CompleteCurrentEvent());
+        }
+
 
         private void TriggerResourceEvent(MapNode node)
         {
@@ -737,7 +920,7 @@ namespace ProjectM.Map
             });
 
             // Ghi nhớ panel đang mở để xử lý Peek Map
-            _activeEventPanel = panel;
+            _reopenActiveEventAction = () => panel.Reopen();
         }
 
         public void CompleteCurrentEvent()

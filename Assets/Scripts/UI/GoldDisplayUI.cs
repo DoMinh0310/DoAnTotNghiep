@@ -47,7 +47,7 @@ namespace ProjectM.UI
         private void OnDisable()
         {
             InventoryManager.OnInventoryToggled -= HandleInventoryToggled;
-            StopPulse();
+            StopPulse(immediate: true);
         }
 
         private void HandleInventoryToggled(bool isInventoryOpen)
@@ -142,7 +142,7 @@ namespace ProjectM.UI
             StopPulse();
         }
 
-        private void StopPulse()
+        private void StopPulse(bool immediate = false)
         {
             if (_pulseTween != null)
             {
@@ -151,7 +151,14 @@ namespace ProjectM.UI
             }
             if (scaleTarget != null)
             {
-                scaleTarget.DOScale(1f, 0.15f); // Trả về size gốc mượt mà
+                if (immediate)
+                {
+                    scaleTarget.localScale = Vector3.one;
+                }
+                else
+                {
+                    scaleTarget.DOScale(1f, 0.15f); // Trả về size gốc mượt mà
+                }
             }
         }
 

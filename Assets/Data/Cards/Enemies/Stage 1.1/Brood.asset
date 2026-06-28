@@ -29,9 +29,6 @@ MonoBehaviour:
   artOffset: {x: 0, y: 0}
   artScale: 1
   elementalConfigs:
-  - element: 0
-    triggerThreshold: 8
-    resistance: 0
   - element: 3
-    triggerThreshold: 4
+    triggerThreshold: 8
     resistance: 0

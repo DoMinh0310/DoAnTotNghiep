@@ -43,22 +43,42 @@ namespace ProjectM.Map
                 // --- ĐỌC STARTER DECK TỪ ChampionSetup SO ---
                 if (starterDeck != null)
                 {
-                    // Lưu thẳng ChampionSetup vào RunData để InventoryManager dùng chung
-                    runData.championSetup = starterDeck;
+                    // TẠO COPY CỦA STARTER DECK ĐỂ KHÔNG LÀM HỎNG ASSET GỐC
+                    var setupCopy = ScriptableObject.CreateInstance<ChampionSetup>();
+                    setupCopy.champions = new System.Collections.Generic.List<ChampionEntry>();
+                    
+                    foreach (var champ in starterDeck.champions)
+                    {
+                        if (champ != null)
+                        {
+                            setupCopy.champions.Add(new ChampionEntry
+                            {
+                                championData = champ.championData,
+                                equippedRelic = champ.equippedRelic,
+                                equippedTrinket = champ.equippedTrinket
+                            });
+                        }
+                    }
+                    setupCopy.supportDeck = new System.Collections.Generic.List<SkillData>(starterDeck.supportDeck);
+                    setupCopy.ownedRelics = new System.Collections.Generic.List<RelicData>(starterDeck.ownedRelics);
+                    setupCopy.ownedTrinkets = new System.Collections.Generic.List<TrinketData>(starterDeck.ownedTrinkets);
+
+                    // Lưu bản copy vào RunData
+                    runData.championSetup = setupCopy;
 
                     // Đồng thời copy tên thẻ vào playerDeckIDs để các hệ thống khác tra cứu
-                    foreach (var skill in starterDeck.supportDeck)
+                    foreach (var skill in setupCopy.supportDeck)
                         if (skill != null) runData.playerDeckIDs.Add(skill.name);
-                    foreach (var entry in starterDeck.champions)
+                    foreach (var entry in setupCopy.champions)
                         if (entry?.championData != null) runData.playerDeckIDs.Add(entry.championData.name);
-                    Debug.Log($"[MapTestBootstrap] Đã nạp {runData.playerDeckIDs.Count} thẻ từ StarterDeck '{starterDeck.name}' vào RunData.");
+                    Debug.Log($"[MapTestBootstrap] Đã nạp bản sao của '{starterDeck.name}' vào RunData.");
                 }
                 else
                 {
                     Debug.LogWarning("[MapTestBootstrap] Chưa kéo StarterDeck vào Inspector! Bộ bài sẽ trống.");
                 }
 
-                // Inject thủ công (dùng reflection hoặc helper)
+                // Inject thủ công
                 GameManager.Instance.InjectRunDataForTest(runData);
             }
         }

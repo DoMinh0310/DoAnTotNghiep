@@ -15,8 +15,10 @@ MonoBehaviour:
   skillName: Fire Fist
   description: 'Single target
 
-    Apply 5 scorch damage'
+    Apply 5 Bleed '
   artwork: {fileID: 1936361663336066367, guid: 730729e50b47d42459e3e8bb22bc3c26, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
   targetType: 0
   effectType: 1
   effectValue: 5

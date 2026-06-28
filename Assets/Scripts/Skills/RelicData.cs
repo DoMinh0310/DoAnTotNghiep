@@ -28,8 +28,8 @@ namespace ProjectM.Skills
         [Min(1)]
         public int cycleSpeed = 3;
 
-        [Tooltip("Thẻ skill sẽ được spawn vào tay người chơi khi Relic kích hoạt.")]
-        public SkillData spawnedSkill;
+        [Tooltip("Các thẻ skill có thể được spawn vào tay người chơi khi Relic kích hoạt (nếu có nhiều thẻ, sẽ chọn ngẫu nhiên).")]
+        public System.Collections.Generic.List<SkillData> possibleSkills = new System.Collections.Generic.List<SkillData>();
 
         [Header("Rarity & Visuals")]
         public Cards.CardRarity rarity = Cards.CardRarity.Common;

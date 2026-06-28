@@ -28,10 +28,4 @@ MonoBehaviour:
   cardFrame: {fileID: 0}
   artOffset: {x: 0, y: 0}
   artScale: 1
-  elementalConfigs:
-  - element: 0
-    triggerThreshold: 4
-    resistance: 0
-  - element: 3
-    triggerThreshold: 2
-    resistance: 0
+  elementalConfigs: []

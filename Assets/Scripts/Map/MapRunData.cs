@@ -59,6 +59,45 @@ namespace ProjectM.Map
         public List<string> playerTrinketIDs = new List<string>();
 
         /// <summary>
+        /// Lưu bonus chỉ số tích lũy cho từng tướng từ Smith Event.
+        /// Key = tên asset CardData (champion.name), Value = struct lưu bonus.
+        /// Dùng 2 List song song để serializable.
+        /// </summary>
+        public List<string> championBonusIDs = new List<string>();
+        public List<ChampionStatBonus> championBonuses = new List<ChampionStatBonus>();
+
+        /// <summary>Lấy bonus stat của 1 tướng theo tên asset.</summary>
+        public ChampionStatBonus GetChampionBonus(string championID)
+        {
+            int idx = championBonusIDs.IndexOf(championID);
+            return idx >= 0 ? championBonuses[idx] : new ChampionStatBonus();
+        }
+
+        /// <summary>Cộng thêm bonus stat cho 1 tướng.</summary>
+        public void AddChampionBonus(string championID, int atkBonus, int hpBonus)
+        {
+            int idx = championBonusIDs.IndexOf(championID);
+            if (idx >= 0)
+            {
+                var b = championBonuses[idx];
+                b.attackBonus += atkBonus;
+                b.healthBonus += hpBonus;
+                championBonuses[idx] = b;
+            }
+            else
+            {
+                championBonusIDs.Add(championID);
+                championBonuses.Add(new ChampionStatBonus { attackBonus = atkBonus, healthBonus = hpBonus });
+            }
+        }
+
+        /// <summary>Danh sách tên asset các Relic đã nhặt được trong run.</summary>
+        public List<string> ownedRelicIDs = new List<string>();
+
+        /// <summary>Danh sách tên asset các Trinket đã nhặt được trong run.</summary>
+        public List<string> ownedTrinketIDs = new List<string>();
+
+        /// <summary>
         /// Stage data ID sẽ được load khi vào Combat Scene.
         /// Ví dụ: "stage_data1.1". MapManager ghi vào đây trước khi chuyển scene.
         /// </summary>
@@ -71,6 +110,12 @@ namespace ProjectM.Map
         /// </summary>
         [NonSerialized] // ScriptableObject không serialize được qua JSON — chỉ giữ trong RAM trong 1 session.
         public ChampionSetup championSetup;
+
+        // ── Thống kê Run (Statistics) ───────────────────────────────────
+        public int enemiesKilled = 0;
+        public int totalDamageDealt = 0;
+        public int goldEarned = 0;
+        public int goldSpent = 0;
 
         // ════════════════════════════════════════════════════════════════
         /// <summary>Khởi tạo run mới hoàn toàn.</summary>
@@ -89,8 +134,16 @@ namespace ProjectM.Map
             gold              = 10; // Vàng ban đầu
             playerDeckIDs     = new List<string>();
             playerTrinketIDs  = new List<string>();
+            ownedRelicIDs     = new List<string>();
+            ownedTrinketIDs   = new List<string>();
             currentCombatStageID = "";
             championSetup     = null; // Sẽ được gán từ MapTestBootstrap hoặc MenuManager
+
+            // Reset thống kê
+            enemiesKilled = 0;
+            totalDamageDealt = 0;
+            goldEarned = 0;
+            goldSpent = 0;
         }
 
         // ════════════════════════════════════════════════════════════════

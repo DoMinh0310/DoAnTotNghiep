@@ -77,6 +77,9 @@ namespace ProjectM.Map
         private Coroutine arrowCoroutine;
         private Vector2 arrowBasePosition;
         private Coroutine hoverCoroutine;
+        
+        // Kích thước chuẩn của node (Boss = 1.1, Thường = 1.0)
+        private float _baseScale = 1f;
 
         // ══════════════════════════════════════════
         // KHỞI TẠO
@@ -124,8 +127,18 @@ namespace ProjectM.Map
             NodeIndex    = nodeIndex;
             SegmentIndex = slotIndex; // giữ tương thích ngược
 
+            // Nếu là Boss nhưng chưa có data (do chưa gắn icon Boss), mượn tạm icon của Battle
+            if (type == NodeType.Boss && data == null)
+            {
+                data = MapManager.Instance?.GetNodeData(NodeType.Battle);
+            }
+
             if (iconImage != null && data != null)
                 iconImage.sprite = data.icon;
+
+            // Boss sẽ to hơn các node thường 10%
+            _baseScale = (type == NodeType.Boss) ? 1.1f : 1f;
+            transform.localScale = Vector3.one * _baseScale;
         }
 
         // ══════════════════════════════════════════
@@ -147,7 +160,7 @@ namespace ProjectM.Map
                 elapsed += Time.deltaTime;
                 float t     = elapsed / growPhase;
                 float eased = 1f - Mathf.Pow(1f - t, 3f); // ease-out cubic
-                transform.localScale = Vector3.one * Mathf.Lerp(0f, 1.2f, eased);
+                transform.localScale = Vector3.one * Mathf.Lerp(0f, 1.2f * _baseScale, eased);
                 yield return null;
             }
 
@@ -157,11 +170,11 @@ namespace ProjectM.Map
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / shrinkPhase;
-                transform.localScale = Vector3.one * Mathf.Lerp(1.2f, 1f, t);
+                transform.localScale = Vector3.one * Mathf.Lerp(1.2f * _baseScale, _baseScale, t);
                 yield return null;
             }
 
-            transform.localScale = Vector3.one;
+            transform.localScale = Vector3.one * _baseScale;
         }
 
         /// <summary>Kích hoạt node: có thể click, hiện mũi tên bounce.</summary>
@@ -200,15 +213,18 @@ namespace ProjectM.Map
                 completedOverlay.SetActive(true);
         }
 
-        /// <summary>Làm mờ node (người chơi chọn nhánh kia).</summary>
-        public void SetDimmed()
+        /// <summary>Làm mờ node.
+        /// skipped=true: node cùng hàng bị bỏ qua → mờ rõ (dùng dimmedAlpha).
+        /// skipped=false: node tương lai chưa tới → hiển bình thường.
+        /// </summary>
+        public void SetDimmed(bool skipped = false)
         {
             State = NodeState.Dimmed;
             StopArrow();
 
             if (canvasGroup != null)
             {
-                canvasGroup.alpha          = 1f; // User requested no dimming
+                canvasGroup.alpha          = skipped ? dimmedAlpha : 1f;
                 canvasGroup.interactable   = false;
                 canvasGroup.blocksRaycasts = false;
             }
@@ -259,7 +275,7 @@ namespace ProjectM.Map
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / half);
-                transform.localScale = Vector3.one * Mathf.Lerp(1f, clickPulseScale, t);
+                transform.localScale = Vector3.one * Mathf.Lerp(_baseScale, clickPulseScale * _baseScale, t);
                 yield return null;
             }
 
@@ -269,11 +285,11 @@ namespace ProjectM.Map
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / half);
-                transform.localScale = Vector3.one * Mathf.Lerp(clickPulseScale, 1f, t);
+                transform.localScale = Vector3.one * Mathf.Lerp(clickPulseScale * _baseScale, _baseScale, t);
                 yield return null;
             }
 
-            transform.localScale = Vector3.one;
+            transform.localScale = Vector3.one * _baseScale;
         }
 
         // ══════════════════════════════════════════

@@ -51,6 +51,25 @@ namespace ProjectM.Managers
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+
+            // Load StageData động từ GameManager nếu có
+            if (GameManager.Instance != null && GameManager.Instance.RunData != null)
+            {
+                string stageId = GameManager.Instance.RunData.currentCombatStageID;
+                if (!string.IsNullOrEmpty(stageId))
+                {
+                    StageData loadedStage = Resources.Load<StageData>($"Stages/{stageId}");
+                    if (loadedStage != null)
+                    {
+                        stageData = loadedStage;
+                        Debug.Log($"[EnemyWaveManager] Đã load StageData: {stageId}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"[EnemyWaveManager] Không tìm thấy StageData tại Resources/Stages/{stageId}.asset!");
+                    }
+                }
+            }
         }
 
         // ════════════════════════════════════════════════════════════
@@ -111,6 +130,46 @@ namespace ProjectM.Managers
         {
             if (_stageCleared) return;
 
+            // Tăng số lượng quái giết được và cộng tiền
+            if (GameManager.Instance?.RunData != null)
+            {
+                GameManager.Instance.RunData.enemiesKilled++;
+                
+                // Tính toán vàng rơi rớt dựa theo độ hiếm của quái vật
+                int goldDrop = 0;
+                if (deadEnemy != null && deadEnemy.Data != null)
+                {
+                    switch (deadEnemy.Data.rarity)
+                    {
+                        case ProjectM.Cards.CardRarity.Common:
+                            goldDrop = UnityEngine.Random.Range(5, 9); // 5-8 vàng
+                            break;
+                        case ProjectM.Cards.CardRarity.Uncommon:
+                            goldDrop = UnityEngine.Random.Range(9, 13); // 9-12 vàng
+                            break;
+                        case ProjectM.Cards.CardRarity.Rare:
+                            goldDrop = UnityEngine.Random.Range(13, 19); // 13-18 vàng
+                            break;
+                        case ProjectM.Cards.CardRarity.Legendary:
+                            goldDrop = UnityEngine.Random.Range(20, 31); // 20-30 vàng (dành cho boss hoặc quái khủng)
+                            break;
+                        default:
+                            goldDrop = UnityEngine.Random.Range(5, 9);
+                            break;
+                    }
+                }
+                else
+                {
+                    goldDrop = UnityEngine.Random.Range(5, 9); // Fallback
+                }
+                
+                GameManager.Instance.RunData.gold += goldDrop;
+                GameManager.Instance.RunData.goldEarned += goldDrop;
+                
+                string rarityName = deadEnemy != null && deadEnemy.Data != null ? deadEnemy.Data.rarity.ToString() : "Unknown";
+                Debug.Log($"[WaveManager] Nhận {goldDrop} Vàng từ việc diệt địch hiếm {rarityName}. (Tổng: {GameManager.Instance.RunData.gold})");
+            }
+
             // Ghi lại slot nào vừa trở nên trống
             var slot = deadEnemy.transform.parent?.GetComponent<CardDropZone>();
             if (slot != null)
@@ -146,11 +205,11 @@ namespace ProjectM.Managers
             }
             else
             {
-                // Đặt countdown = 2: lượt N+1 giảm xuống 1, lượt N+2 mới thực sự spawn
-                // Đảm bảo animation chết (dissolve) của tất cả quái wave cũ đã kết thúc và sàn đã sạch
-                _waveSpawnCountdown = 2;
+                // Đặt countdown = 1: lượt tiếp theo giảm xuống 0 -> spawn ngay đầu lượt.
+                // Điều này giúp người chơi không có một lượt "free" sau khi dọn sạch wave.
+                _waveSpawnCountdown = 1;
                 Debug.Log($"[WaveManager] 🌊 Wave {_currentWaveIndex + 1} đã bị tiêu diệt! " +
-                          $"Wave {nextWave + 1} sẽ xuất hiện sau 2 lượt.");
+                          $"Wave {nextWave + 1} sẽ xuất hiện vào lượt tiếp theo.");
             }
         }
 
@@ -284,8 +343,58 @@ namespace ProjectM.Managers
             _stageCleared = true;
             Debug.Log("[WaveManager] 🏆 Tất cả wave đã bị tiêu diệt! Stage hoàn thành!");
 
-            // TODO: Kết nối với GameManager để chuyển sang Map
-            // GameManager.Instance?.OnStageClear();
+            // ── Thưởng vàng ngẫu nhiên ─────────────────────────────
+            AwardGold();
+
+            // Hiển thị màn hình Victory thay vì về map luôn
+            var resultPanel = FindAnyObjectByType<ProjectM.UI.CombatResultPanel>();
+            if (resultPanel != null)
+            {
+                resultPanel.ShowVictory();
+            }
+            else
+            {
+                // Fallback nếu scene không có panel
+                GameManager.Instance?.OnCombatWon();
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra stage hiện tại có phải Boss không dựa vào tên stageId.
+        /// </summary>
+        public bool IsBossStage
+        {
+            get
+            {
+                string stageId = GameManager.Instance?.RunData?.currentCombatStageID ?? "";
+                return stageId.ToLower().Contains("boss");
+            }
+        }
+
+        /// <summary>
+        /// Tính toán và cộng vàng ngẫu nhiên vào RunData sau khi thắng trận.
+        /// Quái thường: 5–8 vàng. Boss: 10–15 vàng.
+        /// </summary>
+        private void AwardGold()
+        {
+            var runData = GameManager.Instance?.RunData;
+            if (runData == null) return;
+
+            int gold;
+            if (IsBossStage)
+            {
+                gold = Random.Range(10, 16); // 10 đến 15 (inclusive)
+                Debug.Log($"[WaveManager] 👑 Boss cleared! Nhận {gold} vàng.");
+            }
+            else
+            {
+                gold = Random.Range(5, 9);   // 5 đến 8 (inclusive)
+                Debug.Log($"[WaveManager] ⚔️ Combat cleared! Nhận {gold} vàng.");
+            }
+
+            runData.gold += gold;
+            runData.goldEarned += gold;
+            Debug.Log($"[WaveManager] 💰 Tổng vàng hiện tại: {runData.gold}");
         }
     }
 }

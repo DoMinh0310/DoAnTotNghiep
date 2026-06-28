@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Flashlight
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.TrinketData
   trinketName: Flashlight
-  description: Upon attack draw +1
+  description: Each time attack draw +1
   icon: {fileID: 6732071853591922104, guid: d597d63355977324ab552c68ef1f9a67, type: 3}
   effectType: 0
   bonusHP: 0

@@ -99,7 +99,17 @@ namespace ProjectM.Managers
                 Debug.LogError($"[BattleGrid] {card.name} thiếu CardData, không thể Initialize!");
                 return;
             }
-            card.Initialize(display.cardData, isPlayer);
+
+            int atkBonus = 0;
+            int hpBonus = 0;
+            if (isPlayer && GameManager.Instance?.RunData != null)
+            {
+                var bonus = GameManager.Instance.RunData.GetChampionBonus(display.cardData.name);
+                atkBonus = bonus.attackBonus;
+                hpBonus = bonus.healthBonus;
+            }
+
+            card.Initialize(display.cardData, isPlayer, atkBonus, hpBonus);
             Debug.Log($"[BattleGrid] Đã đăng ký {display.cardData.cardName} | isPlayer={isPlayer}");
         }
 
@@ -143,6 +153,30 @@ namespace ProjectM.Managers
                 if (c != null && !c.IsDead) return c;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Tìm đồng minh đứng ngay phía trước của thẻ này trong cùng hàng.
+        /// Nếu thẻ đang đứng đầu hàng, trả về chính nó.
+        /// </summary>
+        public CardBattle GetFrontAllyInRow(CardBattle card)
+        {
+            CardDropZone[] row = FindRowOfCard(card);
+            if (row == null) return null;
+            int idx = -1;
+            for (int i = 0; i < row.Length; i++)
+            {
+                if (GetCardInSlot(row[i]) == card) { idx = i; break; }
+            }
+            if (idx > 0)
+            {
+                for (int i = idx - 1; i >= 0; i--)
+                {
+                    CardBattle c = GetCardInSlot(row[i]);
+                    if (c != null && !c.IsDead) return c;
+                }
+            }
+            return card;
         }
 
         // ══════════════════════════════════════════

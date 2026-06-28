@@ -20,7 +20,8 @@ namespace ProjectM.Skills
     ///   1. BattleManager gọi DealSkillsWithAnimation() sau khi tất cả tướng đặt xong.
     ///      → Deal random 6 lá đầu tiên.
     ///   2. Mỗi lần người chơi bấm chuông → BattleManager gọi DrawOneCardIfNeeded().
-    ///      → Nếu hand < maxHandSize: rút 1 lá + animation.
+    ///      → Nếu tay RỖNG (0 thẻ): tự động fill lại FULL tay (maxHandSize lá).
+    ///      → Nếu tay còn thẻ nhưng chưa đầy: rút thêm 1 lá + animation.
     ///   3. Khi skill được dùng → OnSkillUsed() → card vào _discardPile.
     ///   4. Relic spawn skill → SpawnRelicSkillCard() → thêm vào tay (không từ deck).
     ///
@@ -94,6 +95,19 @@ namespace ProjectM.Skills
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+
+            // ── Ưu tiên lấy ChampionSetup từ GameManager.RunData (đã chọn từ màn hình chọn tướng)
+            // Đặt trong Awake() để đảm bảo BattleManager (gọi trong Start) đọc đúng data.
+            var gm = GameManager.Instance;
+            if (gm != null && gm.RunData != null && gm.RunData.championSetup != null)
+            {
+                championSetup = gm.RunData.championSetup;
+                Debug.Log($"[SkillHandManager] Đọc ChampionSetup từ GameManager.RunData: '{championSetup.name}' ({championSetup.champions.Count} tướng).");
+            }
+            else
+            {
+                Debug.Log("[SkillHandManager] Không có GameManager.RunData, dùng ChampionSetup từ Inspector (test mode).");
+            }
         }
 
         // ═════════════════════════════════════════════════════════════════
@@ -137,8 +151,10 @@ namespace ProjectM.Skills
         // ═════════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Rút 1 lá từ draw pile vào tay (nếu tay chưa đầy).
         /// Gọi bởi BattleManager sau mỗi lần bấm chuông.
+        /// - Nếu tay RỖNG (0 thẻ): auto fill lại toàn bộ tay (maxHandSize lá) với animation batch.
+        /// - Nếu tay còn thẻ nhưng chưa đầy: rút thêm 1 lá.
+        /// - Nếu tay đầy: không làm gì.
         /// </summary>
         public IEnumerator DrawOneCardIfNeeded()
         {
@@ -148,7 +164,15 @@ namespace ProjectM.Skills
                 yield break;
             }
 
-            // Nếu draw pile hết → xáo discard thành draw pile mới
+            // ─── AUTO REFILL: Tay trống → fill lại toàn bộ ───
+            if (_hand.Count == 0)
+            {
+                Debug.Log("[SkillHandManager] Tay trống! Auto-fill lại toàn bộ tay.");
+                yield return StartCoroutine(DrawUntilFull());
+                yield break;
+            }
+
+            // ─── NORMAL DRAW: Tay còn thẻ nhưng chưa đầy → rút 1 lá ───
             if (_drawPile.Count == 0)
             {
                 if (_discardPile.Count == 0)
@@ -161,8 +185,40 @@ namespace ProjectM.Skills
 
             SkillData card = _drawPile[0];
             _drawPile.RemoveAt(0);
-
             yield return StartCoroutine(DealOneCardWithAnimation(card));
+        }
+
+        /// <summary>
+        /// Fill tay lên đủ maxHandSize lá bằng cách dùng DealCardsWithAnimation batch.
+        /// Tự động xáo discard vào draw khi cần.
+        /// </summary>
+        public IEnumerator DrawUntilFull()
+        {
+            int needed = maxHandSize - _hand.Count;
+            if (needed <= 0) yield break;
+
+            var toDeal = new List<SkillData>();
+            for (int i = 0; i < needed; i++)
+            {
+                if (_drawPile.Count == 0)
+                {
+                    if (_discardPile.Count == 0)
+                    {
+                        Debug.Log("[SkillHandManager] Hết bài, fill được " + toDeal.Count + "/" + needed + " lá.");
+                        break;
+                    }
+                    ReshuffleDiscardIntoDraw();
+                }
+                toDeal.Add(_drawPile[0]);
+                _drawPile.RemoveAt(0);
+                _hand.Add(toDeal[toDeal.Count - 1]); // pre-add để SpawnSkillCard không double-add
+            }
+
+            // Undo pre-add vì DealCardsWithAnimation → SpawnSkillCard sẽ Add vào _hand
+            foreach (var s in toDeal) _hand.Remove(s);
+
+            if (toDeal.Count > 0)
+                yield return StartCoroutine(DealCardsWithAnimation(toDeal));
         }
 
         // ═════════════════════════════════════════════════════════════════
@@ -216,6 +272,56 @@ namespace ProjectM.Skills
 
             // Animate bay từ túi vào tay
             StartCoroutine(AnimateSingleCardIn(go));
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // PUBLIC API — TRINKET SPAWN
+        // ═════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Thêm 1 thẻ kỹ năng cụ thể vào tay bằng tên asset (dùng bởi Trinket như Pocket Spikes).
+        /// Thẻ này KHÔNG thuộc draw pile và KHÔNG đi vào discard khi dùng xong.
+        /// </summary>
+        public IEnumerator AddSpecificSkillToHand(string skillAssetName)
+        {
+            if (IsHandFull)
+            {
+                Debug.Log($"[SkillHandManager] Tay đầy, không thể thêm '{skillAssetName}'.");
+                yield break;
+            }
+
+            // Tìm SkillData trong toàn bộ deck pool (draw pile + discard + hand)
+            SkillData found = null;
+            var allSources = new List<SkillData>();
+            allSources.AddRange(_drawPile);
+            allSources.AddRange(_discardPile);
+            allSources.AddRange(_hand);
+
+            foreach (var skill in allSources)
+            {
+                if (skill != null && skill.name == skillAssetName)
+                {
+                    found = skill;
+                    break;
+                }
+            }
+
+            // Nếu không tìm thấy trong deck, thử tìm trong Resources
+            if (found == null)
+                found = Resources.Load<SkillData>($"Skills/{skillAssetName}");
+
+            if (found == null)
+            {
+                Debug.LogWarning($"[SkillHandManager] Không tìm thấy SkillData tên '{skillAssetName}'! " +
+                                 $"Hãy đặt file trong Resources/Skills/ hoặc kiểm tra tên asset.");
+                yield break;
+            }
+
+            var go = SpawnSkillCard(found);
+            if (go == null) yield break;
+
+            Debug.Log($"[SkillHandManager] 🦷 Trinket spawn '{found.skillName}' vào tay.");
+            yield return StartCoroutine(AnimateSingleCardIn(go));
         }
 
         // ═════════════════════════════════════════════════════════════════

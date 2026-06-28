@@ -89,6 +89,20 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // ─── THÊM HÀM ĐỂ SETTING MENU CÓ THỂ ĐIỀU CHỈNH ÂM LƯỢNG ───
+    public void SetMusicVolume(float volume)
+    {
+        defaultVolume = volume; // Cập nhật lại gốc để CustomLoop không đè lại
+        if (menuMusic != null) menuMusic.volume = volume;
+        if (battleMusic != null) battleMusic.volume = volume;
+    }
+
+    public void SetSFXVolume(float volume)
+    {
+        if (sfxSource != null) sfxSource.volume = volume;
+    }
+    // ────────────────────────────────────────────────────────
+
     /// <summary>
     /// Phát một đoạn âm thanh SFX với điểm bắt đầu và độ dài tùy chỉnh.
     /// Cho phép lấy bất kỳ đoạn nào trong file mà không cần cắt file gốc.
