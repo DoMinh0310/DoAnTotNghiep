@@ -120,13 +120,36 @@ namespace ProjectM.Skills
         /// </summary>
         public IEnumerator DealSkillsWithAnimation()
         {
-            // Lấy deck từ ChampionSetup (ưu tiên), fallback về startingSkills cũ
-            List<SkillData> pool;
-            if (championSetup != null && championSetup.supportDeck != null && championSetup.supportDeck.Count > 0)
-                pool = new List<SkillData>(championSetup.supportDeck);
-            else
+            List<SkillData> pool = new List<SkillData>();
+
+            if (championSetup != null)
             {
-                Debug.LogWarning("[SkillHandManager] ChampionSetup trống! Hãy gán ChampionSetup asset.");
+                // Thêm Support Deck
+                if (championSetup.supportDeck != null)
+                {
+                    foreach(var card in championSetup.supportDeck)
+                        if (card != null) pool.Add(card);
+                }
+
+                // Thêm Signature Cards từ các Tướng đang có
+                if (championSetup.champions != null)
+                {
+                    foreach (var entry in championSetup.champions)
+                    {
+                        if (entry?.championData?.signatureCards != null)
+                        {
+                            foreach (var sig in entry.championData.signatureCards)
+                            {
+                                if (sig != null) pool.Add(sig);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (pool.Count == 0)
+            {
+                Debug.LogWarning("[SkillHandManager] Bộ bài trống! Vui lòng kiểm tra lại Support Deck hoặc Signature Cards của Tướng.");
                 yield break;
             }
 

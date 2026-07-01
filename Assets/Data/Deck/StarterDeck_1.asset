@@ -25,16 +25,8 @@ MonoBehaviour:
   - championData: {fileID: 11400000, guid: 7c0380cd6251ec64cbe2613321e15f60, type: 2}
     equippedRelic: {fileID: 0}
     equippedTrinket: {fileID: 11400000, guid: b248fd7ae3a3274488777859790aaf29, type: 2}
-  supportDeck:
-  - {fileID: 11400000, guid: dbfd1b1e7fe095b438d1dd95aa864804, type: 2}
-  - {fileID: 11400000, guid: d3808adb641219646a840cc00c8de056, type: 2}
-  - {fileID: 11400000, guid: c230e63ebfc1fed4ea4c856e91f722fa, type: 2}
-  - {fileID: 11400000, guid: b32fabb453a4b59489290bc6ab297ec6, type: 2}
-  - {fileID: 11400000, guid: 7dcd1c201d374144d9cf316fa393ef8f, type: 2}
-  - {fileID: 11400000, guid: 6d4f79db5577c284aa2c27ec17ad1681, type: 2}
-  - {fileID: 11400000, guid: 2c143a118dec5b1489d6b932bb2398ab, type: 2}
-  - {fileID: 11400000, guid: 869177930cd580c43adadf15d4e1247f, type: 2}
-  - {fileID: 11400000, guid: 1f6ff6df4bcc7644180f095858f0ba86, type: 2}
+  unchosenChampions: []
+  supportDeck: []
   buildingDeck: []
   ownedRelics: []
   ownedTrinkets: []

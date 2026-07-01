@@ -15,12 +15,13 @@ MonoBehaviour:
   skillName: Cheesy
   description: 'Single
 
-    Decay +1'
+    Decay +2'
   artwork: {fileID: 3564505687927038097, guid: cbf9d5e681e23504ebce66fb4acedc49, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 0
   effectType: 1
-  effectValue: 1
+  effectValue: 2
   elementType: 1
   customOverride: {fileID: 0}
+  isExhaust: 0

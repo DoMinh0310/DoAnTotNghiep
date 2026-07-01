@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: Mint Flavor
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Mint Flavor
-  description: 'Single
+  description: 'Row
 
-    Frost +2'
+    Frost +3'
   artwork: {fileID: 1255457379525045104, guid: 58e60baa249d9f141a0eb88dd6ddf4a8, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
-  targetType: 0
+  targetType: 2
   effectType: 1
   effectValue: 3
   elementType: 2
   customOverride: {fileID: 0}
+  isExhaust: 0

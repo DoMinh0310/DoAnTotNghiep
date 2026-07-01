@@ -23,7 +23,12 @@ MonoBehaviour:
   rarity: 0
   cost: 1
   description: 
-  signatureCards: []
+  signatureCards:
+  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
+  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
+  - {fileID: 11400000, guid: 992a22c4ef60d5f40905418a04b23686, type: 2}
+  - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
+  - {fileID: 11400000, guid: 869177930cd580c43adadf15d4e1247f, type: 2}
   defaultHeartType: 0
   customAbility: {fileID: 0}
   characterArt: {fileID: 1568821344968116939, guid: c3fde5157375a0341b24343f56805902, type: 3}

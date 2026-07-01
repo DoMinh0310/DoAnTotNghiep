@@ -302,9 +302,25 @@ namespace ProjectM.Inventory
             // 4. Support Deck (Skill Grid - hàng 2)
             foreach (var skill in _setup.supportDeck)
             {
+                if (skill == null) continue;
                 var skillGo = Instantiate(skillPrefab, skillGrid);
                 var skillDisplay = skillGo.AddComponent<InventoryCardDisplay>();
                 skillDisplay.InitSkill(skill);
+            }
+
+            // 5. Thêm Signature Cards của tướng vào lưới bài luôn
+            foreach (var champEntry in _setup.champions)
+            {
+                if (champEntry?.championData?.signatureCards != null)
+                {
+                    foreach (var sig in champEntry.championData.signatureCards)
+                    {
+                        if (sig == null) continue;
+                        var skillGo = Instantiate(skillPrefab, skillGrid);
+                        var skillDisplay = skillGo.AddComponent<InventoryCardDisplay>();
+                        skillDisplay.InitSkill(sig);
+                    }
+                }
             }
         }
 
