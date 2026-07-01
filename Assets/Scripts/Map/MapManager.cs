@@ -530,6 +530,17 @@ namespace ProjectM.Map
                 return i <= 2;
             }
 
+            // --- KIỂM TRA COMBAT CHƯA HOÀN THÀNH ---
+            if (cur >= 0 && cur < slots.Count && (slots[cur].isCombat || slots[cur].isBoss))
+            {
+                if (!_runData.HasVisited(cur))
+                {
+                    // Đang đứng ở combat nhưng chưa hoàn thành (do out game giữa chừng)
+                    // Bắt buộc phải click lại chính ô combat này để đánh tiếp, không được đi tiếp
+                    return i == cur;
+                }
+            }
+
             // Kiểm tra xem i có nằm trong nextSlots của cur không
             if (cur >= 0 && cur < slots.Count)
                 return slots[cur].nextSlots.Contains(i);
@@ -566,13 +577,23 @@ namespace ProjectM.Map
                 return;
             }
 
+            // Bấm lại đúng ô combat dở dang
+            if (idx == _runData.currentSlotIndex && (slots[idx].isCombat || slots[idx].isBoss) && !_runData.HasVisited(idx))
+            {
+                GameManager.Instance?.OnCombatNodeEntered();
+                return;
+            }
+
             if (!IsReachable(idx)) return;
 
             var def      = slots[idx];
             var nodeType = node.NodeType;
 
-            // Mark visited ngay khi click
-            _runData.visitedSlots.Add(idx);
+            // Mark visited ngay khi click (CHỈ NẾU KHÔNG PHẢI LÀ COMBAT/BOSS)
+            if (!def.isCombat && !def.isBoss)
+            {
+                _runData.visitedSlots.Add(idx);
+            }
             _runData.currentSlotIndex = idx;
 
             // Cập nhật counter và StageData

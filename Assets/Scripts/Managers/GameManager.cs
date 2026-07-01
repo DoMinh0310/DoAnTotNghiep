@@ -122,6 +122,12 @@ namespace ProjectM
         {
             if (RunData == null) return;
             
+            // Đánh dấu đã qua ô này khi thực sự chiến thắng (chống out game giữa chừng)
+            if (!RunData.visitedSlots.Contains(RunData.currentSlotIndex))
+            {
+                RunData.visitedSlots.Add(RunData.currentSlotIndex);
+            }
+
             // Nếu currentSlotIndex là 22 (Boss), nghĩa là vừa thắng Boss
             if (RunData.currentSlotIndex == 22)
             {

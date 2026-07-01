@@ -21,6 +21,9 @@ namespace ProjectM.UI
         [Tooltip("Kéo object chứa ảnh chữ Consumed vào đây")]
         public GameObject lossObject;
 
+        [Tooltip("Kéo object chứa thông điệp Thank you for playing vào đây (hiện khi thắng boss cuối)")]
+        public GameObject endGameObject;
+
         [Header("Stats UI (Only for Loss)")]
         public TMPro.TextMeshProUGUI enemiesKilledText;
         public TMPro.TextMeshProUGUI totalDamageText;
@@ -40,9 +43,10 @@ namespace ProjectM.UI
                 canvasGroup.blocksRaycasts = false;
             }
 
-            // Ẩn cả 2 chữ lúc ban đầu
+            // Ẩn cả 3 chữ lúc ban đầu
             if (victoryObject != null) victoryObject.SetActive(false);
             if (lossObject != null) lossObject.SetActive(false);
+            if (endGameObject != null) endGameObject.SetActive(false);
         }
 
         public void ShowVictory()
@@ -51,7 +55,15 @@ namespace ProjectM.UI
             _isShown = true;
             _isVictory = true;
 
-            if (victoryObject != null) victoryObject.SetActive(true);
+            bool isFinalBoss = false;
+            var runData = GameManager.Instance?.RunData;
+            if (runData != null && runData.currentSlotIndex == 22)
+            {
+                isFinalBoss = true;
+            }
+
+            if (victoryObject != null) victoryObject.SetActive(!isFinalBoss);
+            if (endGameObject != null) endGameObject.SetActive(isFinalBoss);
             if (lossObject != null) lossObject.SetActive(false);
             
             // Ẩn bảng thống kê khi Victory
@@ -68,6 +80,7 @@ namespace ProjectM.UI
             _isVictory = false;
 
             if (victoryObject != null) victoryObject.SetActive(false);
+            if (endGameObject != null) endGameObject.SetActive(false);
             if (lossObject != null) lossObject.SetActive(true);
             
             // Hiện bảng thống kê khi Loss
@@ -118,8 +131,18 @@ namespace ProjectM.UI
 
                 if (_isVictory)
                 {
-                    // Chuyển về Map
-                    GameManager.Instance?.OnCombatWon();
+                    var runData = GameManager.Instance?.RunData;
+                    if (runData != null && runData.currentSlotIndex == 22)
+                    {
+                        // Thắng Boss cuối -> Hoàn thành Demo -> Xóa save và về Menu
+                        GameManager.Instance?.DeleteSave();
+                        GameManager.Instance?.LoadMenuScene();
+                    }
+                    else
+                    {
+                        // Thắng combat bình thường -> Về Map
+                        GameManager.Instance?.OnCombatWon();
+                    }
                 }
                 else
                 {

@@ -39,6 +39,9 @@ namespace ProjectM.Skills
         [Tooltip("Danh sách tướng trong run này, mỗi tướng kèm Relic và Trinket trang bị.")]
         public List<ChampionEntry> champions = new();
 
+        [Tooltip("Danh sách tướng dự bị chưa được chọn (Dùng để thưởng ngẫu nhiên sau mỗi trận thắng).")]
+        public List<ChampionEntry> unchosenChampions = new();
+
         [Header("Support Deck (Draw Pile)")]
         [Tooltip("Pool bài hỗ trợ ban đầu — sẽ được xáo và deal 6 lá đầu lượt đầu tiên.")]
         public List<SkillData> supportDeck = new();

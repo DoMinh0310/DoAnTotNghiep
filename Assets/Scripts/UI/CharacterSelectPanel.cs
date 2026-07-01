@@ -190,6 +190,21 @@ namespace ProjectM.UI
                 }
             }
 
+            // Lưu các tướng chưa được chọn vào unchosenChampions
+            setup.unchosenChampions = new List<ChampionEntry>();
+            for (int i = 0; i < baseStarterData.champions.Count; i++)
+            {
+                if (!_selectedIndices.Contains(i) && baseStarterData.champions[i] != null)
+                {
+                    setup.unchosenChampions.Add(new ChampionEntry
+                    {
+                        championData = baseStarterData.champions[i].championData,
+                        equippedRelic = baseStarterData.champions[i].equippedRelic,
+                        equippedTrinket = baseStarterData.champions[i].equippedTrinket
+                    });
+                }
+            }
+
             // Copy toàn bộ Support Deck và thư viện ngọc sở hữu từ cục gốc
             setup.supportDeck = new List<SkillData>(baseStarterData.supportDeck);
             setup.ownedRelics = new List<RelicData>(baseStarterData.ownedRelics);

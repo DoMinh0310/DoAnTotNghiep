@@ -349,6 +349,9 @@ namespace ProjectM.Managers
             // ── Thưởng vàng ngẫu nhiên ─────────────────────────────
             AwardGold();
 
+            // ── Thưởng 1 tướng chưa được chọn (nếu có) ─────────────
+            AwardRandomChampion();
+
             // Hiển thị màn hình Victory thay vì về map luôn
             var resultPanel = FindAnyObjectByType<ProjectM.UI.CombatResultPanel>();
             if (resultPanel != null)
@@ -398,6 +401,34 @@ namespace ProjectM.Managers
             runData.gold += gold;
             runData.goldEarned += gold;
             Debug.Log($"[WaveManager] 💰 Tổng vàng hiện tại: {runData.gold}");
+        }
+
+        /// <summary>
+        /// Random lấy 1 tướng chưa được chọn và thêm vào bộ bài (RunData.championSetup.champions).
+        /// </summary>
+        private void AwardRandomChampion()
+        {
+            var runData = GameManager.Instance?.RunData;
+            if (runData == null || runData.championSetup == null) return;
+
+            var setup = runData.championSetup;
+
+            // Kiểm tra xem còn tướng chưa được chọn không
+            if (setup.unchosenChampions == null || setup.unchosenChampions.Count == 0)
+            {
+                Debug.Log("[WaveManager] Không còn tướng nào chưa được chọn để thưởng thêm.");
+                return;
+            }
+
+            // Chọn ngẫu nhiên 1 tướng từ danh sách dự bị
+            int randomIndex = Random.Range(0, setup.unchosenChampions.Count);
+            var newChampion = setup.unchosenChampions[randomIndex];
+
+            // Thêm vào danh sách chính và xóa khỏi danh sách dự bị
+            setup.champions.Add(newChampion);
+            setup.unchosenChampions.RemoveAt(randomIndex);
+
+            Debug.Log($"[WaveManager] 🌟 Chúc mừng! Bạn nhận thêm tướng mới: {newChampion.championData.cardName}");
         }
     }
 }

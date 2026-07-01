@@ -146,6 +146,8 @@ PlayerSettings:
   bundleVersion: 0.1 Alpha
   preloadedAssets:
   - {fileID: 11400000, guid: 64599005a16e487468f8d68a1ccb7770, type: 2}
+  - {fileID: 11400000, guid: 9a027270ce006d64f8aea3efd4485e47, type: 2}
+  - {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   xboxOneDisableKinectGpuReservation: 1
@@ -302,7 +304,10 @@ PlayerSettings:
       m_Height: 128
       m_Kind: 0
   m_BuildTargetPlatformIcons: []
-  m_BuildTargetBatching: []
+  m_BuildTargetBatching:
+  - m_BuildTarget: Standalone
+    m_StaticBatching: 1
+    m_DynamicBatching: 0
   m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs: []
   m_BuildTargetGraphicsJobMode: []

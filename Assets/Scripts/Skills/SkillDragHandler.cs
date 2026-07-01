@@ -568,7 +568,14 @@ namespace ProjectM.Skills
                 yield return animSeq.WaitForCompletion();
                     
                 // Phát âm thanh va chạm (hit) khi chạm đích!
-                AudioManager.Instance?.PlaySFX(AudioManager.Instance.hitClip);
+                if (_executor?.Data != null && _executor.Data.elementType != ProjectM.Elements.ElementType.None)
+                {
+                    AudioManager.Instance?.PlayElementDamageSFX(_executor.Data.elementType);
+                }
+                else
+                {
+                    AudioManager.Instance?.PlaySFX(AudioManager.Instance.hitClip);
+                }
             }
             // -----------------------
 
