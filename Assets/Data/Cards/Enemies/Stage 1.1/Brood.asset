@@ -14,15 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Brood
   id: 010
-  abilities: Spawner
+  abilities: 
   attack: 2
   health: 8
   speed: 4
   ult: 0
+  innateAttackElement: 4
   cardType: 4
   rarity: 0
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
   characterArt: {fileID: -3206278385064998139, guid: a5c1d1b5044f03342ac7dcb9a6094614, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}

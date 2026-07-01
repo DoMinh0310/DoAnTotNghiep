@@ -31,17 +31,36 @@ MonoBehaviour:
     fillDelayTurns: 5
   - waveName: Second Wave
     spawnList:
-    - cardPrefab: {fileID: 4586905708703126521, guid: e0630bed3b53b9747a251816b25485d8, type: 3}
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
       cardData: {fileID: 11400000, guid: f0b84fb548735384dbe9da1957e46b8a, type: 2}
       slotId: 0
     - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
       cardData: {fileID: 11400000, guid: b78e125c235532543a59ab454cb72c06, type: 2}
+      slotId: 1
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: 67237f6de530a3442b44c8642be78904, type: 2}
       slotId: 3
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: 67237f6de530a3442b44c8642be78904, type: 2}
+      slotId: 4
+    fillPool: []
+    fillDelayTurns: 0
+  - waveName: Third Wave
+    spawnList:
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: b78e125c235532543a59ab454cb72c06, type: 2}
+      slotId: 0
     - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
       cardData: {fileID: 11400000, guid: 4d1e1fb1b50b5454380fa7e84c569db8, type: 2}
       slotId: 1
     - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: 729715472970416478fbd6a9d482e7c7, type: 2}
+      slotId: 2
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
       cardData: {fileID: 11400000, guid: 67237f6de530a3442b44c8642be78904, type: 2}
+      slotId: 3
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: c2ba9b804fd990045a877b7a39b60802, type: 2}
       slotId: 4
     fillPool: []
     fillDelayTurns: 0

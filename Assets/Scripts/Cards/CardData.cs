@@ -37,9 +37,14 @@ namespace ProjectM.Cards
         [Tooltip("Số năng lượng (manas) tướng sẽ tiêu thụ để dùng kĩ năng tối thượng")]
         public int ult;
 
+        [Tooltip("Nguyên tố đòn đánh cơ bản (None = sát thương vật lý)")]
+        public ElementType innateAttackElement = ElementType.None;
+
         [Header("Card System")]
         public CardType  cardType  = CardType.Champion;
         public CardRarity rarity   = CardRarity.Common;
+        [Tooltip("Đánh ngẫu nhiên 1 mục tiêu trong hàng (dành cho quái vật có nội tại đặc biệt)")]
+        public bool attacksRandomTarget = false;
         [Tooltip("Chi phí năng lượng để đánh thẻ này trong lượt")]
         public int cost = 1;
         [TextArea(2, 4)]

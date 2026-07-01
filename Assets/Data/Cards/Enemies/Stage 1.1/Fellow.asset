@@ -14,15 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Fellow
   id: 001
-  abilities: 'Swarm '
+  abilities: 
   attack: 2
   health: 2
   speed: 2
   ult: 0
+  innateAttackElement: 4
   cardType: 4
   rarity: 0
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
   characterArt: {fileID: -6507004131432868014, guid: b5f44384e43795d4c98ae642213eadda, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}

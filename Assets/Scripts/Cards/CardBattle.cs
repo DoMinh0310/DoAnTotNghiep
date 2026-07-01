@@ -334,10 +334,22 @@ namespace ProjectM.Cards
                         Destroy(vfx, 2f);
                     }
 
-                    // Thông báo cho Bleed: đòn đánh vật lý vừa đánh vào mục tiêu này
-                    if (isPhysicalAttack)
+                    var targetElemental = target.GetComponent<ProjectM.Elements.ElementalHandler>();
+
+                    // Nếu thẻ này có Đòn đánh nguyên tố nội tại (Innate Attack Element)
+                    if (cardData.innateAttackElement != ProjectM.Elements.ElementType.None && targetElemental != null)
                     {
-                        var targetElemental = target.GetComponent<ProjectM.Elements.ElementalHandler>();
+                        // Gây sát thương vật lý ở trên rồi, giờ áp thêm stack nguyên tố bằng đúng lượng sát thương
+                        StartCoroutine(targetElemental.AddStacks(cardData.innateAttackElement, totalDamage));
+                        Debug.Log($"[InnateElement] {cardData.cardName} đánh đòn {cardData.innateAttackElement}, áp {totalDamage} stack lên {target.Data?.cardName}");
+                        
+                        // Vẫn có thể gọi NotifyPhysicalDamageReceived nếu muốn Bleed được kích hoạt bởi cả đòn có kèm nguyên tố.
+                        // (Tùy logic game, ở đây gọi luôn để nhất quán)
+                        targetElemental.NotifyPhysicalDamageReceived(totalDamage);
+                    }
+                    // Đòn đánh vật lý thuần túy (không có nội tại nguyên tố)
+                    else if (isPhysicalAttack)
+                    {
                         targetElemental?.NotifyPhysicalDamageReceived(totalDamage);
 
                         // Kỹ năng Winter Flavor
@@ -382,12 +394,25 @@ namespace ProjectM.Cards
             currentUlt = Mathf.Min(currentUlt + 1, cardData.ult);
             UpdateUltUI();
 
+            // Kích hoạt nội tại sau khi đánh (nếu có)
+            if (cardData != null && cardData.customAbility != null)
+            {
+                cardData.customAbility.OnAttack(this, target);
+            }
+
             ResetCounter();
         }
 
      
         // Nhận sát thương & Hồi máu
       
+        public void Heal(int amount)
+        {
+            if (isDead || amount <= 0) return;
+            currentHP = Mathf.Min(maxHP, currentHP + amount);
+            UpdateHealthUI();
+        }
+
         /// <summary>Được gọi bởi thẻ tấn công để gây sát thương lên thẻ này.</summary>
         public void TakeDamage(int amount, CardBattle attacker = null)
         {

@@ -14,15 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Brood Mother
   id: 017
-  abilities: 
+  abilities: 'Apply Decay '
   attack: 4
-  health: 15
-  speed: 6
+  health: 18
+  speed: 5
   ult: 0
+  innateAttackElement: 1
   cardType: 4
   rarity: 2
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
   characterArt: {fileID: 2989060822067816954, guid: b72752c6872a7a24d88a52640045ff2d, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}

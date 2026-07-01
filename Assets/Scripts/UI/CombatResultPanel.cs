@@ -57,13 +57,13 @@ namespace ProjectM.UI
 
             bool isFinalBoss = false;
             var runData = GameManager.Instance?.RunData;
-            if (runData != null && runData.currentSlotIndex == 22)
+            if (runData != null && runData.currentSlotIndex == 19)
             {
                 isFinalBoss = true;
             }
 
-            if (victoryObject != null) victoryObject.SetActive(!isFinalBoss);
-            if (endGameObject != null) endGameObject.SetActive(isFinalBoss);
+            if (victoryObject != null) victoryObject.SetActive(true); // LUÔN HIỆN chữ Victory
+            if (endGameObject != null) endGameObject.SetActive(isFinalBoss); // Hiện THÊM lời cảm ơn nếu là Boss
             if (lossObject != null) lossObject.SetActive(false);
             
             // Ẩn bảng thống kê khi Victory
@@ -132,7 +132,7 @@ namespace ProjectM.UI
                 if (_isVictory)
                 {
                     var runData = GameManager.Instance?.RunData;
-                    if (runData != null && runData.currentSlotIndex == 22)
+                    if (runData != null && runData.currentSlotIndex == 19)
                     {
                         // Thắng Boss cuối -> Hoàn thành Demo -> Xóa save và về Menu
                         GameManager.Instance?.DeleteSave();

@@ -17,6 +17,9 @@ namespace ProjectM.Managers
         [Tooltip("Số vàng ban đầu để test (phải khớp với MapRunData.InitNewRun)")]
         public int startingGold = 10;
 
+        [Tooltip("Bật True nếu muốn giả lập đánh trận Boss cuối (Slot 22) để test màn hình Thank You")]
+        public bool testFinalBoss = false;
+
         private void Awake()
         {
             // Nếu GameManager chưa tồn tại → tạo mới
@@ -33,6 +36,12 @@ namespace ProjectM.Managers
                 var runData = new MapRunData();
                 runData.InitNewRun(seed: 0);
                 runData.gold = startingGold;
+                
+                // Mẹo nhỏ: Dùng biến này để giả lập đánh Boss cuối (kích hoạt màn hình Thank You)
+                if (testFinalBoss)
+                {
+                    runData.currentSlotIndex = 19;
+                }
 
                 // Đọc ChampionSetup trực tiếp từ SkillHandManager trong Scene
                 // — không cần kéo thả lại, tránh trùng lặp

@@ -19,10 +19,15 @@ MonoBehaviour:
   health: 6
   speed: 4
   ult: 0
+  innateAttackElement: 4
   cardType: 4
   rarity: 0
+  attacksRandomTarget: 1
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
   characterArt: {fileID: -4847877434835987827, guid: 7cbd76bd8477a9d43b6cceb771be0e8d, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}

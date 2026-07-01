@@ -163,13 +163,24 @@ namespace ProjectM.Managers
 
             if (attacker.IsPlayerCard)
             {
+                // Tướng của người chơi luôn đánh thằng đứng đầu
                 target = GetFrontCard(isTop ? enemySlotsTop : enemySlotsBot)
                       ?? GetFrontCard(isTop ? enemySlotsBot : enemySlotsTop);
             }
             else
             {
-                target = GetFrontCard(isTop ? playerSlotsTop : playerSlotsBot)
-                      ?? GetFrontCard(isTop ? playerSlotsBot : playerSlotsTop);
+                // Nếu quái có nội tại đánh random
+                if (attacker.Data != null && attacker.Data.attacksRandomTarget)
+                {
+                    target = GetRandomCard(isTop ? playerSlotsTop : playerSlotsBot)
+                          ?? GetRandomCard(isTop ? playerSlotsBot : playerSlotsTop);
+                }
+                else
+                {
+                    // Quái bình thường đánh mục tiêu đứng đầu
+                    target = GetFrontCard(isTop ? playerSlotsTop : playerSlotsBot)
+                          ?? GetFrontCard(isTop ? playerSlotsBot : playerSlotsTop);
+                }
             }
 
             if (target != null)
@@ -178,6 +189,22 @@ namespace ProjectM.Managers
                 BattleDebugger.Warn($"{attacker.Data?.cardName} không tìm thấy mục tiêu!");
 
             return target;
+        }
+
+        // Lấy ngẫu nhiên 1 thẻ còn sống trong hàng
+        private CardBattle GetRandomCard(CardDropZone[] row)
+        {
+            List<CardBattle> aliveCards = new List<CardBattle>();
+            foreach (var slot in row)
+            {
+                CardBattle c = GetCardInSlot(slot);
+                if (c != null && !c.IsDead) aliveCards.Add(c);
+            }
+            if (aliveCards.Count > 0)
+            {
+                return aliveCards[UnityEngine.Random.Range(0, aliveCards.Count)];
+            }
+            return null;
         }
 
         // Lấy thẻ gần TT nhất trong hàng (slot[0] là Front của cả 2 phe)

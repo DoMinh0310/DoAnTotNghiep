@@ -102,6 +102,10 @@ namespace ProjectM.UI
                         shadow.effectDistance = new Vector2(Mathf.Abs(currentDist.x), currentDist.y);
                     }
 
+                    // --- VÔ HIỆU HÓA KÉO THẢ (CHỈ CHO CHỌN) ---
+                    CardDragHandler dragHandler = cardObj.GetComponentInChildren<CardDragHandler>(true);
+                    if (dragHandler != null) dragHandler.enabled = false;
+
                     _spawnedCards.Add(selectable);
                 }
             }

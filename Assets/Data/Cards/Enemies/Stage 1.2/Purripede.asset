@@ -14,15 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Purripede
   id: 036
-  abilities: 
-  attack: 6
-  health: 11
+  abilities: Apply Bleed
+  attack: 7
+  health: 14
   speed: 7
   ult: 0
+  innateAttackElement: 0
   cardType: 4
-  rarity: 0
+  rarity: 2
+  attacksRandomTarget: 0
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
   characterArt: {fileID: -4520654333604024579, guid: 964b91a54dc5407408192dee6e78e2f0, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}

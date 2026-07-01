@@ -9,6 +9,12 @@ namespace ProjectM.UI
         [Tooltip("Kéo GameObject Panel chứa hình nền giấy da và 3 nút vào đây")]
         public GameObject pausePanel;
 
+        [Header("Panels inside Pause Menu")]
+        [Tooltip("Panel chứa các nút chính: Resume, Sound, Back To Menu, Quit")]
+        public GameObject mainButtonsPanel;
+        [Tooltip("Panel chứa các slider chỉnh âm thanh và nút quay lại")]
+        public GameObject soundSettingsPanel;
+
         [Header("Buttons")]
         [Tooltip("Nút icon Setting nhỏ ở góc màn hình")]
         public Button btnOpenSettings; 
@@ -16,11 +22,24 @@ namespace ProjectM.UI
         [Tooltip("Nút Resume bên trong Panel")]
         public Button btnResume;
         
+        [Tooltip("Nút mở bảng Sound")]
+        public Button btnSoundMenu;
+
         [Tooltip("Nút Back To Menu bên trong Panel")]
         public Button btnBackToMenu;
         
         [Tooltip("Nút Quit bên trong Panel")]
         public Button btnQuit;
+
+        [Tooltip("Nút quay lại menu chính từ bảng Sound")]
+        public Button btnBackFromSound;
+
+        [Header("Audio Settings")]
+        [Tooltip("Slider chỉnh âm lượng nhạc nền")]
+        public Slider sliderMusic;
+        
+        [Tooltip("Slider chỉnh âm lượng hiệu ứng")]
+        public Slider sliderSFX;
 
         private void Start()
         {
@@ -30,8 +49,22 @@ namespace ProjectM.UI
             // Gắn sự kiện cho các nút
             if (btnOpenSettings != null) btnOpenSettings.onClick.AddListener(OpenPauseMenu);
             if (btnResume != null)       btnResume.onClick.AddListener(ResumeGame);
+            if (btnSoundMenu != null)    btnSoundMenu.onClick.AddListener(OpenSoundSettings);
             if (btnBackToMenu != null)   btnBackToMenu.onClick.AddListener(BackToMenu);
             if (btnQuit != null)         btnQuit.onClick.AddListener(QuitGame);
+            if (btnBackFromSound != null) btnBackFromSound.onClick.AddListener(CloseSoundSettings);
+
+            // Khởi tạo thanh gạt âm thanh (nếu có)
+            if (sliderMusic != null)
+            {
+                sliderMusic.value = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
+                sliderMusic.onValueChanged.AddListener(SetMusicVolume);
+            }
+            if (sliderSFX != null)
+            {
+                sliderSFX.value = PlayerPrefs.GetFloat("SFXVolume", 0.5f);
+                sliderSFX.onValueChanged.AddListener(SetSFXVolume);
+            }
         }
 
         private void Update()
@@ -54,6 +87,10 @@ namespace ProjectM.UI
         {
             if (pausePanel != null) pausePanel.SetActive(true);
             
+            // Đảm bảo hiển thị đúng menu chính khi mở lên
+            if (mainButtonsPanel != null) mainButtonsPanel.SetActive(true);
+            if (soundSettingsPanel != null) soundSettingsPanel.SetActive(false);
+            
             // Nếu game của bạn là Real-time, bỏ comment dòng dưới để đóng băng thời gian
             // Time.timeScale = 0f; 
         }
@@ -64,6 +101,18 @@ namespace ProjectM.UI
             
             // Bỏ comment dòng dưới nếu bạn dùng Time.timeScale = 0f ở trên
             // Time.timeScale = 1f;
+        }
+
+        public void OpenSoundSettings()
+        {
+            if (mainButtonsPanel != null) mainButtonsPanel.SetActive(false);
+            if (soundSettingsPanel != null) soundSettingsPanel.SetActive(true);
+        }
+
+        public void CloseSoundSettings()
+        {
+            if (mainButtonsPanel != null) mainButtonsPanel.SetActive(true);
+            if (soundSettingsPanel != null) soundSettingsPanel.SetActive(false);
         }
 
         public void BackToMenu()
@@ -93,6 +142,20 @@ namespace ProjectM.UI
             
             Debug.Log("Đã thoát game (Quit)!");
             Application.Quit();
+        }
+
+        public void SetMusicVolume(float volume)
+        {
+            PlayerPrefs.SetFloat("MusicVolume", volume);
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.SetMusicVolume(volume);
+        }
+
+        public void SetSFXVolume(float volume)
+        {
+            PlayerPrefs.SetFloat("SFXVolume", volume);
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.SetSFXVolume(volume);
         }
     }
 }

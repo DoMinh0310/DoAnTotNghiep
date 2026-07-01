@@ -14,15 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Kytten
   id: 033
-  abilities: 
+  abilities: 'Apply Bleed
+
+    Upon attack, +2 HP'
   attack: 2
-  health: 5
+  health: 7
   speed: 3
   ult: 0
+  innateAttackElement: 0
   cardType: 4
   rarity: 0
+  attacksRandomTarget: 0
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 11400000, guid: f710dd4a53f822c4691d7deda9a15494, type: 2}
   characterArt: {fileID: 8938986023010688855, guid: 99f64876076e6f046a290ee65438804c, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}

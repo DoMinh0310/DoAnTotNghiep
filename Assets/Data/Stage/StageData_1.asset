@@ -24,9 +24,6 @@ MonoBehaviour:
     - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
       cardData: {fileID: 11400000, guid: 52907cef4a16e424094e50d9fe5dc60a, type: 2}
       slotId: 3
-    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
-      cardData: {fileID: 11400000, guid: d318802bbdad8ab45ae2b4df0bfd4884, type: 2}
-      slotId: 4
     fillPool: []
     fillDelayTurns: 5
   - waveName: Second Wave
@@ -35,10 +32,32 @@ MonoBehaviour:
       cardData: {fileID: 11400000, guid: 7271f03ffb859d84fbe04633926f04f5, type: 2}
       slotId: 0
     - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
-      cardData: {fileID: 11400000, guid: d318802bbdad8ab45ae2b4df0bfd4884, type: 2}
+      cardData: {fileID: 11400000, guid: e13fc5fe3654943498f243ab3febc01f, type: 2}
       slotId: 1
     - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
       cardData: {fileID: 11400000, guid: d318802bbdad8ab45ae2b4df0bfd4884, type: 2}
       slotId: 3
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: d318802bbdad8ab45ae2b4df0bfd4884, type: 2}
+      slotId: 4
+    fillPool: []
+    fillDelayTurns: 5
+  - waveName: Third Wave
+    spawnList:
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: e13fc5fe3654943498f243ab3febc01f, type: 2}
+      slotId: 0
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: 1b0d1f379e4235343b8786ccea70d5d3, type: 2}
+      slotId: 1
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: d318802bbdad8ab45ae2b4df0bfd4884, type: 2}
+      slotId: 3
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: 7271f03ffb859d84fbe04633926f04f5, type: 2}
+      slotId: 2
+    - cardPrefab: {fileID: 4586905708703126521, guid: 506782e486ca18a4fbbc5edc9686da55, type: 3}
+      cardData: {fileID: 11400000, guid: 7271f03ffb859d84fbe04633926f04f5, type: 2}
+      slotId: 4
     fillPool: []
     fillDelayTurns: 5

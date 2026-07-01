@@ -19,5 +19,10 @@ namespace ProjectM.Cards
         /// Thể Ms_Pockey có thể override trả về 2 (200%).
         /// </summary>
         public virtual int GetThornMultiplier() { return 1; }
+
+        /// <summary>
+        /// Gọi ngay sau khi thẻ thực hiện xong đòn đánh (kể cả có trúng hay không).
+        /// </summary>
+        public virtual void OnAttack(CardBattle card, CardBattle target) {}
     }
 }

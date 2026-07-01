@@ -14,15 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Nekomancer
   id: 035
-  abilities: 
+  abilities: Apply Decay
   attack: 4
   health: 3
-  speed: 4
+  speed: 3
   ult: 0
+  innateAttackElement: 1
   cardType: 4
-  rarity: 0
+  rarity: 1
+  attacksRandomTarget: 0
   cost: 1
   description: 
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
   characterArt: {fileID: 6537640692122684655, guid: 9e6361303550b344bbc5c855bc525b01, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 0}
