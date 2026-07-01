@@ -10,7 +10,7 @@ namespace ProjectM.Cards
     {
         public static bool isAnyCardDragging = false; // Ngăn chặn các thẻ khác nhấp nháy khi đang kéo 1 thẻ
 
-        private Transform previousParent;
+        public Transform previousParent { get; private set; }
         private CanvasGroup canvasGroup;
         private Canvas mainCanvas;
         
@@ -22,13 +22,24 @@ namespace ProjectM.Cards
         void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
-            mainCanvas = GetComponentInParent<Canvas>();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            // Khóa input trong lúc animation deal skill
-            if (Managers.BattleManager.IsInputLocked) return;
+            // Khóa input trong lúc animation deal skill hoặc lúc combat
+            if (Managers.BattleManager.IsInputBlocked) return;
+
+            // Đảm bảo tìm được mainCanvas đúng lúc bắt đầu kéo (vì lúc Awake có thể chưa có Parent)
+            if (mainCanvas == null)
+            {
+                Transform curr = transform.parent;
+                while (curr != null)
+                {
+                    mainCanvas = curr.GetComponent<Canvas>();
+                    if (mainCanvas != null) break;
+                    curr = curr.parent;
+                }
+            }
 
             isDragging = true;
             isAnyCardDragging = true;
@@ -67,11 +78,24 @@ namespace ProjectM.Cards
 
         public void OnDrag(PointerEventData eventData)
         {
+            if (!isDragging) return;
+            if (Managers.BattleManager.IsInputBlocked)
+            {
+                ForceCancelDrag();
+                return;
+            }
             transform.position = eventData.position;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            if (!isDragging) return;
+            if (Managers.BattleManager.IsInputBlocked)
+            {
+                ForceCancelDrag();
+                return;
+            }
+            
             isDragging = false;
             isAnyCardDragging = false;
             canvasGroup.blocksRaycasts = true;
@@ -115,9 +139,11 @@ namespace ProjectM.Cards
         }
 
         // Hàm này được gọi bởi CardDropZone khi thẻ lọt vào vùng từ trường
-        public void SetNewParent(Transform newParent)
+        public void SetNewParent(Transform newParent, bool animate = true)
         {
             targetParent = newParent;
+            Vector3 worldPos = transform.position; // Lưu world position trước khi đổi parent
+            
             transform.SetParent(newParent);
             
             CardDropZone dropZone = newParent.GetComponent<CardDropZone>();
@@ -130,12 +156,22 @@ namespace ProjectM.Cards
                 float scaleFactor = slotRect.rect.width / cardRect.rect.width;
                 Vector3 newScale = new Vector3(scaleFactor, scaleFactor, 1f);
                 
-                // Snap ngay lập tức về trung tâm Slot, thẳng đứng, đúng kích thước
-                // Hoạt động vì CardHoverHandler.Awake() đã ép Anchor = Center (0.5, 0.5)
-                // nên anchoredPosition = (0,0) luôn luôn = tâm của Slot
-                transform.localScale = newScale;
-                transform.localRotation = Quaternion.identity;
-                cardRect.anchoredPosition = Vector2.zero;
+                if (animate && gameObject.activeInHierarchy)
+                {
+                    transform.DOKill(); // Dừng các animation trước đó
+                    transform.position = worldPos; // Giữ nguyên vị trí lúc đầu để không giật
+                    
+                    // Bay cực nhanh vào vị trí (0.125s = nhanh gấp đôi)
+                    cardRect.DOAnchorPos(Vector2.zero, 0.125f).SetEase(Ease.OutQuad);
+                    transform.DOScale(newScale, 0.125f).SetEase(Ease.OutQuad);
+                    transform.DOLocalRotateQuaternion(Quaternion.identity, 0.125f).SetEase(Ease.OutQuad);
+                }
+                else
+                {
+                    transform.localScale = newScale;
+                    transform.localRotation = Quaternion.identity;
+                    cardRect.anchoredPosition = Vector2.zero;
+                }
                 
                 // Báo cho CardHoverHandler biết trạng thái gốc mới để Hover hoạt động đúng
                 CardHoverHandler hover = GetComponent<CardHoverHandler>();
@@ -148,6 +184,15 @@ namespace ProjectM.Cards
             {
                 transform.localScale = Vector3.one;
             }
+        }
+
+        private void ForceCancelDrag()
+        {
+            isDragging = false;
+            isAnyCardDragging = false;
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.alpha = 1f;
+            SetNewParent(previousParent);
         }
     }
 }

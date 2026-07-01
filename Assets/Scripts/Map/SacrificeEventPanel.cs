@@ -401,6 +401,9 @@ namespace ProjectM.Map
         // ══════════════════════════════════════════════════════════════
         private void OnCardSelected(SacrificeCardSlot clickedSlot)
         {
+            // Phát tiếng chọn thẻ
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardSelectClip);
+
             // Bỏ chọn slot cũ
             if (_selectedSlot != null && _selectedSlot != clickedSlot)
                 _selectedSlot.SetSelected(false);
@@ -488,6 +491,10 @@ namespace ProjectM.Map
         private void ConfirmSacrifice()
         {
             if (_selectedSlot == null) return;
+            
+            // Phát tiếng nghiền thẻ
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.recycleClip);
+            
             var card = _selectedSlot.SkillData;
 
             // Xoá thẻ khỏi RunData

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bdab57665510e245aef13c5fb607973, type: 3}
+  m_Name: Mr Loonie
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
+  skillName: Mr Loonie
+  description: 'Upon destroyed, apply 5 Chain to attacker
+
+'
+  artwork: {fileID: 4751860893596244776, guid: c230cd5a2db9a1f428a0dfe8b5b0f763, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  targetType: 5
+  effectType: 0
+  effectValue: 5
+  elementType: 4
+  customOverride: {fileID: 11400000, guid: 79d32c659a8264840ba2945796d26536, type: 2}
+  isExhaust: 1

@@ -166,6 +166,9 @@ namespace ProjectM.Managers
                 GameManager.Instance.RunData.gold += goldDrop;
                 GameManager.Instance.RunData.goldEarned += goldDrop;
                 
+                // Phát tiếng nhận tiền khi quái chết
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.coinDropClip);
+                
                 string rarityName = deadEnemy != null && deadEnemy.Data != null ? deadEnemy.Data.rarity.ToString() : "Unknown";
                 Debug.Log($"[WaveManager] Nhận {goldDrop} Vàng từ việc diệt địch hiếm {rarityName}. (Tổng: {GameManager.Instance.RunData.gold})");
             }

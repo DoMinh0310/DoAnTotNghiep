@@ -68,15 +68,22 @@ namespace ProjectM.Map
                                  $"nhưng cần {numberOfChoices}. Sẽ hiển thị tất cả thẻ có sẵn.");
             }
 
-            // ── Trộn ngẫu nhiên ────────────────────────────────────────
-            for (int i = 0; i < validCards.Count; i++)
+            // ── Trộn ngẫu nhiên và lọc trùng ───────────────────────────
+            var picked = new List<ScriptableObject>();
+            
+            while (picked.Count < numberOfChoices && validCards.Count > 0)
             {
-                int r = rng.Next(i, validCards.Count);
-                (validCards[i], validCards[r]) = (validCards[r], validCards[i]);
+                int r = rng.Next(0, validCards.Count);
+                var selectedCard = validCards[r];
+                
+                picked.Add(selectedCard);
+                
+                // Cực kỳ quan trọng: Xóa TẤT CẢ các bản sao của thẻ này khỏi validCards
+                // để đảm bảo 3 ô lựa chọn không bao giờ hiện 2 thẻ giống nhau!
+                validCards.RemoveAll(c => c == selectedCard);
             }
 
-            int count = Mathf.Min(numberOfChoices, validCards.Count);
-            return validCards.GetRange(0, count);
+            return picked;
         }
     }
 }

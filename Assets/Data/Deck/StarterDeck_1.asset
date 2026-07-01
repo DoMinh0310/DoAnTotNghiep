@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.ChampionSetup
   champions:
   - championData: {fileID: 11400000, guid: d17532f265edb0e4b860f34b32f6cd2e, type: 2}
-    equippedRelic: {fileID: 11400000, guid: f27e1c94bb5271541adac4cb0ed8638a, type: 2}
+    equippedRelic: {fileID: 0}
     equippedTrinket: {fileID: 11400000, guid: 2d3169cdc9b55ab4ea4d858c8900cf6d, type: 2}
   - championData: {fileID: 11400000, guid: 173f0048d3fc8904496091ce9eeaafde, type: 2}
     equippedRelic: {fileID: 0}
@@ -26,14 +26,15 @@ MonoBehaviour:
     equippedRelic: {fileID: 0}
     equippedTrinket: {fileID: 11400000, guid: b248fd7ae3a3274488777859790aaf29, type: 2}
   supportDeck:
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
   - {fileID: 11400000, guid: dbfd1b1e7fe095b438d1dd95aa864804, type: 2}
-  - {fileID: 11400000, guid: 3d1e106b25a2a3e47b671b3ebc9d94b5, type: 2}
   - {fileID: 11400000, guid: d3808adb641219646a840cc00c8de056, type: 2}
-  - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
   - {fileID: 11400000, guid: c230e63ebfc1fed4ea4c856e91f722fa, type: 2}
+  - {fileID: 11400000, guid: b32fabb453a4b59489290bc6ab297ec6, type: 2}
+  - {fileID: 11400000, guid: 7dcd1c201d374144d9cf316fa393ef8f, type: 2}
+  - {fileID: 11400000, guid: 6d4f79db5577c284aa2c27ec17ad1681, type: 2}
+  - {fileID: 11400000, guid: 2c143a118dec5b1489d6b932bb2398ab, type: 2}
+  - {fileID: 11400000, guid: 869177930cd580c43adadf15d4e1247f, type: 2}
+  - {fileID: 11400000, guid: 1f6ff6df4bcc7644180f095858f0ba86, type: 2}
+  buildingDeck: []
   ownedRelics: []
   ownedTrinkets: []

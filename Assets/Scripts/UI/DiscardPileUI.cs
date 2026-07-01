@@ -79,6 +79,7 @@ namespace ProjectM.UI
         /// <summary>Gọi từ nút Discard Pile ở Combat UI để mở Panel.</summary>
         public void OpenDiscardPile()
         {
+            if (ProjectM.Managers.BattleManager.IsInputBlocked) return;
             if (_isOpen) return;
             _isOpen = true;
 

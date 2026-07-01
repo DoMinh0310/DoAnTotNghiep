@@ -116,10 +116,10 @@ TextureImporter:
       name: Second_pulse_0
       rect:
         serializedVersion: 2
-        x: 20
-        y: 26
-        width: 112
-        height: 114
+        x: 14
+        y: 21
+        width: 124
+        height: 125
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

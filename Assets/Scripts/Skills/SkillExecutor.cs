@@ -71,6 +71,27 @@ namespace ProjectM.Skills
                             Debug.LogWarning($"[Skill] {target.Data?.cardName} không có ElementalHandler!");
                             continue;
                         }
+                        
+                        // Bật hiệu ứng VFX tương ứng với nguyên tố
+                        GameObject vfxPrefab = null;
+                        if (Managers.BattleManager.Instance != null)
+                        {
+                            switch (Data.elementType)
+                            {
+                                case ElementType.Bleed: vfxPrefab = Managers.BattleManager.Instance.bleedHitVfxPrefab; break;
+                                case ElementType.Frost: vfxPrefab = Managers.BattleManager.Instance.frostHitVfxPrefab; break;
+                                case ElementType.Chain: vfxPrefab = Managers.BattleManager.Instance.chainHitVfxPrefab; break;
+                                case ElementType.Decay: vfxPrefab = Managers.BattleManager.Instance.decayHitVfxPrefab; break;
+                            }
+                        }
+
+                        if (vfxPrefab != null)
+                        {
+                            GameObject vfx = Instantiate(vfxPrefab, target.transform.position, Quaternion.identity, target.transform);
+                            vfx.transform.localPosition = new Vector3(0, 0, -50f); 
+                            Destroy(vfx, 2f);
+                        }
+
                         Debug.Log($"[Skill] {Data.skillName} → {target.Data?.cardName}: +{Data.effectValue} stack {Data.elementType}");
                         yield return StartCoroutine(elemental.AddStacks(Data.elementType, Data.effectValue));
                         yield return new WaitForSeconds(0.15f);
@@ -90,8 +111,13 @@ namespace ProjectM.Skills
 
                 // ─ Tăng sát thương đòn thường tiếp theo ─────────────────
                 case SkillEffectType.AttackBuff:
-                    Debug.Log($"[Skill] {Data.skillName}: +{Data.effectValue} attack cho đòn thường tiếp theo của {caster.Data?.cardName}");
-                    caster.AddAttackBonus(Data.effectValue);
+                    foreach (var target in targets)
+                    {
+                        if (target == null || target.IsDead) continue;
+                        Debug.Log($"[Skill] {Data.skillName}: +{Data.effectValue} attack cho đòn thường tiếp theo của {target.Data?.cardName}");
+                        target.AddAttackBonus(Data.effectValue);
+                        yield return new WaitForSeconds(0.15f);
+                    }
                     break;
 
                 // ─ Thêm Khiên (Shield) ──────────────────────────────────

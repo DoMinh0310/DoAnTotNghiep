@@ -168,6 +168,8 @@ namespace ProjectM.Cards
         {
             if (rectTransform == null) yield break;
 
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardDeathClip);
+
             transform.SetAsLastSibling();
 
             // ── Bước 1: Scale punch (cảm giác "bị đòn chí mạng") ──

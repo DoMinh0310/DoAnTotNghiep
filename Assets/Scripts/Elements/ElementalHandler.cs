@@ -147,6 +147,18 @@ namespace ProjectM.Elements
         /// </summary>
         public bool IsSpeedFrozen => GetStacks(ElementType.Frost) > 0;
 
+        /// <summary>
+        /// Trả về true nếu đơn vị này đang có bất kỳ stack nguyên tố nào.
+        /// </summary>
+        public bool HasAnyActiveEffect()
+        {
+            foreach (var kvp in _stacks)
+            {
+                if (kvp.Value > 0) return true;
+            }
+            return false;
+        }
+
         // ════════════════════════════════════════════════════════════════
         // DAMAGE HELPER
         // ════════════════════════════════════════════════════════════════

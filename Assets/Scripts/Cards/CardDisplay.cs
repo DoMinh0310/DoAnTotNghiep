@@ -42,21 +42,30 @@ namespace ProjectM.Cards
         [Tooltip("Sprite trái tim khi HP <= 1/3 (sẽ đập thình thịch).")]
         public Sprite heart3Sprite;
 
-        [Tooltip("Sprite trái tim giáp — hiện khi đang có khiên (ưu tiên cao nhất).")]
+        [Tooltip("Sprite trái tim giáp — dùng cho buff Second Pulse (ưu tiên cao nhất).")]
         public Sprite shieldHeartSprite;
 
+        [Header("Special Hearts")]
+        public Sprite fragileHeartSprite;
+        public Sprite doomHeartSprite;
+        public Sprite thornHeartSprite;
+
+        [Header("Separate Shield Display")]
+        public GameObject shieldIconObj;
+        public TextMeshProUGUI shieldText;
+
         [Header("Elemental UI")]
-        public GameObject iceIconObj;
-        public TextMeshProUGUI iceText;
+        public GameObject frostIconObj;
+        public TextMeshProUGUI frostText;
         
-        public GameObject scorchIconObj;
-        public TextMeshProUGUI scorchText;
+        public GameObject bleedIconObj;
+        public TextMeshProUGUI bleedText;
         
-        public GameObject venomIconObj;
-        public TextMeshProUGUI venomText;
+        public GameObject decayIconObj;
+        public TextMeshProUGUI decayText;
         
-        public GameObject lightningIconObj;
-        public TextMeshProUGUI lightningText;
+        public GameObject chainIconObj;
+        public TextMeshProUGUI chainText;
 
         private bool _isInitialized = false;
 
@@ -99,17 +108,26 @@ namespace ProjectM.Cards
                     abilitiesText = abilitiesTransform.GetComponent<TextMeshProUGUI>();
             }
 
-            // Tự động tìm icon nguyên tố theo tên nếu chưa kéo vào Inspector
-            if (iceIconObj       == null) iceIconObj       = FindChildByName(transform, "IceIcon")?.gameObject;
-            if (scorchIconObj    == null) scorchIconObj    = FindChildByName(transform, "ScorchIcon")?.gameObject;
-            if (venomIconObj     == null) venomIconObj     = FindChildByName(transform, "VenomIcon")?.gameObject;
-            if (lightningIconObj == null) lightningIconObj = FindChildByName(transform, "LightningIcon")?.gameObject;
+            // Hàm nội bộ để đảm bảo reference phải nằm trong CÙNG prefab instance
+            GameObject ValidateRef(GameObject obj, string childName)
+            {
+                if (obj != null && obj.transform.IsChildOf(this.transform)) return obj;
+                var found = FindChildByName(transform, childName);
+                return found != null ? found.gameObject : null;
+            }
 
-            // Tự động tìm Text bên trong từng icon nếu chưa kéo vào Inspector
-            if (iceText       == null) iceText       = iceIconObj?.GetComponentInChildren<TextMeshProUGUI>();
-            if (scorchText    == null) scorchText    = scorchIconObj?.GetComponentInChildren<TextMeshProUGUI>();
-            if (venomText     == null) venomText     = venomIconObj?.GetComponentInChildren<TextMeshProUGUI>();
-            if (lightningText == null) lightningText = lightningIconObj?.GetComponentInChildren<TextMeshProUGUI>();
+            // Tự động tìm icon nguyên tố theo tên nếu chưa kéo vào hoặc kéo nhầm Prefab từ Project
+            frostIconObj = ValidateRef(frostIconObj, "FrostIcon");
+            bleedIconObj = ValidateRef(bleedIconObj, "BleedIcon");
+            decayIconObj = ValidateRef(decayIconObj, "DecayIcon");
+            chainIconObj = ValidateRef(chainIconObj, "ChainIcon");
+            shieldIconObj = ValidateRef(shieldIconObj, "ShieldIcon");
+
+            // Tự động tìm Text bên trong từng icon
+            if (frostText == null) frostText = frostIconObj?.GetComponentInChildren<TextMeshProUGUI>();
+            if (bleedText == null) bleedText = bleedIconObj?.GetComponentInChildren<TextMeshProUGUI>();
+            if (decayText == null) decayText = decayIconObj?.GetComponentInChildren<TextMeshProUGUI>();
+            if (chainText == null) chainText = chainIconObj?.GetComponentInChildren<TextMeshProUGUI>();
 
             // Ẩn hết ngay khi Awake — trước khi LoadData() được gọi
             HideAllElementalIcons();
@@ -118,13 +136,14 @@ namespace ProjectM.Cards
         }
 
         /// <summary>
-        /// Tìm kiếm đệ quy một Transform con theo tên (không phân biệt hoa thường).
+        /// Tìm kiếm đệ quy một Transform con có tên chứa chuỗi đích (không phân biệt hoa thường).
+        /// Giúp tìm được cả các object bị Unity đổi tên khi duplicate như "HeartIcon (1)".
         /// </summary>
         private Transform FindChildByName(Transform parent, string targetName)
         {
             foreach (Transform child in parent)
             {
-                if (child.name.Equals(targetName, System.StringComparison.OrdinalIgnoreCase))
+                if (child.name.IndexOf(targetName, System.StringComparison.OrdinalIgnoreCase) >= 0)
                     return child;
                 Transform found = FindChildByName(child, targetName);
                 if (found != null) return found;
@@ -143,6 +162,40 @@ namespace ProjectM.Cards
             }
         }
 
+
+        // Hàm Helper nội bộ để xử lý hiện/ẩn icon
+        private void SetStatVisible(ref TextMeshProUGUI txtRef, string iconName, int value)
+        {
+            if (txtRef == null) 
+            {
+                Transform icon = FindChildByName(transform, iconName);
+                if (icon != null) txtRef = icon.GetComponentInChildren<TextMeshProUGUI>(true);
+            }
+
+            bool show = (value > 0);
+            if (txtRef != null)
+            {
+                txtRef.text = value.ToString();
+                if (txtRef.transform.parent != null) txtRef.transform.parent.gameObject.SetActive(show);
+            }
+            else
+            {
+                Transform icon = FindChildByName(transform, iconName);
+                if (icon != null) icon.gameObject.SetActive(show);
+            }
+        }
+
+        private void SwapHeartIcon(HeartType type)
+        {
+            if (heartIconImage == null) return;
+            switch (type)
+            {
+                case HeartType.Fragile: if (fragileHeartSprite != null) heartIconImage.sprite = fragileHeartSprite; break;
+                case HeartType.Doom:    if (doomHeartSprite != null) heartIconImage.sprite = doomHeartSprite; break;
+                case HeartType.Thorn:   if (thornHeartSprite != null) heartIconImage.sprite = thornHeartSprite; break;
+                default:                if (normalHeartSprite != null) heartIconImage.sprite = normalHeartSprite; break;
+            }
+        }
 
         // Load data từ ScriptableObject lên giao diện
         public void LoadData(CardData data)
@@ -165,10 +218,15 @@ namespace ProjectM.Cards
                 currentHp += bonus.healthBonus;
             }
 
-            attackText.text = currentAtk.ToString();
-            healthText.text = currentHp.ToString();
-            if (speedText != null) speedText.text = cardData.speed.ToString();
-            if (ultText != null) ultText.text = cardData.ult.ToString();
+            SetStatVisible(ref attackText, "SwordIcon", currentAtk);
+            SetStatVisible(ref healthText, "HeartIcon", currentHp);
+            SetStatVisible(ref speedText, "SpeedIcon", cardData.speed);
+            SetStatVisible(ref ultText, "UltIcon", cardData.ult);
+            
+            // Ẩn Shield Icon mặc định khi mới load bài
+            if (shieldIconObj != null) shieldIconObj.SetActive(false);
+            else FindChildByName(transform, "ShieldIcon")?.gameObject.SetActive(false);
+
             if (abilitiesText != null)
                 abilitiesText.text = Skills.TextFormatter.Process(cardData.abilities, keywordDatabase);
 
@@ -204,6 +262,17 @@ namespace ProjectM.Cards
 
             // Ẩn toàn bộ icon nguyên tố khi khởi tạo — chỉ hiện khi có hiệu ứng thực sự
             HideAllElementalIcons();
+
+            // QUAN TRỌNG: Dọn dẹp tất cả các icon bị duplicate (bản sao dư thừa)
+            // Dùng .Contains("99") thay vì == "99" để đề phòng TextMeshPro tự chèn zero-width space hoặc ký tự ẩn
+            foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>())
+            {
+                if (tmp.text != null && tmp.text.Contains("99"))
+                {
+                    if (tmp.transform.parent != null)
+                        tmp.transform.parent.gameObject.SetActive(false);
+                }
+            }
         }
 
         /// <summary>
@@ -298,13 +367,69 @@ namespace ProjectM.Cards
                     characterArtImage.rectTransform.localScale = Vector3.one * data.artScale;
             }
 
-            // Ẩn các text stat của tướng (không cần thiết cho skill)
-            if (attackText != null) attackText.transform.parent?.gameObject.SetActive(false);
-            if (healthText != null) healthText.transform.parent?.gameObject.SetActive(false);
-            if (speedText  != null) speedText.transform.parent?.gameObject.SetActive(false);
-            if (ultText    != null) ultText.transform.parent?.gameObject.SetActive(false);
+            // Xử lý riêng cho thẻ Summon (Building): Lấy chỉ số từ thẻ buildingData để hiển thị
+            CardData buildingData = null;
+            if (data.customOverride != null && data.customOverride is SkillOverride_Summon summonOverride)
+            {
+                buildingData = summonOverride.buildingData;
+            }
+
+            if (buildingData != null)
+            {
+                SetStatVisible(ref attackText, "SwordIcon", buildingData.attack);
+                SetStatVisible(ref healthText, "HeartIcon", buildingData.health);
+                SetStatVisible(ref speedText, "SpeedIcon", buildingData.speed);
+                SetStatVisible(ref ultText, "UltIcon", buildingData.ult);
+                
+                // Cập nhật đúng loại tim cho Building
+                SwapHeartIcon(buildingData.defaultHeartType);
+            }
+            else
+            {
+                // Ẩn các text stat của tướng (không cần thiết cho skill)
+                if (attackText != null) attackText.transform.parent?.gameObject.SetActive(false);
+                else FindChildByName(transform, "SwordIcon")?.gameObject.SetActive(false);
+
+                if (healthText != null) healthText.transform.parent?.gameObject.SetActive(false);
+                else FindChildByName(transform, "HeartIcon")?.gameObject.SetActive(false);
+
+                if (speedText  != null) speedText.transform.parent?.gameObject.SetActive(false);
+                else FindChildByName(transform, "SpeedIcon")?.gameObject.SetActive(false);
+
+                if (ultText    != null) ultText.transform.parent?.gameObject.SetActive(false);
+                else FindChildByName(transform, "UltIcon")?.gameObject.SetActive(false);
+            }
+
+            // Tắt shield và elements
+            if (shieldIconObj != null) shieldIconObj.SetActive(false);
+            else FindChildByName(transform, "ShieldIcon")?.gameObject.SetActive(false);
+            HideAllElementalIcons();
 
             SetFaceUp(true);
+
+            // QUAN TRỌNG: Dọn dẹp tất cả các icon bị duplicate (bản sao dư thừa)
+            foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>())
+            {
+                if (tmp.text != null && tmp.text.Contains("99"))
+                {
+                    if (tmp.transform.parent != null)
+                        tmp.transform.parent.gameObject.SetActive(false);
+                }
+            }
+
+            // Failsafe cực mạnh cho thẻ Skill: Tắt luôn nguyên cái cột chứa stats (nếu tìm thấy) VÀ nếu không phải thẻ Summon
+            Transform statsContainer = null;
+            if (attackText != null && attackText.transform.parent != null) statsContainer = attackText.transform.parent.parent;
+            else if (healthText != null && healthText.transform.parent != null) statsContainer = healthText.transform.parent.parent;
+            
+            if (statsContainer != null && buildingData == null)
+            {
+                // Tắt hoàn toàn container (trừ khi tên nó là CardFront - tránh tắt nhầm cả lá bài)
+                if (!statsContainer.name.Contains("Front") && !statsContainer.name.Contains("Card"))
+                {
+                    statsContainer.gameObject.SetActive(false);
+                }
+            }
         }
 
         /// <summary>
@@ -324,10 +449,10 @@ namespace ProjectM.Cards
         /// </summary>
         public void HideAllElementalIcons()
         {
-            SetElementalIconVisible(iceIconObj,       false);
-            SetElementalIconVisible(scorchIconObj,    false);
-            SetElementalIconVisible(venomIconObj,     false);
-            SetElementalIconVisible(lightningIconObj, false);
+            SetElementalIconVisible(frostIconObj, false);
+            SetElementalIconVisible(bleedIconObj, false);
+            SetElementalIconVisible(decayIconObj, false);
+            SetElementalIconVisible(chainIconObj, false);
         }
 
         /// <summary>
@@ -348,23 +473,23 @@ namespace ProjectM.Cards
 
             // Frost
             int frostStacks = handler.GetStacks(ProjectM.Elements.ElementType.Frost);
-            SetElementalIconVisible(iceIconObj, frostStacks > 0);
-            if (iceText != null) iceText.text = frostStacks.ToString();
+            SetElementalIconVisible(frostIconObj, frostStacks > 0);
+            if (frostText != null) frostText.text = frostStacks.ToString();
 
             // Bleed
             int bleedStacks = handler.GetStacks(ProjectM.Elements.ElementType.Bleed);
-            SetElementalIconVisible(scorchIconObj, bleedStacks > 0);
-            if (scorchText != null) scorchText.text = bleedStacks.ToString();
+            SetElementalIconVisible(bleedIconObj, bleedStacks > 0);
+            if (bleedText != null) bleedText.text = bleedStacks.ToString();
 
             // Chain
             int chainStacks = handler.GetStacks(ProjectM.Elements.ElementType.Chain);
-            SetElementalIconVisible(lightningIconObj, chainStacks > 0);
-            if (lightningText != null) lightningText.text = chainStacks.ToString();
+            SetElementalIconVisible(chainIconObj, chainStacks > 0);
+            if (chainText != null) chainText.text = chainStacks.ToString();
 
             // Decay (Hiển thị số lượt DoT còn lại)
             int decayDuration = handler.GetDotDuration(ProjectM.Elements.ElementType.Decay);
-            SetElementalIconVisible(venomIconObj, decayDuration > 0);
-            if (venomText != null) venomText.text = decayDuration.ToString();
+            SetElementalIconVisible(decayIconObj, decayDuration > 0);
+            if (decayText != null) decayText.text = decayDuration.ToString();
         }
     }
 }

@@ -10,6 +10,7 @@ namespace ProjectM.Skills
         EnemyRow    = 2, // Kéo vào 1 kẻ địch → áp lên toàn bộ hàng chứa kẻ đó
         Self        = 3, // Tự động áp lên bản thân
         SingleAlly  = 4, // Kéo vào 1 đồng minh cụ thể
+        EmptySlot   = 5, // Kéo vào ô trống (dành cho thẻ Summon)
     }
 
     public enum SkillEffectType
@@ -61,5 +62,9 @@ namespace ProjectM.Skills
         [Header("Custom Override")]
         [Tooltip("Chỉ điền cho skill đặc biệt cần logic riêng. Để trống = dùng logic chuẩn.")]
         public SkillOverrideBase customOverride;
+
+        [Header("Exhaust")]
+        [Tooltip("Nếu tích chọn, thẻ này sẽ bị hủy (Exhaust) sau khi sử dụng và KHÔNG rơi vào Discard Pile.")]
+        public bool isExhaust = false;
     }
 }

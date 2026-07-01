@@ -23,7 +23,10 @@ MonoBehaviour:
   rarity: 0
   cost: 1
   description: 
-  characterArt: {fileID: -3471431714105583484, guid: fe4b657da8b9464449768ffc4278ddba, type: 3}
+  signatureCards: []
+  defaultHeartType: 0
+  customAbility: {fileID: 0}
+  characterArt: {fileID: 1568821344968116939, guid: c3fde5157375a0341b24343f56805902, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 6520001055880521421, guid: 034f06a9399622344960d6e39408c3cf, type: 3}
   artOffset: {x: 0, y: 0}

@@ -70,7 +70,19 @@ namespace ProjectM.Map
                     foreach (var skill in setupCopy.supportDeck)
                         if (skill != null) runData.playerDeckIDs.Add(skill.name);
                     foreach (var entry in setupCopy.champions)
-                        if (entry?.championData != null) runData.playerDeckIDs.Add(entry.championData.name);
+                    {
+                        if (entry?.championData != null) 
+                        {
+                            runData.playerDeckIDs.Add(entry.championData.name);
+                            if (entry.championData.signatureCards != null)
+                            {
+                                foreach (var sig in entry.championData.signatureCards)
+                                {
+                                    if (sig != null) runData.playerDeckIDs.Add(sig.name);
+                                }
+                            }
+                        }
+                    }
                     Debug.Log($"[MapTestBootstrap] Đã nạp bản sao của '{starterDeck.name}' vào RunData.");
                 }
                 else

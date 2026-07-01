@@ -46,6 +46,20 @@ namespace ProjectM.Managers
             return false;
         }
 
+        public bool IsEnemyZone(CardDropZone slot)
+        {
+            foreach (var s in enemySlotsTop) if (s == slot) return true;
+            foreach (var s in enemySlotsBot) if (s == slot) return true;
+            return false;
+        }
+
+        public bool IsPlayerZone(CardDropZone slot)
+        {
+            foreach (var s in playerSlotsTop) if (s == slot) return true;
+            foreach (var s in playerSlotsBot) if (s == slot) return true;
+            return false;
+        }
+
         /// <summary>
         /// Thay vì chặn, tìm slot gần TT nhất còn trống trong cùng hàng với slot được chỉ định.
         /// Người chơi thả bài ở bất kỳ ô nào trong hàng đó, bài sẽ tự động vào ô đúng nhất.
@@ -54,12 +68,34 @@ namespace ProjectM.Managers
         public CardDropZone GetBestAvailableSlotInRow(CardDropZone targetSlot, CardBattle movingCard = null)
         {
             // Kiểm tra giới hạn tổng 4 tướng người chơi
-            // Nếu đang di chuyển thẻ đã có trên sàn (Data != null) → không tính thẻ đó vào limit
-            int currentCount = GetAllPlayerCards().Count;
-            bool isMovingExisting = movingCard != null && movingCard.Data != null;
-            if (isMovingExisting) currentCount--;
+            int currentChampionCount = 0;
+            foreach (var card in GetAllPlayerCards())
+            {
+                if (card.Data != null && card.Data.cardType == Cards.CardType.Champion)
+                    currentChampionCount++;
+            }
 
-            if (currentCount >= 4)
+            // Nếu thẻ đang di chuyển LÀ MỘT TƯỚNG (đã đăng ký), thì trừ đi 1 để không tự đếm chính nó
+            bool isMovingExistingChampion = movingCard != null && movingCard.Data != null && movingCard.Data.cardType == Cards.CardType.Champion;
+            if (isMovingExistingChampion) currentChampionCount--;
+
+            // Kiểm tra xem thẻ SẮP ĐƯỢC ĐẶT XUỐNG có phải là Champion hay không.
+            bool isAttemptingToPlaceChampion = true; // Mặc định là true nếu không rõ
+            if (movingCard != null)
+            {
+                if (movingCard.Data != null) 
+                    isAttemptingToPlaceChampion = movingCard.Data.cardType == Cards.CardType.Champion;
+                else
+                {
+                    // Lấy dữ liệu tạm từ CardDisplay (vì thẻ chưa Register nên Data chưa được gán)
+                    Cards.CardDisplay disp = movingCard.GetComponentInChildren<Cards.CardDisplay>(true);
+                    if (disp != null && disp.cardData != null)
+                        isAttemptingToPlaceChampion = disp.cardData.cardType == Cards.CardType.Champion;
+                }
+            }
+
+            // Chỉ block nếu đang cố đặt thêm một TƯỚNG, còn Building thì thả ga
+            if (currentChampionCount >= 4 && isAttemptingToPlaceChampion)
             {
                 BattleDebugger.Warn("⚠️ Đã đạt giới hạn tối đa 4 tướng trên sàn!");
                 return null;
@@ -144,7 +180,7 @@ namespace ProjectM.Managers
             return target;
         }
 
-        // Lấy thẻ gần TT nhất trong hàng (slot[0] là gần TT nhất)
+        // Lấy thẻ gần TT nhất trong hàng (slot[0] là Front của cả 2 phe)
         private CardBattle GetFrontCard(CardDropZone[] row)
         {
             foreach (var slot in row)
@@ -168,6 +204,8 @@ namespace ProjectM.Managers
             {
                 if (GetCardInSlot(row[i]) == card) { idx = i; break; }
             }
+            
+            // Front là index 0, đằng trước là index < idx
             if (idx > 0)
             {
                 for (int i = idx - 1; i >= 0; i--)
@@ -176,6 +214,7 @@ namespace ProjectM.Managers
                     if (c != null && !c.IsDead) return c;
                 }
             }
+            
             return card;
         }
 
@@ -192,58 +231,155 @@ namespace ProjectM.Managers
 
         private IEnumerator ShiftAfterFrame(CardDropZone[] row)
         {
-            yield return null; // Đợi Destroy() hoàn tất
+            yield return null; // Đợi Destroy() hoàn hoàn tất
             ShiftRow(row);
         }
 
         /// <summary>Dồn hàng chứa slot được chỉ định. Gọi khi thẻ bị di chuyển (không phải chết).</summary>
         public void ShiftRowOf(CardDropZone slot)
         {
-            // Tìm hàng player có chứa slot này
+            // Tìm hàng có chứa slot này
             if (GetIndexInRow(slot, playerSlotsTop) >= 0) { ShiftRow(playerSlotsTop); return; }
             if (GetIndexInRow(slot, playerSlotsBot) >= 0) { ShiftRow(playerSlotsBot); return; }
-            // Cũng xử lý cho hàng địch nếu cần sau này
             if (GetIndexInRow(slot, enemySlotsTop) >= 0) { ShiftRow(enemySlotsTop); return; }
             if (GetIndexInRow(slot, enemySlotsBot) >= 0) { ShiftRow(enemySlotsBot); }
         }
 
         private void ShiftRow(CardDropZone[] row)
         {
-            // Duyệt từ slot gần TT nhất ra ngoài
-            // Nếu slot[i] trống mà slot[i+1] có thẻ → dồn vào
+            // Cả Player và Enemy đều dồn về Front = index 0
             for (int i = 0; i < row.Length - 1; i++)
             {
                 if (GetCardInSlot(row[i]) == null)
                 {
-                    CardBattle next = GetCardInSlot(row[i + 1]);
-                    if (next != null) MoveCardToSlot(next, row[i]);
+                    for (int j = i + 1; j < row.Length; j++)
+                    {
+                        CardBattle next = GetCardInSlot(row[j]);
+                        if (next != null)
+                        {
+                            MoveCardToSlot(next, row[i]);
+                            break;
+                        }
+                    }
                 }
             }
         }
 
         private void MoveCardToSlot(CardBattle card, CardDropZone newSlot)
         {
-            card.transform.SetParent(newSlot.transform);
-
-            RectTransform cardRect = card.GetComponent<RectTransform>();
-            if (cardRect != null)
+            CardDragHandler drag = card.GetComponent<CardDragHandler>();
+            if (drag != null)
             {
-                card.transform.localRotation = Quaternion.identity;
-                cardRect.anchoredPosition = Vector2.zero;
-                // Scale giữ nguyên vì các slot cùng hàng đều cùng kích thước
+                drag.SetNewParent(newSlot.transform);
             }
+            else
+            {
+                card.transform.SetParent(newSlot.transform);
 
-            // Cập nhật HoverHandler để animation hover vẫn đúng sau khi dời
-            CardHoverHandler hover = card.GetComponent<CardHoverHandler>();
-            if (hover != null)
-                hover.UpdateBaseState(Vector2.zero, Quaternion.identity, card.transform.localScale);
+                RectTransform cardRect = card.GetComponent<RectTransform>();
+                if (cardRect != null)
+                {
+                    card.transform.localRotation = Quaternion.identity;
+                    cardRect.anchoredPosition = Vector2.zero;
+                }
+            }
 
             Debug.Log($"[BattleGrid] Dồn {card.Data.cardName} → {newSlot.name}");
         }
 
         // ══════════════════════════════════════════
+        // REORDERING (ĐẢO VỊ TRÍ TRONG CÙNG HÀNG)
+        // ══════════════════════════════════════════
+
+        /// <summary>
+        /// Di chuyển một thẻ đến slot mới trong cùng hàng, các thẻ khác tự động đẩy (shift) ra sau/trước.
+        /// Trả về true nếu thành công (do cùng hàng), false nếu khác hàng (sẽ dùng Swap thay thế).
+        /// </summary>
+        public bool TryReorderInSameRow(CardDropZone sourceSlot, CardDropZone targetSlot, CardBattle movingCard)
+        {
+            CardDropZone[] row = GetPlayerRowOf(targetSlot);
+            if (row == null) return false;
+
+            int sourceIdx = GetIndexInRow(sourceSlot, row);
+            int targetIdx = GetIndexInRow(targetSlot, row);
+
+            // Nếu không cùng nằm trong 1 hàng thì không dùng Shift, trả về false để CardDropZone dùng Swap
+            if (sourceIdx < 0 || targetIdx < 0) return false;
+
+            // Xây dựng lại danh sách thẻ trong hàng CHƯA tính thẻ đang bị nhấc lên
+            CardBattle[] currentCards = new CardBattle[row.Length];
+            for (int i = 0; i < row.Length; i++)
+            {
+                if (i == sourceIdx) currentCards[i] = movingCard; // Khôi phục thẻ đang nhấc về slot cũ
+                else currentCards[i] = GetCardInSlot(row[i]);
+            }
+
+            var list = new System.Collections.Generic.List<CardBattle>(currentCards);
+
+            // Rút thẻ đang nhấc ra khỏi vị trí cũ
+            list.RemoveAt(sourceIdx);
+            // Chèn vào vị trí mới
+            list.Insert(targetIdx, movingCard);
+
+            // Gán lại Parent cho tất cả thẻ trong hàng theo danh sách mới
+            for (int i = 0; i < row.Length; i++)
+            {
+                if (list[i] != null)
+                {
+                    CardDragHandler drag = list[i].GetComponent<CardDragHandler>();
+                    if (drag != null)
+                    {
+                        drag.SetNewParent(row[i].transform);
+                    }
+                    else
+                    {
+                        list[i].transform.SetParent(row[i].transform);
+                        RectTransform cardRect = list[i].GetComponent<RectTransform>();
+                        if (cardRect != null)
+                        {
+                            list[i].transform.localRotation = Quaternion.identity;
+                            cardRect.anchoredPosition = Vector2.zero;
+                            // Để an toàn không lưu đè scale bị béo phì nếu không có CardDragHandler
+                        }
+                    }
+                }
+            }
+
+            BattleDebugger.Log($"🔄 [BattleGrid] Đảo vị trí trong hàng: {movingCard?.Data?.cardName} chuyển đến {targetSlot.name}");
+            return true;
+        }
+
+        // ══════════════════════════════════════════
         // GET ALL CARDS (BattleManager dùng để tick)
         // ══════════════════════════════════════════
+
+        /// <summary>
+        /// Lấy tất cả thẻ bài trên bàn đấu theo thứ tự đánh do thiết kế quy định.
+        /// Thứ tự: 3, 4, 2, 5, 1, 6, 9, 10, 8, 11, 7, 12
+        /// </summary>
+        public List<CardBattle> GetAllCardsInAttackOrder()
+        {
+            var attackOrder = new int[] { 3, 4, 2, 5, 1, 6, 9, 10, 8, 11, 7, 12 };
+            var list = new List<CardBattle>();
+            
+            var allSlots = new List<CardDropZone>();
+            if (playerSlotsTop != null) allSlots.AddRange(playerSlotsTop);
+            if (playerSlotsBot != null) allSlots.AddRange(playerSlotsBot);
+            if (enemySlotsTop != null) allSlots.AddRange(enemySlotsTop);
+            if (enemySlotsBot != null) allSlots.AddRange(enemySlotsBot);
+
+            foreach (int slotNum in attackOrder)
+            {
+                // Tìm slot có tên kết thúc bằng số tương ứng (VD: Slot_Card_3)
+                CardDropZone slot = allSlots.Find(s => s != null && s.name.EndsWith($"_{slotNum}"));
+                if (slot != null)
+                {
+                    CardBattle c = GetCardInSlot(slot);
+                    if (c != null && !c.IsDead) list.Add(c);
+                }
+            }
+            return list;
+        }
 
         public List<CardBattle> GetAllPlayerCards() =>
             CollectCards(playerSlotsTop, playerSlotsBot);
@@ -336,9 +472,11 @@ namespace ProjectM.Managers
         }
 
 
-        private CardBattle GetCardInSlot(CardDropZone slot)
+        public CardBattle GetCardInSlot(CardDropZone slot)
         {
             if (slot == null) return null;
+            if (slot.transform.childCount == 0) return null;
+
             return slot.GetComponentInChildren<CardBattle>();
         }
 

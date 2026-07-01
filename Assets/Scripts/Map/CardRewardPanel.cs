@@ -190,6 +190,9 @@ namespace ProjectM.Map
 
         private void OnCardClicked(ScriptableObject chosen, RewardCardInteraction interactor)
         {
+            // Phát tiếng nhận vật phẩm (2 layer)
+            AudioManager.Instance?.PlayAcquireItemCombo();
+
             // Thêm thẻ vào Deck trong RunData
             if (GameManager.Instance?.RunData != null)
             {

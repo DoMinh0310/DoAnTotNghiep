@@ -30,6 +30,9 @@ namespace ProjectM.Cards
 
         public void OnDrop(PointerEventData eventData)
         {
+            // Không cho phép thực hiện thao tác thả bài nếu đang bị block input (đang trong combat)
+            if (Managers.BattleManager.IsInputBlocked) return;
+
             if (!isPlayerZone)
             {
                 Debug.Log("[CardDropZone] Ô này là của địch, không thể đặt bài vào!");
@@ -44,6 +47,36 @@ namespace ProjectM.Cards
             CardDragHandler draggableCard = eventData.pointerDrag.GetComponent<CardDragHandler>();
             // Phải có CardDragHandler và nó phải đang được bật (enabled)
             if (draggableCard == null || !draggableCard.enabled) return;
+
+            // --- KIỂM TRA TÍNH NĂNG HOÁN ĐỔI VỊ TRÍ (SWAP / REORDER) ---
+            bool isFromBoard = draggableCard.previousParent != null && draggableCard.previousParent.GetComponent<CardDropZone>() != null;
+            if (isFromBoard)
+            {
+                Transform oldZone = draggableCard.previousParent;
+                Managers.BattleGrid gridInstance = Managers.BattleGrid.Instance;
+                CardBattle movingCard = draggableCard.GetComponent<CardBattle>();
+
+                // Thử Reorder trong cùng hàng trước, dù slot đích có trống hay không
+                if (gridInstance != null && gridInstance.TryReorderInSameRow(oldZone.GetComponent<CardDropZone>(), this, movingCard))
+                {
+                    return; // Xử lý đẩy hàng xong, ngắt
+                }
+                
+                // Nếu khác hàng (TryReorderInSameRow trả về false) VÀ slot đích có bài, ta thực hiện Swap (đổi chỗ)
+                if (transform.childCount > 0)
+                {
+                    CardDragHandler targetCard = transform.GetChild(0).GetComponent<CardDragHandler>();
+                    if (targetCard != null && targetCard != draggableCard)
+                    {
+                        draggableCard.SetNewParent(this.transform);
+                        targetCard.SetNewParent(oldZone);
+                        
+                        Debug.Log($"[CardDropZone] Đã Swap vị trí của {draggableCard.name} và {targetCard.name}");
+                        return; // Hoàn tất Swap
+                    }
+                }
+            }
+            // ------------------------------------------------
 
             Managers.BattleGrid grid = Managers.BattleGrid.Instance;
 

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f893981490d9b84f9e410ad432cc7ed, type: 3}
+  m_Name: Raven
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
+  cardName: Raven
+  id: 1003
+  abilities: 
+  attack: 3
+  health: 5
+  speed: 2
+  ult: 0
+  cardType: 0
+  rarity: 0
+  cost: 1
+  description: 
+  characterArt: {fileID: -5079658060621106028, guid: 30b5d7652b423d0418e4dadb46bc6e1b, type: 3}
+  cardArtwork: {fileID: 0}
+  cardFrame: {fileID: 4043450107612474682, guid: 2afa38fe6edfe5a4fb18e5da628cf681, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  elementalConfigs: []

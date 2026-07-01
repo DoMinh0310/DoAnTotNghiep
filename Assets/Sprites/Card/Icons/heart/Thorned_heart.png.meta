@@ -116,10 +116,10 @@ TextureImporter:
       name: Thorned_heart_0
       rect:
         serializedVersion: 2
-        x: 12
-        y: 26
-        width: 127
-        height: 113
+        x: 6
+        y: 21
+        width: 139
+        height: 124
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

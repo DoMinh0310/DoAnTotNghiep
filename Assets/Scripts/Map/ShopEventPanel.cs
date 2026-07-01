@@ -124,7 +124,11 @@ namespace ProjectM.Map
                 bgBtn.onClick.AddListener(CloseDetailPopup);
             }
             if (detailCloseButton != null) detailCloseButton.onClick.AddListener(CloseDetailPopup);
-            if (detailBuyButton != null) detailBuyButton.onClick.AddListener(OnPopupBuyClicked);
+            if (detailBuyButton != null)
+            {
+                detailBuyButton.onClick.RemoveAllListeners();
+                detailBuyButton.onClick.AddListener(OnPopupBuyClicked);
+            }
 
             if (itemDetailPanelRoot != null) itemDetailPanelRoot.SetActive(false);
 
@@ -579,6 +583,9 @@ namespace ProjectM.Map
             runData.gold -= slot.price;
             runData.goldSpent += slot.price;
 
+            // Phát tiếng mua hàng (trừ tiền)
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.buyItemClip);
+
             if (slot.isSkill)
             {
                 runData.playerDeckIDs.Add(slot.data.name);
@@ -618,11 +625,12 @@ namespace ProjectM.Map
                     .OnComplete(() => Destroy(slot.priceTagGO));
             }
 
-            FlyItemToBag(slot.itemGO);
+            FlyItemToBag(slot);
         }
 
-        private void FlyItemToBag(GameObject itemGO)
+        private void FlyItemToBag(ShopSlot slot)
         {
+            GameObject itemGO = slot.itemGO;
             if (bagIconTarget == null) { Destroy(itemGO); return; }
 
             var cg = itemGO.GetComponent<CanvasGroup>();
@@ -637,7 +645,13 @@ namespace ProjectM.Map
             itemGO.transform.DOScale(0f, flyDuration).SetEase(Ease.InCubic);
             itemGO.transform.DOLocalRotate(new Vector3(0, 0, 180), flyDuration, RotateMode.LocalAxisAdd);
             itemGO.transform.DOJump(target, 120f, 1, flyDuration).SetEase(Ease.InCubic)
-                .OnComplete(() => Destroy(itemGO));
+                .OnComplete(() => {
+                    Destroy(itemGO);
+                    if (!slot.isSkill) 
+                    {
+                        ProjectM.Inventory.InventoryManager.Instance?.OpenInventory();
+                    }
+                });
         }
 
         private void OnBackClicked()

@@ -21,6 +21,6 @@ MonoBehaviour:
   artScale: 1
   targetType: 0
   effectType: 1
-  effectValue: 2
+  effectValue: 3
   elementType: 2
   customOverride: {fileID: 0}

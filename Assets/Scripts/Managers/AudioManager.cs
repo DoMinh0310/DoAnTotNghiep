@@ -13,13 +13,44 @@ public class AudioManager : MonoBehaviour
     public AudioSource battleMusic;
     [Tooltip("Kéo thả thành phần AudioSource cho SFX (hiệu ứng)")]
     public AudioSource sfxSource;
+    [Tooltip("Kéo thả thành phần AudioSource cho Map Music")]
+    public AudioSource mapMusic;
+    [Tooltip("Kéo thả thành phần AudioSource cho Gold Event Music")]
+    public AudioSource goldEventMusic;
+    [Tooltip("Kéo thả thành phần AudioSource cho Shop Event Music")]
+    public AudioSource shopEventMusic;
 
-    [Header("SFX Clips")]
+    [Header("SFX Clips - Combat")]
     public AudioClip cardPickUpClip;
     public AudioClip cardDropClip;
     public AudioClip cardFlipClip;
     public AudioClip attackClip;
     public AudioClip hitClip;
+    public AudioClip cardDeathClip;         // Tiếng khi có thẻ bài chết
+    public AudioClip battleWinClip;         // Tiếng thắng trận
+    public AudioClip battleLoseClip;        // Tiếng thua trận
+    public AudioClip clockClickClip;        // Tiếng bấm đồng hồ
+    public AudioClip speedReduceClip;       // Tiếng giảm speed (bộ đếm)
+    
+    [Header("SFX Clips - Element Damage")]
+    public AudioClip frostDamageClip;       // Tiếng nổ Frost
+    public AudioClip bleedDamageClip;       // Tiếng nổ Bleed
+    public AudioClip decayDamageClip;       // Tiếng nổ Decay
+    public AudioClip chainDamageClip;       // Tiếng nổ Chain
+
+    [Header("SFX Clips - Map & Events")]
+    public AudioClip inventoryToggleClip;   // Mở/đóng túi đồ
+    public AudioClip cardSelectClip;        // Bấm chọn thẻ trong event (Sacrifice, Smith)
+    public AudioClip shopEnterClip;         // Vào event shop
+    public AudioClip coinDropClip;          // Bấm event tiền
+    public AudioClip buyItemClip;           // Mua thẻ/relic/trinket
+    public AudioClip acquireItemLayer1;     // Lấy relic/trinket/thẻ mới (Layer 1)
+    public AudioClip acquireItemLayer2;     // Lấy relic/trinket/thẻ mới (Layer 2)
+    public AudioClip playerMoveClip;        // Player token nhảy di chuyển
+    public AudioClip recycleClip;           // Tiếng tái chế/đốt thẻ (Event Sacrifice)
+    public AudioClip genericButtonClip;     // Tiếng bấm nút bấm chung (UI Menu/Map)
+    public AudioClip upgradeHPClip;         // Tiếng ấn nút +HP (Smith Event)
+    public AudioClip upgradeATKClip;        // Tiếng ấn nút +ATK (Smith Event)
 
     [Header("Custom Loop Settings")]
     [Tooltip("Tổng thời gian 1 vòng lặp (1 phút 5 giây = 65 giây)")]
@@ -37,6 +68,8 @@ public class AudioManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // Giữ AudioManager sống qua mọi scene (Menu -> Map -> Battle)
+
             if (menuMusic != null)
             {
                 // Lưu lại âm lượng gốc trước khi code nhúng tay vào làm nhỏ đi
@@ -67,25 +100,87 @@ public class AudioManager : MonoBehaviour
     {
         if (menuMusic != null) menuMusic.Stop();
         if (battleMusic != null) battleMusic.Stop();
+        if (mapMusic != null) mapMusic.Stop();
+        if (goldEventMusic != null) goldEventMusic.Stop();
+        if (shopEventMusic != null) shopEventMusic.Stop();
         if (loopCoroutine != null) StopCoroutine(loopCoroutine);
     }
 
     public void PlayBattleMusic()
     {
-        if (battleMusic != null && !battleMusic.isPlaying)
+        StopMusic();
+        if (battleMusic != null)
         {
-            StopMusic(); // Dừng nhạc cũ
-            battleMusic.loop = true; // Nhạc battle lặp mặc định
+            battleMusic.loop = true;
             battleMusic.volume = defaultVolume;
             battleMusic.Play();
         }
     }
 
-    public void PlaySFX(AudioClip clip)
+    public void PlayMapMusic()
+    {
+        StopMusic();
+        if (mapMusic != null)
+        {
+            mapMusic.loop = true;
+            mapMusic.volume = defaultVolume;
+            mapMusic.Play();
+        }
+    }
+
+    public void PlayGoldEventMusic()
+    {
+        StopMusic();
+        if (goldEventMusic != null)
+        {
+            goldEventMusic.loop = true;
+            goldEventMusic.volume = defaultVolume;
+            goldEventMusic.Play();
+        }
+    }
+
+    public void PlayShopEventMusic()
+    {
+        StopMusic();
+        if (shopEventMusic != null)
+        {
+            shopEventMusic.loop = true;
+            shopEventMusic.volume = defaultVolume;
+            shopEventMusic.Play();
+        }
+    }
+
+    // Phát 2 âm thanh đè lên nhau khi nhận Item/Relic/Thẻ bài
+    public void PlayAcquireItemCombo()
+    {
+        if (acquireItemLayer1 != null && sfxSource != null) sfxSource.PlayOneShot(acquireItemLayer1);
+        if (acquireItemLayer2 != null && sfxSource != null) sfxSource.PlayOneShot(acquireItemLayer2);
+    }
+
+    public void PlayElementDamageSFX(ProjectM.Elements.ElementType elementType)
+    {
+        switch (elementType)
+        {
+            case ProjectM.Elements.ElementType.Frost:
+                PlaySFX(frostDamageClip);
+                break;
+            case ProjectM.Elements.ElementType.Bleed:
+                PlaySFX(bleedDamageClip);
+                break;
+            case ProjectM.Elements.ElementType.Decay:
+                PlaySFX(decayDamageClip);
+                break;
+            case ProjectM.Elements.ElementType.Chain:
+                PlaySFX(chainDamageClip);
+                break;
+        }
+    }
+
+    public void PlaySFX(AudioClip clip, float volumeScale = 1f)
     {
         if (clip != null && sfxSource != null)
         {
-            sfxSource.PlayOneShot(clip);
+            sfxSource.PlayOneShot(clip, volumeScale);
         }
     }
 

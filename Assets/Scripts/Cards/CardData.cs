@@ -45,6 +45,15 @@ namespace ProjectM.Cards
         [TextArea(2, 4)]
         [Tooltip("Mô tả hiệu ứng khi đánh thẻ (hiển thị trên card UI)")]
         public string description = "";
+        
+        [Tooltip("Các thẻ Skill trấn phái của Tướng này (dùng để gộp thành Starter Deck)")]
+        public List<ProjectM.Skills.SkillData> signatureCards = new List<ProjectM.Skills.SkillData>();
+        
+        [Tooltip("Loại tim mặc định khi thẻ này được triệu hồi ra sân (Fragile, Doom, Thorn...)")]
+        public HeartType defaultHeartType = HeartType.Normal;
+
+        [Tooltip("Kỹ năng nội tại đặc biệt gắn vào thẻ này (HP Generator, Ms_Pockey...)")]
+        public CardAbilityBase customAbility;
 
         [Header("Art Assets")]
         public Sprite characterArt;  // Ảnh nhân vật (đã có)

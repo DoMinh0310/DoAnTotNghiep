@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bdab57665510e245aef13c5fb607973, type: 3}
+  m_Name: Head Protector
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
+  skillName: Head Protector
+  description: 'Ally
+
+    Shield +5'
+  artwork: {fileID: -3930808688015335582, guid: 829379c00fdc6344c8d39dd31d24965e, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  targetType: 4
+  effectType: 4
+  effectValue: 5
+  elementType: 4
+  customOverride: {fileID: 0}

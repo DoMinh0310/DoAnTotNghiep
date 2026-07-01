@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using ProjectM.Cards;
 using ProjectM.Inventory;
+using DG.Tweening;
 
 namespace ProjectM.Managers
 {
@@ -24,18 +25,37 @@ namespace ProjectM.Managers
         [Header("Settings")]
         [Tooltip("Delay nhỏ (giây) giữa mỗi thẻ tấn công để dễ theo dõi")]
         public float delayBetweenCards = 0.3f;
+        
+        [Header("VFX Settings")]
+        [Tooltip("Prefab hiệu ứng đòn đánh thường")]
+        public GameObject normalHitVfxPrefab;
+        [Tooltip("Prefab hiệu ứng Particle chạy khi mục tiêu dính Bleed từ Skill")]
+        public GameObject bleedHitVfxPrefab;
+        [Tooltip("Prefab hiệu ứng Particle chạy khi mục tiêu dính Frost từ Skill")]
+        public GameObject frostHitVfxPrefab;
+        [Tooltip("Prefab hiệu ứng Particle chạy khi mục tiêu dính Chain từ Skill")]
+        public GameObject chainHitVfxPrefab;
+        [Tooltip("Prefab hiệu ứng Particle chạy khi mục tiêu dính Decay từ Skill")]
+        public GameObject decayHitVfxPrefab;
 
         // Trạng thái
         private bool isTurnProcessing = false;
         public bool IsTurnProcessing => isTurnProcessing;
-        private int turnCount = 0;
+        [Tooltip("Số lượt trôi qua")]
+        public int turnCount = 0;
 
+        private List<Cards.CardData> _buildingDrawPile = new();
+
+        [Header("Animation Tuning")]
         // Giai đoạn chuẩn bị: lượt free để đặt tướng, chưa có combat
         private bool isPreparationPhase = true;
         public bool IsPreparationPhase => isPreparationPhase;
 
         /// <summary>True trong lúc animation deal skill hoặc người chơi đang dùng thẻ — khóa mọi input của người chơi.</summary>
         public static bool IsInputLocked { get; set; } = false;
+
+        /// <summary>True nếu đang bị khóa input hoặc đang trong combat phase (IsTurnProcessing = true).</summary>
+        public static bool IsInputBlocked => IsInputLocked || (Instance != null && Instance.IsTurnProcessing);
 
         // ══════════════════════════════════════════
         // KHỞI TẠO
@@ -49,6 +69,9 @@ namespace ProjectM.Managers
 
         private void Start()
         {
+            // Phát nhạc nền Combat
+            AudioManager.Instance?.PlayBattleMusic();
+
             if (endTurnButton != null)
                 endTurnButton.onClick.AddListener(() => EndTurn(drawCard: true)); // Chuông = draw + combat
             else
@@ -87,6 +110,14 @@ namespace ProjectM.Managers
             {
                 Debug.LogWarning("[BattleManager] Chưa gán ChampionSetup vào SkillHandManager!");
                 yield break;
+            }
+
+            // Nạp Building Deck
+            _buildingDrawPile.Clear();
+            if (skillHand.championSetup.buildingDeck != null)
+            {
+                _buildingDrawPile.AddRange(skillHand.championSetup.buildingDeck);
+                ShuffleList(_buildingDrawPile);
             }
 
             if (championPrefab == null)
@@ -285,6 +316,7 @@ namespace ProjectM.Managers
                 NotifyRelicsOnBellPressed();
                 if (skillHand != null)
                     yield return StartCoroutine(skillHand.DrawOneCardIfNeeded());
+                yield return StartCoroutine(DrawBuildingIfNeeded());
             }
 
             BattleGrid grid = BattleGrid.Instance;
@@ -300,25 +332,15 @@ namespace ProjectM.Managers
             // ── Tính toán tốc độ animation động (nhiều thẻ = chạy nhanh hơn) ──
             List<CardBattle> enemyCards = grid.GetAllEnemyCards();
             List<CardBattle> playerCards = grid.GetAllPlayerCards();
+            List<CardBattle> allCardsOrdered = grid.GetAllCardsInAttackOrder();
+            
             int totalCards = enemyCards.Count + playerCards.Count;
             GlobalAnimationSpeed = Mathf.Clamp(totalCards / 3f, 1f, 3f); // 3 thẻ = x1, 6 thẻ = x2, 9 thẻ = x3
             float currentDelay = delayBetweenCards / GlobalAnimationSpeed;
 
-            // ── Phase 1: ĐỊCH ĐÁNH TRƯỚC ──
-            BattleDebugger.Log($"══ Lượt {turnCount} — Phase 1: Địch đánh ══");
-            foreach (CardBattle card in enemyCards)
-            {
-                if (card == null || card.IsDead) continue;
-                yield return StartCoroutine(card.OnTurnTickRoutine());
-                waveManager?.OnBattleTick();
-                yield return new WaitForSeconds(currentDelay);
-            }
-
-            yield return new WaitForSeconds(0.2f);
-
-            // ── Phase 2: NGƯỜI CHƠI ĐÁNH SAU ──
-            BattleDebugger.Log($"══ Lượt {turnCount} — Phase 2: Người chơi đánh ══");
-            foreach (CardBattle card in playerCards)
+            // ── Phase 1: COMBAT (Theo thứ tự slot do thiết kế quy định) ──
+            BattleDebugger.Log($"══ Lượt {turnCount} — Bắt đầu giao tranh ══");
+            foreach (CardBattle card in allCardsOrdered)
             {
                 if (card == null || card.IsDead) continue;
                 yield return StartCoroutine(card.OnTurnTickRoutine());
@@ -328,15 +350,24 @@ namespace ProjectM.Managers
 
             BattleDebugger.Log($"══ Lượt {turnCount} kết thúc ══");
 
-            // ── Phase 3: BLEED NỔ (sau khi đồng minh đã hành động xong) ──
+            // ── Phase 2: BLEED NỔ (sau khi tất cả đã hành động xong) ──
             // Trigger cho tất cả kẻ địch còn sống để Bleed tích lũy từ lượt này phát nổ
-            BattleDebugger.Log($"══ Lượt {turnCount} — Phase 3: Nguyên tố hậu kỳ (Bleed...) ══");
+            BattleDebugger.Log($"══ Lượt {turnCount} — Phase 2: Nguyên tố hậu kỳ (Bleed...) ══");
             foreach (CardBattle card in enemyCards)
             {
                 if (card == null || card.IsDead) continue;
                 var enemyElemental = card.GetComponent<ProjectM.Elements.ElementalHandler>();
                 if (enemyElemental != null)
                     yield return StartCoroutine(enemyElemental.TriggerAfterPlayerAction());
+            }
+
+            foreach (CardBattle card in playerCards)
+            {
+                if (card != null && !card.IsDead) card.OnTurnEnded();
+            }
+            foreach (CardBattle card in enemyCards)
+            {
+                if (card != null && !card.IsDead) card.OnTurnEnded();
             }
 
             isTurnProcessing = false;
@@ -391,6 +422,45 @@ namespace ProjectM.Managers
         {
             if (endTurnButton != null)
                 endTurnButton.interactable = interactable;
+        }
+
+        private void ShuffleList<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+
+        private IEnumerator DrawBuildingIfNeeded()
+        {
+            if (_buildingDrawPile.Count == 0 || championHandRegion == null || championPrefab == null) yield break;
+
+            // Kiểm tra xem hand có bị đầy không (giới hạn 3 công trình trên tay)
+            if (championHandRegion.childCount >= 3) yield break;
+
+            var data = _buildingDrawPile[0];
+            _buildingDrawPile.RemoveAt(0);
+
+            var go = Instantiate(championPrefab, championHandRegion);
+            go.name = $"Building_{data.cardName}";
+
+            var display = go.GetComponentInChildren<Cards.CardDisplay>(true);
+            if (display != null)
+                display.LoadData(data);
+
+            // Ẩn 2 ô trang bị (Relic/Trinket) cho thẻ công trình vì không xài tới
+            var rSlot = go.GetComponentInChildren<RelicSlotUI>(true);
+            if (rSlot != null) rSlot.gameObject.SetActive(false);
+
+            var tSlot = go.GetComponentInChildren<TrinketSlotUI>(true);
+            if (tSlot != null) tSlot.gameObject.SetActive(false);
+
+            // Bật animation rút bài (thu nhỏ -> phóng to)
+            go.transform.localScale = Vector3.zero;
+            go.transform.DOScale(Vector3.one, 0.3f).SetEase(DG.Tweening.Ease.OutBack);
+            yield return new WaitForSeconds(0.1f);
         }
     }
 }

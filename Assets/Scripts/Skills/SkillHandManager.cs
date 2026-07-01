@@ -235,14 +235,23 @@ namespace ProjectM.Skills
             {
                 relicHandler?.OnRelicSkillUsed();
                 _relicCards.Remove(handler);
-                Debug.Log($"[SkillHandManager] Relic skill đã dùng xong.");
             }
 
             if (_handCards.TryGetValue(handler, out var data))
             {
-                Debug.Log($"[SkillHandManager] Đã dùng skill '{data.skillName}', đưa vào discard.");
                 _hand.Remove(data);
-                _discardPile.Add(data);    // → đống bỏ
+                
+                // Skill từ Trinket (specificGeneratedSkills) hoặc Relic sẽ KHÔNG vào discard (chưa có list specificGeneratedSkills ở đây, nhưng tạm thời dùng isExhaust)
+                if (data.isExhaust)
+                {
+                    Debug.Log($"[SkillHandManager] Đã dùng skill '{data.skillName}'. Thẻ có cờ Exhaust nên bị tiêu hủy khỏi trận đấu.");
+                }
+                else
+                {
+                    Debug.Log($"[SkillHandManager] Đã dùng skill '{data.skillName}', đưa vào discard.");
+                    _discardPile.Add(data);    // → đống bỏ
+                }
+                
                 _handCards.Remove(handler);
                 _spawnedInOrder.Remove(handler.gameObject);
             }
@@ -429,6 +438,22 @@ namespace ProjectM.Skills
             }
 
             yield return new WaitForSeconds(dur);
+        }
+
+        /// <summary>Cập nhật lại vị trí các thẻ bài trên tay (dùng khi cancel drag).</summary>
+        public void RepositionAllCards()
+        {
+            if (handContainer == null) return;
+            int count = handContainer.childCount;
+            float[] slots = CalculateSlotPositions(count);
+            for (int i = 0; i < count; i++)
+            {
+                var child = handContainer.GetChild(i);
+                var rect = child.GetComponent<RectTransform>();
+                if (rect == null) continue;
+                rect.DOAnchorPos(new Vector2(slots[i], 0f), 0.2f).SetEase(Ease.OutCubic);
+                child.DORotate(Vector3.zero, 0.2f).SetEase(Ease.OutCubic);
+            }
         }
 
         /// <summary>Bay 1 card từ túi vào tay (Relic spawn).</summary>

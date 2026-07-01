@@ -15,12 +15,12 @@ MonoBehaviour:
   skillName: Lid Shield
   description: 'Single
 
-    Shield +5'
+    Shield +3'
   artwork: {fileID: -913471109019537669, guid: 8a3aa684e0f65874195816071b8c3efc, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 4
   effectType: 4
-  effectValue: 5
+  effectValue: 3
   elementType: 4
   customOverride: {fileID: 0}

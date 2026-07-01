@@ -6,6 +6,14 @@ using ProjectM.Elements;
 
 namespace ProjectM.Cards
 {
+    public enum HeartType
+    {
+        Normal,
+        Fragile,
+        Doom,
+        Thorn
+    }
+
     /// <summary>
     /// "Não chiến đấu" của mỗi lá bài.
     /// Lưu trạng thái runtime (HP, Counter, Ult) và xử lý logic tấn công/nhận damage/chết.
@@ -41,9 +49,15 @@ namespace ProjectM.Cards
         public int currentShield = 0;
         public bool hasThorns = false;
 
-        // Bonus sát thương vĩnh viễn (từ Trinket hoặc Buff)
+        public bool hasSecondPulse = false;
+        public bool secondPulseTriggeredThisTurn = false;
+
         public int permanentAttackBonus = 0;
         
+        // Cơ chế Heart đặc biệt cho Building (Fragile, Doom, Thorn)
+        public HeartType currentHeartType = HeartType.Normal;
+        public event System.Action OnFragileHeartTriggered;
+
         // HP Tối đa sau khi đã tính toán các loại Bonus (như Smith Event)
         public int maxHP;
 
@@ -61,7 +75,19 @@ namespace ProjectM.Cards
         public bool IsDead        => isDead;
         public int  CurrentHP     => currentHP;
         public int  CurrentUlt    => currentUlt;
-        public CardData Data      => cardData;
+        public CardData Data => cardData;
+        public CardDisplay Display => display;
+
+        public void OnTurnEnded()
+        {
+            if (hasSecondPulse && secondPulseTriggeredThisTurn)
+            {
+                hasSecondPulse = false;
+                secondPulseTriggeredThisTurn = false;
+                UpdateHealthUI(); // Cập nhật lại UI bỏ icon Second Pulse
+                Debug.Log($"[SecondPulse] {cardData?.cardName} đã mất Second Pulse sau khi turn kết thúc.");
+            }
+        }
 
         // ─────────────────────────────────────────────────
         // Khởi tạo
@@ -97,10 +123,17 @@ namespace ProjectM.Cards
             bonusDecayOnPhysicalAttack = 0;
             currentShield = 0;
             hasThorns = false;
+            hasSecondPulse= false;
+            currentHeartType = data.defaultHeartType; // Khởi tạo loại tim từ data
             permanentAttackBonus = smithAtkBonus;
 
             RefreshAllUI();
             Debug.Log($"[CardBattle] {data.cardName} khởi tạo xong. HP={currentHP}, Speed={currentCounter}");
+
+            if (cardData.customAbility != null)
+            {
+                cardData.customAbility.OnSpawn(this);
+            }
         }
 
         // ─────────────────────────────────────────────────
@@ -122,9 +155,15 @@ namespace ProjectM.Cards
 
             if (isDead) yield break;
 
-            // 2. GIẢM SPEED — bỏ qua nếu đang bị đóng băng
+            // 2. GIẢM SPEED — bỏ qua nếu đang bị đóng băng hoặc là thẻ bất động
             bool frozen = elemental != null && elemental.IsSpeedFrozen;
-            if (frozen)
+            bool isStaticTarget = cardData != null && cardData.speed <= 0; // Bất động: Speed trong data = 0
+
+            if (isStaticTarget)
+            {
+                // Không làm gì cả, không đếm ngược
+            }
+            else if (frozen)
             {
                 Debug.Log($"[CardBattle] 🧊 {cardData?.cardName} bị đóng băng — Speed giữ nguyên ở {currentCounter}");
             }
@@ -133,17 +172,40 @@ namespace ProjectM.Cards
                 yield return StartCoroutine(AnimateCounterTick());
             }
 
-            // 3. TẤN CÔNG (Nếu đủ speed VÀ không bị đóng băng)
-            if (!frozen && currentCounter <= 0)
+            // 3. TẤN CÔNG HOẶC FRAGILE (Nếu đủ speed, không đóng băng, và không phải thẻ bất động)
+            if (!isStaticTarget && !frozen && currentCounter <= 0)
             {
-                yield return StartCoroutine(AttackSequence());
+                if (currentHeartType == HeartType.Fragile)
+                {
+                    Debug.Log($"[Fragile Heart] 🧊 {cardData?.cardName} kích hoạt kỹ năng đặc biệt và tự mất 1 HP!");
+                    if (cardData?.customAbility != null)
+                    {
+                        cardData.customAbility.OnFragileHeartTriggered(this);
+                    }
+                    OnFragileHeartTriggered?.Invoke();
+                    TakeDamage(1, null); // Tự mất 1 máu
+                    ResetCounter();
+                }
+                else
+                {
+                    // Chỉ lao lên tấn công nếu có sức mạnh cơ bản lớn hơn 0
+                    if (cardData != null && cardData.attack > 0)
+                    {
+                        yield return StartCoroutine(AttackSequence());
+                    }
+                    else
+                    {
+                        Debug.Log($"[CardBattle] {cardData?.cardName} đếm giờ xong nhưng Attack = 0, bỏ qua pha tấn công.");
+                        ResetCounter();
+                    }
+                }
             }
 
             if (isDead) yield break;
 
             // 4. ELEMENTAL (Venom, Scorch...): Kích hoạt SAU KHI xử lý lượt xong
             // Đợi một khoảng delay để tách bạch với hit flash thường (tránh flash chồng chập)
-            if (elemental != null)
+            if (elemental != null && elemental.HasAnyActiveEffect())
             {
                 if (elementalDamageDelay > 0f)
                     yield return new WaitForSeconds(elementalDamageDelay);
@@ -163,30 +225,50 @@ namespace ProjectM.Cards
                 yield break;
             }
 
-            // Scale cả container cha (chứa icon đồng hồ + text) chứ không phải chỉ text
             Transform counterContainer = display.speedText.transform.parent;
             if (counterContainer == null) counterContainer = display.speedText.transform;
 
             RectTransform containerRect = counterContainer.GetComponent<RectTransform>();
-            Vector3 originalScale = containerRect != null ? containerRect.localScale : Vector3.one;
+            
+            // Dừng nhịp đập (pulse) nếu đang chạy để tránh xung đột
+            if (_speedPulseTween != null)
+            {
+                _speedPulseTween.Kill();
+                _speedPulseTween = null;
+            }
+            if (containerRect != null) containerRect.localScale = Vector3.one;
+
+            Vector3 originalScale = Vector3.one;
 
             if (containerRect != null)
             {
                 // Dùng DOTween làm hiệu ứng nảy (PunchScale) cho biểu tượng đồng hồ nhanh hơn
                 Sequence seq = DOTween.Sequence();
                 
-                // Phóng to nhanh
-                seq.Append(containerRect.DOScale(originalScale * 1.4f, 0.06f).SetEase(Ease.OutQuad));
+                // Phóng to nhanh (tốn 0.04s)
+                seq.Append(containerRect.DOScale(originalScale * 1.4f, 0.04f).SetEase(Ease.OutQuad));
                 
                 // Cập nhật số ở đỉnh của animation
                 seq.AppendCallback(() => {
-                    if (currentCounter > 0) currentCounter--;
-                    UpdateCounterUI();
+                    if (currentCounter > 0) 
+                    {
+                        currentCounter--;
+                        AudioManager.Instance?.PlaySFX(AudioManager.Instance.speedReduceClip);
+                    }
+                    if (display != null && display.speedText != null)
+                        display.speedText.text = currentCounter.ToString();
                 });
                 
-                // Thu nhỏ về bình thường
-                seq.Append(containerRect.DOScale(originalScale, 0.1f).SetEase(Ease.OutBack));
+                // Thu nhỏ về bình thường (tốn 0.06s)
+                seq.Append(containerRect.DOScale(originalScale, 0.06f).SetEase(Ease.OutBack));
                 
+                // Mọi thứ hoàn tất xong xuôi mới bật nhịp đập pulse (nếu có)
+                seq.OnComplete(() => {
+                    UpdateCounterUI(); 
+                });
+
+                seq.SetLink(gameObject); // Báo cho DOTween tự hủy anim khi thẻ bài bị Destroy
+
                 yield return seq.WaitForCompletion();
             }
             else
@@ -242,6 +324,16 @@ namespace ProjectM.Cards
                         Debug.Log($"[CardBattle] {cardData.cardName} đánh tăng cường! {cardData.attack} + {totalDamage - cardData.attack} bonus = {totalDamage}");
                     target.TakeDamage(totalDamage);
 
+                    // Bật VFX đòn đánh thường (nếu có)
+                    if (Managers.BattleManager.Instance != null && Managers.BattleManager.Instance.normalHitVfxPrefab != null)
+                    {
+                        GameObject vfx = Instantiate(Managers.BattleManager.Instance.normalHitVfxPrefab, target.transform.position, Quaternion.identity, target.transform);
+                        vfx.transform.localPosition = new Vector3(0, 0, -50f); 
+                        vfx.transform.localScale = Vector3.one;
+                        foreach(var ps in vfx.GetComponentsInChildren<ParticleSystem>()) ps.Play(true);
+                        Destroy(vfx, 2f);
+                    }
+
                     // Thông báo cho Bleed: đòn đánh vật lý vừa đánh vào mục tiêu này
                     if (isPhysicalAttack)
                     {
@@ -252,6 +344,16 @@ namespace ProjectM.Cards
                         if (applyFrostOnNextAttack && targetElemental != null)
                         {
                             applyFrostOnNextAttack = false;
+                            
+                            if (Managers.BattleManager.Instance?.frostHitVfxPrefab != null)
+                            {
+                                GameObject vfx = Instantiate(Managers.BattleManager.Instance.frostHitVfxPrefab, target.transform.position, Quaternion.identity, target.transform);
+                                vfx.transform.localPosition = new Vector3(0, 0, -50f); 
+                                vfx.transform.localScale = Vector3.one;
+                                foreach(var ps in vfx.GetComponentsInChildren<ParticleSystem>()) ps.Play(true);
+                                Destroy(vfx, 2f);
+                            }
+
                             StartCoroutine(targetElemental.AddStacks(ProjectM.Elements.ElementType.Frost, totalDamage));
                             Debug.Log($"[Winter Flavor] ❄️ {cardData.cardName} áp {totalDamage} Frost lên {target.Data?.cardName}");
                         }
@@ -259,6 +361,15 @@ namespace ProjectM.Cards
                         // Kỹ năng Night Shade
                         if (bonusDecayOnPhysicalAttack > 0 && targetElemental != null)
                         {
+                            if (Managers.BattleManager.Instance?.decayHitVfxPrefab != null)
+                            {
+                                GameObject vfx = Instantiate(Managers.BattleManager.Instance.decayHitVfxPrefab, target.transform.position, Quaternion.identity, target.transform);
+                                vfx.transform.localPosition = new Vector3(0, 0, -50f); 
+                                vfx.transform.localScale = Vector3.one;
+                                foreach(var ps in vfx.GetComponentsInChildren<ParticleSystem>()) ps.Play(true);
+                                Destroy(vfx, 2f);
+                            }
+
                             StartCoroutine(targetElemental.AddStacks(ProjectM.Elements.ElementType.Decay, bonusDecayOnPhysicalAttack));
                             Debug.Log($"[Night Shade] ☠️ {cardData.cardName} áp {bonusDecayOnPhysicalAttack} Decay lên {target.Data?.cardName}");
                         }
@@ -282,6 +393,23 @@ namespace ProjectM.Cards
         {
             if (isDead || cardData == null) return;
             if (attacker != null) GetComponent<TrinketHandler>()?.OnCardTakeDamage(attacker);
+            if (amount <= 0) return;
+
+            if (hasSecondPulse)
+            {
+                if (!secondPulseTriggeredThisTurn)
+                {
+                    amount = 1;
+                    secondPulseTriggeredThisTurn = true;
+                    Debug.Log($"[SecondPulse] {cardData.cardName} kích hoạt Second Pulse! Nhận đúng 1 sát thương đòn này, miễn nhiễm các đòn đánh kế tiếp trong turn.");
+                }
+                else
+                {
+                    amount = 0;
+                    Debug.Log($"[SecondPulse] {cardData.cardName} được miễn nhiễm đòn đánh nhờ Second Pulse!");
+                }
+            }
+
             if (amount <= 0) return;
 
             // Thống kê: Bất kỳ sát thương nào gây lên địch đều tính là sát thương do người chơi gây ra (chém, phép, độc...)
@@ -309,7 +437,7 @@ namespace ProjectM.Cards
             UpdateHealthUI();
 
             // 2. Cơ chế Phản Dame (Thorns): Phản lại 50% sát thương khi bị đánh trúng
-            if (hasThorns && attacker != null && !attacker.IsDead)
+            if (hasThorns && attacker != null && !attacker.IsDead && attacker != this)
             {
                 int reflected = Mathf.RoundToInt(amount * 0.5f);
                 if (reflected > 0)
@@ -319,8 +447,33 @@ namespace ProjectM.Cards
                 }
             }
 
+            // 3. Cơ chế Thorn Heart: Phản lại sát thương (mặc định 100%, có thể override)
+            if (currentHeartType == HeartType.Thorn && attacker != null && !attacker.IsDead && attacker != this)
+            {
+                int multiplier = (cardData != null && cardData.customAbility != null) ? cardData.customAbility.GetThornMultiplier() : 1;
+                int reflected = amount * multiplier;
+                if (reflected > 0)
+                {
+                    Debug.Log($"[Thorn Heart] 🥀 {cardData.cardName} phản lại {reflected} ({multiplier*100}%) sát thương lên {attacker.Data?.cardName}!");
+                    attacker.TakeDamage(reflected);
+                }
+            }
+
             if (currentHP <= 0)
             {
+                if (cardData != null && cardData.customAbility != null)
+                {
+                    cardData.customAbility.OnCardDestroyed(this, attacker);
+                }
+
+                // 4. Cơ chế Doom Heart: Phát nổ gây x2 sát thương (MaxHP) khi chết
+                if (currentHeartType == HeartType.Doom && attacker != null && attacker != this)
+                {
+                    int doomDamage = (maxHP > 0 ? maxHP : cardData.health) * 2;
+                    Debug.Log($"[Doom Heart] 💀 {cardData.cardName} phát nổ, gây {doomDamage} sát thương lên {attacker.Data?.cardName}!");
+                    attacker.TakeDamage(doomDamage);
+                }
+                
                 StartCoroutine(DieSequence());
             }
             else
@@ -341,6 +494,14 @@ namespace ProjectM.Cards
         public void HealHP(int amount)
         {
             if (isDead || amount <= 0) return;
+
+            // Fragile Heart và Doom Heart không thể được hồi máu dưới mọi hình thức
+            if (currentHeartType == HeartType.Fragile || currentHeartType == HeartType.Doom)
+            {
+                Debug.Log($"[Heal Blocked] 🚫 {cardData?.cardName} mang tim {currentHeartType} nên không thể được hồi máu!");
+                return;
+            }
+
             currentHP = Mathf.Min(currentHP + amount, maxHP);
             UpdateHealthUI();
             Debug.Log($"[CardBattle] {cardData.cardName} hồi +{amount} HP → {currentHP}/{maxHP}");
@@ -372,6 +533,16 @@ namespace ProjectM.Cards
             if (isDead) return;
             hasThorns = true;
             Debug.Log($"[Thorns] 🌵 {cardData?.cardName} đã kích hoạt phản dame 50%!");
+        }
+
+        /// <summary>Kích hoạt buff Second Pulse.</summary>
+        public void AddSecondPulse()
+        {
+            if (isDead) return;
+            hasSecondPulse = true;
+            secondPulseTriggeredThisTurn = false;
+            UpdateHealthUI();
+            Debug.Log($"[SecondPulse] {cardData?.cardName} đã nhận buff Second Pulse!");
         }
 
         /// <summary>
@@ -425,9 +596,15 @@ namespace ProjectM.Cards
             if (!isPlayerCard)
                 Managers.EnemyWaveManager.Instance?.OnEnemyDied(this);
 
-            // Animation chết (chỉ chạy nếu battleAnim tồn tại)
+            // Animation bị đánh (giật lùi) 1 lần cuối trước khi tan biến
             if (battleAnim != null)
+            {
+                Vector2 recoilDir = isPlayerCard ? Vector2.left : Vector2.right;
+                yield return StartCoroutine(battleAnim.PlayHitAnim(recoilDir));
+                
+                // Animation chết (tan biến)
                 yield return StartCoroutine(battleAnim.PlayDeathAnim());
+            }
 
             // Báo cho BattleGrid để dồn hàng
             Managers.BattleGrid grid = FindAnyObjectByType<Managers.BattleGrid>();
@@ -508,47 +685,71 @@ namespace ProjectM.Cards
 
             bool hasShield = currentShield > 0;
 
-            // ── Số HP + Khiên ──────────────────────────────────────────
+            // ── Số HP ──────────────────────────────────────────
             if (display.healthText != null)
             {
-                display.healthText.text = hasShield
-                    ? $"<color=#00FFFF>{currentHP + currentShield}</color>"
-                    : currentHP.ToString();
+                display.healthText.text = currentHP.ToString();
+            }
+
+            // ── Shield Icon riêng biệt ─────────────────────────────────────
+            if (display.shieldIconObj != null)
+            {
+                display.shieldIconObj.SetActive(hasShield);
+            }
+            if (display.shieldText != null && hasShield)
+            {
+                display.shieldText.text = currentShield.ToString();
             }
 
             // ── Swap icon trái tim ─────────────────────────────────────
             if (display.heartIconImage != null)
             {
-                if (hasShield && display.shieldHeartSprite != null)
+                if (hasSecondPulse && display.shieldHeartSprite != null)
                 {
                     display.heartIconImage.sprite = display.shieldHeartSprite;
-                    display.heartIconImage.color  = new Color(0.31f, 0.76f, 0.97f); // xanh dương nhạt
+                    display.heartIconImage.color = Color.white;
                     StopHeartPulse();
                 }
                 else 
                 {
                     display.heartIconImage.color = Color.white;
                     
-                    float hpPercent = (float)currentHP / cardData.health;
-
-                    if (hpPercent <= 0.34f && display.heart3Sprite != null)
+                    if (currentHeartType == HeartType.Fragile && display.fragileHeartSprite != null)
                     {
-                        display.heartIconImage.sprite = display.heart3Sprite;
-                        StartHeartPulse();
+                        display.heartIconImage.sprite = display.fragileHeartSprite;
                     }
-                    else if (hpPercent <= 0.67f && display.heart2Sprite != null)
+                    else if (currentHeartType == HeartType.Doom && display.doomHeartSprite != null)
                     {
-                        display.heartIconImage.sprite = display.heart2Sprite;
-                        StopHeartPulse();
+                        display.heartIconImage.sprite = display.doomHeartSprite;
                     }
-                    else if (display.normalHeartSprite != null)
+                    else if (currentHeartType == HeartType.Thorn && display.thornHeartSprite != null)
                     {
-                        display.heartIconImage.sprite = display.normalHeartSprite;
-                        StopHeartPulse();
+                        display.heartIconImage.sprite = display.thornHeartSprite;
                     }
                     else
                     {
-                        StopHeartPulse();
+                        int maxHealthBase = maxHP > 0 ? maxHP : cardData.health;
+                        float hpPercent = maxHealthBase > 0 ? (float)currentHP / maxHealthBase : 0f;
+
+                        if (hpPercent <= 0.34f && display.heart3Sprite != null)
+                        {
+                            display.heartIconImage.sprite = display.heart3Sprite;
+                            StartHeartPulse();
+                        }
+                        else if (hpPercent <= 0.67f && display.heart2Sprite != null)
+                        {
+                            display.heartIconImage.sprite = display.heart2Sprite;
+                            StopHeartPulse();
+                        }
+                        else if (display.normalHeartSprite != null)
+                        {
+                            display.heartIconImage.sprite = display.normalHeartSprite;
+                            StopHeartPulse();
+                        }
+                        else
+                        {
+                            StopHeartPulse();
+                        }
                     }
                 }
             }
@@ -565,7 +766,8 @@ namespace ProjectM.Cards
             display.heartIconImage.transform.localScale = Vector3.one;
             _heartPulseTween = display.heartIconImage.transform.DOScale(1.2f, 0.4f)
                 .SetLoops(-1, LoopType.Yoyo)
-                .SetEase(Ease.InOutSine);
+                .SetEase(Ease.InOutSine)
+                .SetLink(gameObject);
         }
 
         private void StopHeartPulse()
@@ -581,10 +783,38 @@ namespace ProjectM.Cards
             }
         }
 
+        private DG.Tweening.Tween _speedPulseTween;
+
         private void UpdateCounterUI()
         {
             if (display != null && display.speedText != null)
+            {
                 display.speedText.text = currentCounter.ToString();
+                
+                Transform counterContainer = display.speedText.transform.parent;
+                if (counterContainer == null) counterContainer = display.speedText.transform;
+
+                if (currentCounter == 1)
+                {
+                    // Chỉ bật nhịp đập nếu chưa chạy
+                    if (_speedPulseTween == null || !_speedPulseTween.IsActive())
+                    {
+                        _speedPulseTween = counterContainer.DOScale(Vector3.one * 1.15f, 0.35f)
+                            .SetLoops(-1, LoopType.Yoyo)
+                            .SetEase(Ease.InOutSine)
+                            .SetLink(gameObject); // Báo cho DOTween tự hủy anim khi thẻ bài bị Destroy
+                    }
+                }
+                else
+                {
+                    if (_speedPulseTween != null)
+                    {
+                        _speedPulseTween.Kill();
+                        _speedPulseTween = null;
+                        counterContainer.localScale = Vector3.one;
+                    }
+                }
+            }
         }
 
         private void UpdateUltUI()

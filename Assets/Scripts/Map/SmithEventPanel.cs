@@ -231,6 +231,9 @@ namespace ProjectM.Map
 
         private void OnChampionClicked(ChampionCardEntry entry)
         {
+            // Bấm lần nào cũng phát tiếng chọn thẻ
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardSelectClip);
+
             if (entry.clickCount == 0)
             {
                 // Click 1: Focus
@@ -497,6 +500,12 @@ namespace ProjectM.Map
         private void OnUpgradeChosen(int atkBonus, int hpBonus)
         {
             if (_selectedCardData == null) return;
+
+            // Phát tiếng khi chọn nâng cấp
+            if (atkBonus > 0)
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.upgradeATKClip);
+            else if (hpBonus > 0)
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.upgradeHPClip);
 
             var runData = GameManager.Instance?.RunData;
             if (runData != null)

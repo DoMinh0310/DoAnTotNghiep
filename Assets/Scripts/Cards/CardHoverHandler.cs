@@ -110,6 +110,16 @@ namespace ProjectM.Cards
             basePosition = pos;
             baseRotation = rot;
             baseScale    = scale;
+
+            // Nếu đang lơ lửng (hover) mà bị đổi Base State (do PlayerHand hoặc trả về từ Drag thất bại),
+            // ta phải tính toán lại vị trí Hover để thẻ không bị kẹt ở tọa độ màn hình cũ.
+            if (isHovering && !CardDragHandler.isAnyCardDragging)
+            {
+                KillAllTweens();
+                _scaleTween = transform.DOScale(baseScale * hoverScaleMultiplier, hoverDuration).SetEase(DG.Tweening.Ease.OutQuad);
+                _rotTween = transform.DOLocalRotateQuaternion(Quaternion.identity, hoverDuration).SetEase(DG.Tweening.Ease.OutQuad);
+                _posTween = rectTransform.DOAnchorPos(basePosition + new Vector2(0, hoverYOffset), hoverDuration).SetEase(DG.Tweening.Ease.OutQuad);
+            }
         }
 
         // ─────────────────────────────────────────────────
@@ -118,7 +128,7 @@ namespace ProjectM.Cards
             if (CardDragHandler.isAnyCardDragging) return;
             if (ProjectM.Skills.SkillDragHandler.isAnySkillTargeting) return;
             if (baseScale == Vector3.zero) return;
-            if (Managers.BattleManager.IsInputLocked) return;
+            if (Managers.BattleManager.IsInputBlocked) return;
 
             isHovering = true;
             overrideCanvas.overrideSorting = true;
@@ -126,20 +136,20 @@ namespace ProjectM.Cards
 
             KillAllTweens();
 
-            // Phóng to với Ease.OutBack (overshoot nhẹ → cảm giác "bật")
+            // Phóng to mượt mà không bị nảy (giật cục)
             _scaleTween = transform
                 .DOScale(baseScale * hoverScaleMultiplier, hoverDuration)
-                .SetEase(Ease.OutBack);
+                .SetEase(Ease.OutQuad);
 
             // Dựng thẳng
             _rotTween = transform
                 .DOLocalRotateQuaternion(Quaternion.identity, hoverDuration)
                 .SetEase(Ease.OutQuad);
 
-            // Nhích lên trên với Ease.OutBack
+            // Nhích lên trên mượt mà
             _posTween = rectTransform
                 .DOAnchorPos(basePosition + new Vector2(0, hoverYOffset), hoverDuration)
-                .SetEase(Ease.OutBack);
+                .SetEase(Ease.OutQuad);
         }
 
         public void OnPointerExit(PointerEventData eventData)

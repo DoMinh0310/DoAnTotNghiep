@@ -62,6 +62,15 @@ namespace ProjectM.Elements
                       $"Sát thương = {pendingDamage} (kháng {resist * 100}%). Stack reset về 0.");
 
             handler.SetStacks(ElementType.Bleed, 0);
+            
+            if (Managers.BattleManager.Instance != null && Managers.BattleManager.Instance.bleedHitVfxPrefab != null)
+            {
+                GameObject vfx = GameObject.Instantiate(Managers.BattleManager.Instance.bleedHitVfxPrefab, cardBattle.transform.position, Quaternion.identity, cardBattle.transform);
+                vfx.transform.localPosition = new Vector3(0, 0, -50f);
+                foreach(var ps in vfx.GetComponentsInChildren<ParticleSystem>()) ps.Play(true);
+                GameObject.Destroy(vfx, 2f);
+            }
+
             handler.ApplyElementalDamage(pendingDamage, resist);
 
             yield break;

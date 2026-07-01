@@ -23,11 +23,29 @@ namespace ProjectM.Skills
     [RequireComponent(typeof(CanvasGroup))]
     [RequireComponent(typeof(SkillExecutor))]
     public class SkillDragHandler : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
+        IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         // ── Inspector ─────────────────────────────────────────────────
         [Header("Targeting Arrow")]
         [SerializeField] private GameObject targetingArrowPrefab;
+
+        [Header("Skill Activation Animation")]
+        [Tooltip("Độ co rút lại khi bắt đầu chuẩn bị (0.1 = nhỏ đi 10%)")]
+        public float animShrinkAmount = 0.1f;
+        [Tooltip("Khoảng cách lùi lại để lấy đà (px)")]
+        public float animWindupDistance = 80f;
+        [Tooltip("Khoảng cách lao lên tấn công (px)")]
+        public float animLungeDistance = 100f;
+        
+        [Tooltip("Thời gian bẻ phẳng thẻ (giây)")]
+        public float animStraightenTime = 0.15f;
+        [Tooltip("Thời gian lùi lấy đà (giây)")]
+        public float animWindupTime = 0.4f;
+        [Tooltip("Thời gian lao lên (giây)")]
+        public float animLungeTime = 0.3f;
+        [Tooltip("Thời gian quay về vị trí ban đầu (giây)")]
+        public float animReturnTime = 0.35f;
 
         // ── References ────────────────────────────────────────────────
         private SkillExecutor  _executor;
@@ -74,7 +92,7 @@ namespace ProjectM.Skills
 
             // Vị trí đỉnh thẻ (start) và cursor (end)
             Vector2 startScreen = GetCardTopScreenPos();
-            Vector2 mouseScreen  = Mouse.current.position.ReadValue();
+            Vector2 mouseScreen = Mouse.current.position.ReadValue();
 
             // Card dưới chuột
             CardBattle cardUnder = GetCardUnderScreenPos(mouseScreen);
@@ -162,6 +180,7 @@ namespace ProjectM.Skills
         // ════════════════════════════════════════════════════════════════
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (Managers.BattleManager.IsInputBlocked) return;
             if (_isActivating || _isTargeting) return;
             // Nếu có thẻ khác đang focus hoặc đang targeting → block hoàn toàn
             if (isAnySkillFocused || isAnySkillTargeting) return; 
@@ -187,6 +206,11 @@ namespace ProjectM.Skills
         // ════════════════════════════════════════════════════════════════
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (Managers.BattleManager.IsInputBlocked) return;
+
+            // Nếu là thẻ Summon (EmptySlot), KHÔNG click-to-target mà dùng Drag-and-Drop
+            if (_executor?.Data != null && _executor.Data.targetType == SkillTargetType.EmptySlot) return;
+
             // Chỉ nhận chuột trái
             if (eventData.button != PointerEventData.InputButton.Left) return;
 
@@ -211,6 +235,164 @@ namespace ProjectM.Skills
 
             // Vào targeting mode
             EnterTargetingMode();
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // DRAG & DROP (Dành riêng cho thẻ Summon / EmptySlot)
+        // ════════════════════════════════════════════════════════════════
+        public static CardDropZone targetDropZoneForSummon; // Pass slot cho SkillOverride_Summon
+        private Transform _previousParent;
+        private bool _isDragTargeting;
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (_executor?.Data == null) return;
+            if (Managers.BattleManager.IsInputBlocked) return;
+
+            // Đảm bảo _mainCanvas không bị null (do Awake có thể chạy lúc vừa Instantiate chưa có Parent)
+            if (_mainCanvas == null)
+            {
+                Transform curr = transform.parent;
+                while (curr != null)
+                {
+                    _mainCanvas = curr.GetComponent<Canvas>();
+                    if (_mainCanvas != null) break;
+                    curr = curr.parent;
+                }
+            }
+
+            // Nếu đang ở click-targeting mode (click mũi tên), tắt nó đi
+            if (_isTargeting) ExitTargetingMode();
+
+            if (_executor.Data.targetType == SkillTargetType.EmptySlot)
+            {
+                // Physical Drag (dành cho Summon)
+                isAnySkillTargeting = true;
+                _previousParent = transform.parent;
+                _siblingIndex = transform.GetSiblingIndex();
+
+                transform.DOKill();
+                _rectTransform.DOKill();
+
+                if (_mainCanvas != null) transform.SetParent(_mainCanvas.transform);
+                else transform.SetParent(transform.root);
+
+                transform.SetAsLastSibling();
+                transform.localRotation = Quaternion.identity;
+
+                _canvasGroup.blocksRaycasts = false;
+                _canvasGroup.alpha = 0.8f;
+                
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardPickUpClip);
+            }
+            else
+            {
+                // Virtual Drag (Targeting Arrow)
+                _isDragTargeting = true;
+                EnterTargetingMode();
+            }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (_executor?.Data == null) return;
+            if (Managers.BattleManager.IsInputBlocked)
+            {
+                if (_isDragTargeting) { _isDragTargeting = false; ExitTargetingMode(); }
+                else CancelDrag();
+                return;
+            }
+
+            if (_executor.Data.targetType == SkillTargetType.EmptySlot)
+            {
+                transform.position = eventData.position;
+            }
+            // Ngược lại (Virtual Drag): không di chuyển thẻ, Update() sẽ tự vẽ mũi tên
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (_executor?.Data == null) return;
+            if (Managers.BattleManager.IsInputBlocked)
+            {
+                if (_isDragTargeting) { _isDragTargeting = false; ExitTargetingMode(); }
+                else CancelDrag();
+                return;
+            }
+            
+            if (_executor.Data.targetType == SkillTargetType.EmptySlot)
+            {
+                // Kết thúc Physical Drag
+                isAnySkillTargeting = false;
+                _canvasGroup.blocksRaycasts = true;
+                _canvasGroup.alpha = 1f;
+
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardDropClip);
+
+                PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = Mouse.current.position.ReadValue() };
+                List<RaycastResult> results = new List<RaycastResult>();
+                EventSystem.current.RaycastAll(pointerData, results);
+
+                CardDropZone dropZone = null;
+                foreach (var result in results)
+                {
+                    var zone = result.gameObject.GetComponentInParent<CardDropZone>();
+                    if (zone != null && zone.transform.childCount == 0)
+                    {
+                        Managers.BattleGrid grid = Managers.BattleGrid.Instance;
+                        // Bắt buộc phải thả vào ô của Player, không cho thả vào ô Enemy
+                        if (grid != null && !grid.IsEnemyZone(zone) && grid.GetCardInSlot(zone) == null)
+                        {
+                            dropZone = zone;
+                            break;
+                        }
+                    }
+                }
+
+                if (dropZone != null)
+                {
+                    targetDropZoneForSummon = dropZone;
+                    StartCoroutine(ActivateSkill(null));
+                }
+                else CancelDrag();
+            }
+            else
+            {
+                // Kết thúc Virtual Drag
+                if (!_isDragTargeting) return;
+                _isDragTargeting = false;
+
+                Vector2 mouseScreen = Mouse.current.position.ReadValue();
+                CardBattle targetCard = GetCardUnderScreenPos(mouseScreen);
+
+                if (targetCard != null && IsValidTarget(targetCard, _executor.Data.targetType))
+                {
+                    ExitTargetingMode();
+                    StartCoroutine(ActivateSkill(targetCard));
+                }
+                else
+                {
+                    ExitTargetingMode();
+                }
+            }
+        }
+
+        private void CancelDrag()
+        {
+            if (_previousParent != null)
+            {
+                transform.SetParent(_previousParent);
+                transform.SetSiblingIndex(_siblingIndex);
+            }
+            isAnySkillTargeting = false;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.alpha = 1f;
+
+            // Gọi SkillHandManager cập nhật lại vị trí thẻ (nếu thẻ vừa bị kéo vật lý)
+            if (_executor != null && _executor.Data != null && _executor.Data.targetType == SkillTargetType.EmptySlot)
+            {
+                SkillHandManager.Instance?.RepositionAllCards();
+            }
         }
 
         // ════════════════════════════════════════════════════════════════
@@ -303,7 +485,8 @@ namespace ProjectM.Skills
             List<CardBattle> allEnemies = grid.GetAllEnemyCards();
             List<CardBattle> targets    = _executor.ResolveTargets(draggedTarget, caster, allEnemies);
 
-            if (targets.Count == 0)
+            // Bỏ qua check target count nếu là loại thả vào ô trống (EmptySlot) vì loại này không target vào thẻ bài
+            if (targets.Count == 0 && _executor.Data.targetType != SkillTargetType.EmptySlot)
             {
                 BattleDebugger.Warn($"[Skill] '{_executor.Data?.skillName}': Không tìm thấy mục tiêu!");
                 _isActivating = false;
@@ -313,6 +496,81 @@ namespace ProjectM.Skills
 
             var names = string.Join(", ", targets.ConvertAll(t => t.Data?.cardName ?? "?"));
             BattleDebugger.Log($"✨ '{_executor.Data?.skillName}' → [{names}]");
+
+            // Tắt đường mũi tên (Bezier line) ngay lập tức
+            if (_arrow != null) 
+            { 
+                Destroy(_arrow.gameObject); 
+                _arrow = null; 
+            }
+
+            // Dừng mọi animation đang chạy trên thẻ (do HoverHandler hoặc HandLayout)
+            _rectTransform.DOKill();
+            transform.DOKill();
+
+            // Ép thẻ nguồn thu nhỏ lại để huỷ hiệu ứng hover đang làm to lá bài
+            var hover = GetComponent<ProjectM.Cards.CardHoverHandler>();
+            if (hover != null) Destroy(hover);
+
+            if (_executor.Data.targetType == SkillTargetType.EmptySlot)
+            {
+                // Ẩn lá bài đi ngay lập tức để tạo cảm giác nó "biến" thành mô hình công trình
+                _canvasGroup.alpha = 0f;
+            }
+
+            if (_executor.Data.targetType != SkillTargetType.EmptySlot)
+            {
+                // 1. Tính toán hướng mục tiêu
+                Vector2 direction = Vector2.up; 
+                if (targets.Count > 0 && targets[0] != null)
+                {
+                    // Vector hướng từ thẻ skill bay tới vị trí mục tiêu
+                    Vector3 targetPos = targets[0].transform.position;
+                    Vector3 cardPos = transform.position;
+                    direction = (targetPos - cardPos).normalized;
+                }
+                else if (_executor.Data.targetType == SkillTargetType.Self)
+                {
+                    direction = Vector2.down; // Buff bản thân thì hướng xuống dưới
+                }
+
+                // 2. Tách thẻ ra khỏi HandLayout để BỎ HOÀN TOÀN GÓC NGHIÊNG (panning vòng cung)
+                if (_mainCanvas != null) transform.SetParent(_mainCanvas.transform);
+                else transform.SetParent(transform.root);
+                transform.SetAsLastSibling();
+                
+                // 3. Tính toán thông số
+                Vector3 originalScale = _rectTransform.localScale;
+                Vector3 shrunkScale = new Vector3(originalScale.x - animShrinkAmount, originalScale.y - animShrinkAmount, originalScale.z);
+                Vector2 originPos = _rectTransform.anchoredPosition;
+                Vector2 windupPos = originPos - direction * animWindupDistance;  
+                Vector2 lungePos = originPos + direction * animLungeDistance;  
+
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.attackClip);
+
+                // TẠO CHUỖI ANIMATION 3 BƯỚC
+                Sequence animSeq = DOTween.Sequence();
+                
+                // Bước 1: Thu nhỏ lại và bẻ phẳng thẻ về góc (0,0,0)
+                animSeq.Append(_rectTransform.DOScale(shrunkScale, animStraightenTime).SetEase(Ease.OutQuad));
+                animSeq.Join(_rectTransform.DORotate(Vector3.zero, animStraightenTime).SetEase(Ease.OutQuad));
+                
+                // Bước 2: Lùi lại lấy đà
+                animSeq.Append(_rectTransform.DOAnchorPos(windupPos, animWindupTime).SetEase(Ease.OutCubic));
+
+                // Bước 3: Lao thẳng lên
+                animSeq.Append(_rectTransform.DOAnchorPos(lungePos, animLungeTime).SetEase(Ease.OutBack, overshoot: 1.5f));
+                
+                // Bước 4: Quay về vị trí cũ và nảy nảy (Elastic)
+                animSeq.Append(_rectTransform.DOAnchorPos(originPos, animReturnTime).SetEase(Ease.OutElastic, amplitude: 0.8f, period: 0.5f));
+                animSeq.Join(_rectTransform.DOScale(originalScale, animReturnTime).SetEase(Ease.OutElastic, amplitude: 0.8f, period: 0.5f));
+
+                yield return animSeq.WaitForCompletion();
+                    
+                // Phát âm thanh va chạm (hit) khi chạm đích!
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.hitClip);
+            }
+            // -----------------------
 
             yield return new WaitForEndOfFrame();
             yield return StartCoroutine(_executor.Execute(caster, targets));
@@ -331,6 +589,7 @@ namespace ProjectM.Skills
         // ════════════════════════════════════════════════════════════════
         private void ApplyHoverHighlight(CardBattle card, SkillTargetType targetType)
         {
+            if (card == null) return;
             if (targetType == SkillTargetType.EnemyRow)
             {
                 var row = BattleGrid.Instance?.GetEnemiesInSameRow(card);
@@ -366,10 +625,19 @@ namespace ProjectM.Skills
         private Vector2 GetCardTopScreenPos()
         {
             if (_rectTransform == null) return Vector2.zero;
+            if (_mainCanvas == null) _mainCanvas = GetComponentInParent<Canvas>();
+
             var corners = new Vector3[4];
             _rectTransform.GetWorldCorners(corners);
             // corners: [0]=bottomLeft [1]=topLeft [2]=topRight [3]=bottomRight
             Vector3 topCenter = (corners[1] + corners[2]) * 0.5f;
+
+            if (_mainCanvas != null && _mainCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                // Với Overlay, World Coordinates đã chính xác là Screen Coordinates
+                return topCenter;
+            }
+
             return RectTransformUtility.WorldToScreenPoint(_mainCanvas?.worldCamera, topCenter);
         }
 
@@ -382,6 +650,23 @@ namespace ProjectM.Skills
             {
                 var card = r.gameObject.GetComponentInParent<CardBattle>();
                 if (card != null) return card;
+            }
+            return null;
+        }
+
+        private CardDropZone GetEmptyDropZoneUnderScreenPos(Vector2 screenPos)
+        {
+            var pointerData = new PointerEventData(EventSystem.current) { position = screenPos };
+            var results     = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointerData, results);
+            foreach (var r in results)
+            {
+                var zone = r.gameObject.GetComponentInParent<CardDropZone>();
+                if (zone != null && zone.isPlayerZone && zone.transform.childCount == 0)
+                {
+                    Managers.BattleGrid grid = Managers.BattleGrid.Instance;
+                    if (grid != null && grid.GetCardInSlot(zone) == null) return zone;
+                }
             }
             return null;
         }

@@ -60,7 +60,19 @@ namespace ProjectM
             if (selectedSetup.champions != null)
                 foreach (var entry in selectedSetup.champions)
                 {
-                    if (entry?.championData != null) RunData.playerDeckIDs.Add(entry.championData.name);
+                    if (entry?.championData != null) 
+                    {
+                        RunData.playerDeckIDs.Add(entry.championData.name);
+                        
+                        // HƯỚNG 1: Gộp bài Trấn phái (Signature Cards) của Tướng vào Starter Deck
+                        if (entry.championData.signatureCards != null)
+                        {
+                            foreach (var sig in entry.championData.signatureCards)
+                            {
+                                if (sig != null) RunData.playerDeckIDs.Add(sig.name);
+                            }
+                        }
+                    }
                     if (entry?.equippedTrinket != null) RunData.playerTrinketIDs.Add(entry.equippedTrinket.name);
                 }
 

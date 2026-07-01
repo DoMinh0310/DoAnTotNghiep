@@ -124,14 +124,16 @@ namespace ProjectM.Map
             Instance = this;
         }
 
-        private void Start()
+    private void Start()
+    {
+        AudioManager.Instance?.PlayMapMusic();
+        
+        _runData = GameManager.Instance?.RunData;
+        if (_runData == null)
         {
-            _runData = GameManager.Instance?.RunData;
-            if (_runData == null)
-            {
-                Debug.LogError("[MapManager] RunData is null. Make sure GameManager initialized a run.");
-                return;
-            }
+            Debug.LogError("[MapManager] RunData is null. Make sure GameManager initialized a run.");
+            return;
+        }
 
             // Đảm bảo PlayerToken có anchor Top-Left để trùng khớp với hệ tọa độ của Map
             if (playerToken != null)
@@ -652,6 +654,16 @@ namespace ProjectM.Map
             IsEventInProgress = inProgress;
             _reopenActiveEventAction = reopenAction;
             
+            // Xử lý bật/tắt nhạc Map theo trạng thái Event
+            if (inProgress)
+            {
+                AudioManager.Instance?.StopMusic();
+            }
+            else
+            {
+                AudioManager.Instance?.PlayMapMusic();
+            }
+            
             // Highlight node hiện tại để người chơi biết phải bấm vào đâu để quay lại
             if (inProgress && _runData.currentSlotIndex >= 0)
             {
@@ -687,6 +699,9 @@ namespace ProjectM.Map
 
             for (int step = 0; step < steps; step++)
             {
+                // Phát tiếng Token Jump ở mỗi nhịp nhảy
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerMoveClip);
+                
                 // Vị trí bắt đầu và kết thúc của bước này
                 float t0 = (float)step       / steps;
                 float t1 = (float)(step + 1) / steps;
@@ -877,6 +892,9 @@ namespace ProjectM.Map
                 return;
             }
 
+            AudioManager.Instance?.PlayShopEventMusic();
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.shopEnterClip);
+
             shopEventPanel.Open(() => CompleteCurrentEvent());
         }
 
@@ -884,6 +902,7 @@ namespace ProjectM.Map
         private void TriggerResourceEvent(MapNode node)
         {
             SetEventInProgress(true, null);
+            AudioManager.Instance?.PlayGoldEventMusic();
             
             int randomGoldReward = UnityEngine.Random.Range(resourceGoldRewardMin, resourceGoldRewardMax + 1);
 

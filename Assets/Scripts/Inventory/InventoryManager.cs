@@ -107,7 +107,10 @@ namespace ProjectM.Inventory
 
         public void OpenInventory()
         {
+            if (ProjectM.Managers.BattleManager.IsInputBlocked) return;
             if (_isOpen || inventoryPanel == null || circleReveal == null) return;
+            
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.inventoryToggleClip);
             
             // LUÔN cập nhật lại _setup từ dữ liệu runtime thực tế (tránh lỗi do gán cứng trong Inspector)
             if (SkillHandManager.Instance != null)
@@ -141,6 +144,8 @@ namespace ProjectM.Inventory
         {
             if (!_isOpen || inventoryPanel == null || circleReveal == null) return;
             _isOpen = false;
+
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.inventoryToggleClip);
 
             OnInventoryToggled?.Invoke(false); // Báo cho các UI khác biết túi đồ đã đóng
 

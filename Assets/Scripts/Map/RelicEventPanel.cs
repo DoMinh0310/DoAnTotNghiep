@@ -324,6 +324,7 @@ namespace ProjectM.Map
 
         private void OnEquipNow()
         {
+            AudioManager.Instance?.PlayAcquireItemCombo();
             SaveToRunData();
             // Mở Inventory ngay lập tức
             if (ProjectM.Inventory.InventoryManager.Instance != null)
@@ -335,6 +336,7 @@ namespace ProjectM.Map
 
         private void OnSaveForLater()
         {
+            AudioManager.Instance?.PlayAcquireItemCombo();
             SaveToRunData();
             FinishEvent();
         }

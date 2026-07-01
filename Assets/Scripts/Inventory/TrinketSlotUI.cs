@@ -266,6 +266,9 @@ namespace ProjectM.Inventory
                 transform.DOScale(1.08f, 0.15f);
             }
 
+            // Nếu đang trong quá trình Drag & Drop thì KHÔNG mở Tooltip
+            if (eventData.dragging || eventData.pointerDrag != null || Dragging != null) return;
+
             if (currentTrinket == null || tooltipPanel == null) return;
             
             // Nếu tooltip đang bị quăng đi đâu đó, kéo nó về để sửa position

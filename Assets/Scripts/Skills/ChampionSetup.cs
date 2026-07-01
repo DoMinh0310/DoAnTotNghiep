@@ -43,6 +43,10 @@ namespace ProjectM.Skills
         [Tooltip("Pool bài hỗ trợ ban đầu — sẽ được xáo và deal 6 lá đầu lượt đầu tiên.")]
         public List<SkillData> supportDeck = new();
 
+        [Header("Building Deck (Công trình)")]
+        [Tooltip("Pool thẻ công trình (dùng CardData trực tiếp thay vì SkillData) sẽ được rút vào khay Tướng giữa trận.")]
+        public List<CardData> buildingDeck = new();
+
         [Header("Player Owned Collection (Run Inventory)")]
         [Tooltip("Toàn bộ Relic người chơi sở hữu trong run này (kể cả đang trang bị). Kéo-thả trong Inventory để đổi cho tướng.")]
         public List<RelicData> ownedRelics = new();

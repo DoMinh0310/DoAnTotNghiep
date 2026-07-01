@@ -92,6 +92,16 @@ namespace ProjectM.UI
                     int capturedIndex = i;
                     selectable.Setup(() => OnCardClicked(capturedIndex));
                     
+                    // --- ĐỔ BÓNG TỪ TRÁI SANG PHẢI CHỈ RIÊNG CHO MENU ---
+                    // Tìm component Shadow của thẻ bài (hoặc background của thẻ)
+                    Shadow[] shadows = cardObj.GetComponentsInChildren<Shadow>(true);
+                    foreach(Shadow shadow in shadows)
+                    {
+                        // Giữ nguyên trục Y (đổ xuống dưới), đổi trục X sang dương (đổ từ trái sang phải)
+                        Vector2 currentDist = shadow.effectDistance;
+                        shadow.effectDistance = new Vector2(Mathf.Abs(currentDist.x), currentDist.y);
+                    }
+
                     _spawnedCards.Add(selectable);
                 }
             }
@@ -117,6 +127,8 @@ namespace ProjectM.UI
 
         private void OnCardClicked(int index)
         {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardSelectClip);
+            
             if (_selectedIndices.Contains(index))
             {
                 _selectedIndices.Remove(index);
@@ -158,6 +170,7 @@ namespace ProjectM.UI
 
         private void OnLetsGoClicked()
         {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.genericButtonClip);
             if (_selectedIndices.Count < maxSelection || baseStarterData == null) return;
 
             var setup = ScriptableObject.CreateInstance<ChampionSetup>();
@@ -190,12 +203,14 @@ namespace ProjectM.UI
 
         private void OnBackClicked()
         {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.genericButtonClip);
             SetPanelVisible(false, instant: false);
         }
 
         /// <summary>Click vùng nền trống → bỏ chọn toàn bộ tướng, cho người chơi chọn lại.</summary>
         private void OnBackgroundClicked()
         {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.genericButtonClip);
             // Bỏ chọn tất cả
             foreach (int idx in _selectedIndices)
                 _spawnedCards[idx].SetSelected(false);
