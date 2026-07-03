@@ -125,7 +125,7 @@ namespace ProjectM.Map
             currentSlotIndex = 0; // Bắt đầu ở Slot 0 (Start)
             nonCombatSinceLastCombat = 0;
 
-            visitedSlots      = new List<int>();
+            visitedSlots      = new List<int> { 0 }; // Đã đi qua điểm xuất phát (node 0)
             randomSlotIndices = new List<int>();
             randomSlotTypes   = new List<NodeType>();
             shopCountPerRoute = new List<int> { 0, 0, 0 };

@@ -15,13 +15,14 @@ MonoBehaviour:
   cardName: Brood Mother
   id: 017
   abilities: 'Apply Decay '
-  attack: 4
+  attack: 2
   health: 18
   speed: 5
   ult: 0
   innateAttackElement: 1
   cardType: 4
   rarity: 2
+  attacksRandomTarget: 0
   cost: 1
   description: 
   signatureCards: []

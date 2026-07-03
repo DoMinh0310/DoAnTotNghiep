@@ -16,11 +16,13 @@ MonoBehaviour:
   id: 1003
   abilities: 
   attack: 3
-  health: 5
-  speed: 2
+  health: 4
+  speed: 3
   ult: 0
+  innateAttackElement: 4
   cardType: 0
   rarity: 0
+  attacksRandomTarget: 0
   cost: 1
   description: 
   signatureCards:

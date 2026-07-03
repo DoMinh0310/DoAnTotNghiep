@@ -196,6 +196,53 @@ namespace ProjectM.Managers
             yield return null;
         }
 
+        /// <summary>
+        /// Đồng bộ lại trang bị (Relic, Trinket) cho tất cả các tướng đang có trong trận đấu (trên tay và trên bàn cờ)
+        /// theo dữ liệu mới nhất từ ChampionSetup. Gọi khi người chơi thay đổi trang bị trong Inventory.
+        /// </summary>
+        public void SyncChampionEquipments()
+        {
+            var setup = Skills.SkillHandManager.Instance?.championSetup;
+            if (setup == null) return;
+
+            var allCards = new List<Cards.CardBattle>();
+            if (championHandRegion != null)
+                allCards.AddRange(championHandRegion.GetComponentsInChildren<Cards.CardBattle>(true));
+            if (BattleGrid.Instance != null)
+                allCards.AddRange(BattleGrid.Instance.GetAllPlayerCards());
+
+            foreach (var entry in setup.champions)
+            {
+                if (entry == null || entry.championData == null) continue;
+
+                var card = allCards.Find(c => c != null && c.GetComponentInChildren<Cards.CardDisplay>(true)?.cardData == entry.championData);
+                if (card == null) continue;
+
+                var go = card.gameObject;
+                var rSlot = go.GetComponentInChildren<Inventory.RelicSlotUI>(true);
+                if (rSlot != null) rSlot.Setup(entry.equippedRelic, -1);
+
+                var tSlot = go.GetComponentInChildren<Inventory.TrinketSlotUI>(true);
+                if (tSlot != null) tSlot.Setup(entry.equippedTrinket, -1);
+
+                var relicHandler = go.GetComponent<Cards.RelicHandler>() ?? go.AddComponent<Cards.RelicHandler>();
+                if (entry.equippedRelic != null)
+                    relicHandler.EquipRelic(entry.equippedRelic);
+                else
+                    relicHandler.UnequipRelic();
+
+                var trinketHandler = go.GetComponent<Cards.TrinketHandler>() ?? go.AddComponent<Cards.TrinketHandler>();
+                if (entry.equippedTrinket != null)
+                    trinketHandler.EquipTrinket(entry.equippedTrinket);
+                else
+                    trinketHandler.UnequipTrinket();
+
+                var display = go.GetComponentInChildren<Cards.CardDisplay>(true);
+                if (display != null)
+                    display.UpdateTrinketDescription(entry.equippedTrinket);
+            }
+        }
+
 
         // ══════════════════════════════════════════
         // END TURN (Điểm vào chính)
@@ -299,6 +346,18 @@ namespace ProjectM.Managers
             if (waveManager != null)
                 yield return StartCoroutine(waveManager.OnTurnStart());
 
+            // ── Rút bài — chỉ khi bấm chuông (drawCard = true) ──
+            // CỰC KỲ QUAN TRỌNG: Phải đặt trước block kiểm tra WaveJustSpawned ở dưới.
+            // Nếu không, khi wave mới spawn ra và skip combat, việc rút bài/refill bài trên tay
+            // cũng sẽ bị skip, khiến người chơi phải bấm chuông thêm 1 lượt nữa mới có bài.
+            var skillHand = Skills.SkillHandManager.Instance;
+            if (drawCard)
+            {
+                if (skillHand != null)
+                    yield return StartCoroutine(skillHand.DrawOneCardIfNeeded());
+                yield return StartCoroutine(DrawBuildingIfNeeded());
+            }
+
             // Nếu lượt này vừa spawn wave mới → SKIP toàn bộ combat
             if (waveManager != null && waveManager.WaveJustSpawned)
             {
@@ -307,16 +366,6 @@ namespace ProjectM.Managers
                 IsInputLocked = false; // Mở lại chuột
                 SetEndTurnButtonInteractable(true);
                 yield break;
-            }
-
-            // ── Tick countdown Relic + Rút bài — chỉ khi bấm chuông (drawCard = true) ──
-            var skillHand = Skills.SkillHandManager.Instance;
-            if (drawCard)
-            {
-                NotifyRelicsOnBellPressed();
-                if (skillHand != null)
-                    yield return StartCoroutine(skillHand.DrawOneCardIfNeeded());
-                yield return StartCoroutine(DrawBuildingIfNeeded());
             }
 
             BattleGrid grid = BattleGrid.Instance;
@@ -351,8 +400,15 @@ namespace ProjectM.Managers
             BattleDebugger.Log($"══ Lượt {turnCount} kết thúc ══");
 
             // ── Phase 2: BLEED NỔ (sau khi tất cả đã hành động xong) ──
-            // Trigger cho tất cả kẻ địch còn sống để Bleed tích lũy từ lượt này phát nổ
+            // Trigger cho tất cả các thẻ (cả người chơi lẫn kẻ địch) để Bleed tích lũy phát nổ
             BattleDebugger.Log($"══ Lượt {turnCount} — Phase 2: Nguyên tố hậu kỳ (Bleed...) ══");
+            foreach (CardBattle card in playerCards)
+            {
+                if (card == null || card.IsDead) continue;
+                var elemental = card.GetComponent<ProjectM.Elements.ElementalHandler>();
+                if (elemental != null)
+                    yield return StartCoroutine(elemental.TriggerAfterPlayerAction());
+            }
             foreach (CardBattle card in enemyCards)
             {
                 if (card == null || card.IsDead) continue;
@@ -375,21 +431,6 @@ namespace ProjectM.Managers
             SetEndTurnButtonInteractable(true);
         }
 
-        /// <summary>
-        /// Thông báo tất cả RelicHandler trên các tướng đang ở trên sàn rằng người chơi vừa bấm chuông.
-        /// </summary>
-        private void NotifyRelicsOnBellPressed()
-        {
-            var grid = BattleGrid.Instance;
-            if (grid == null) return;
-
-            foreach (var cardBattle in grid.GetAllPlayerCards())
-            {
-                if (cardBattle == null || cardBattle.IsDead) continue;
-                var relic = cardBattle.GetComponent<Cards.RelicHandler>();
-                relic?.OnBellPressed();
-            }
-        }
 
         // ══════════════════════════════════════════
         // ULT (Người chơi kích hoạt thủ công)

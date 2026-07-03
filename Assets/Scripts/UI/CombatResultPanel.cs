@@ -54,6 +54,7 @@ namespace ProjectM.UI
             if (_isShown) return;
             _isShown = true;
             _isVictory = true;
+            BattleManager.IsInputLocked = true;
 
             bool isFinalBoss = false;
             var runData = GameManager.Instance?.RunData;
@@ -78,6 +79,7 @@ namespace ProjectM.UI
             if (_isShown) return;
             _isShown = true;
             _isVictory = false;
+            BattleManager.IsInputLocked = true;
 
             if (victoryObject != null) victoryObject.SetActive(false);
             if (endGameObject != null) endGameObject.SetActive(false);

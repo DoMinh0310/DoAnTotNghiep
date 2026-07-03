@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using DG.Tweening;
 using ProjectM.Skills;
 
 namespace ProjectM.Cards
@@ -27,6 +28,7 @@ namespace ProjectM.Cards
         // ── Runtime state ─────────────────────────────────────────────────
         private RelicData _relic;
         private int       _currentCooldown;
+        private Tweener _pulseTween;
 
         /// <summary>True nếu Relic đã đếm xong và đang ĐỢI người chơi bấm.</summary>
         public bool IsReadyToSpawn { get; private set; } = false;
@@ -51,6 +53,7 @@ namespace ProjectM.Cards
                 // Khóa nút ban đầu
                 relicButton.interactable = false;
             }
+            UpdateCooldownUI();
         }
 
         private void UpdateCooldownUI()
@@ -60,10 +63,17 @@ namespace ProjectM.Cards
                 if (_relic == null)
                 {
                     cooldownText.text = "";
+                    cooldownText.gameObject.SetActive(false);
+                }
+                else if (IsReadyToSpawn)
+                {
+                    // Ẩn số đếm khi đã sẵn sàng — icon pulse thay thế
+                    cooldownText.gameObject.SetActive(false);
                 }
                 else
                 {
-                    cooldownText.text = IsReadyToSpawn ? "!" : _currentCooldown.ToString();
+                    cooldownText.gameObject.SetActive(true);
+                    cooldownText.text = _currentCooldown.ToString();
                     // Đẩy Text lên hiển thị trên cùng để không bị Icon đè lên (như ảnh báo cáo)
                     cooldownText.transform.SetAsLastSibling();
                 }
@@ -80,11 +90,17 @@ namespace ProjectM.Cards
             
             if (relicButton != null) relicButton.interactable = false;
             
-            // Hiện icon của Relic lên (nếu có kéo Image vào Inspector)
-            if (relicIconImage != null && relic != null)
+            if (relicIconImage != null)
             {
-                relicIconImage.sprite = relic.icon;
-                relicIconImage.gameObject.SetActive(true);
+                if (relic != null && relic.icon != null)
+                {
+                    relicIconImage.sprite = relic.icon;
+                    relicIconImage.gameObject.SetActive(true);
+                }
+                else
+                {
+                    relicIconImage.gameObject.SetActive(false);
+                }
             }
             
             UpdateCooldownUI();
@@ -108,10 +124,10 @@ namespace ProjectM.Cards
         }
 
         /// <summary>
-        /// Gọi bởi BattleManager mỗi khi người chơi bấm chuông (đầu ProcessTurn).
+        /// Gọi mỗi khi lá bài tướng này tick lượt (giống hệt cơ chế speed).
         /// Đếm ngược và cho phép bấm khi đủ lượt.
         /// </summary>
-        public void OnBellPressed()
+        public void OnCardTurnTick()
         {
             if (_relic == null)            return;
             if (SkillPending)              return; // Chưa dùng skill cũ → không đếm
@@ -128,15 +144,22 @@ namespace ProjectM.Cards
 
             if (_currentCooldown <= 0)
             {
-                // Thay vì SpawnRelicSkill() tự động, giờ ta chờ người chơi bấm
                 IsReadyToSpawn = true;
                 if (relicButton != null)
-                {
                     relicButton.interactable = true;
-                    // TODO: Gọi DOTween nhấp nháy Image ở đây nếu thích (phát sáng UI)
-                    if (relicIconImage != null)
-                        relicIconImage.color = new Color(1f, 1f, 1f, 1f); // Sáng bừng lên
+
+                // Pulse nhẹ icon khi sẵn sàng
+                if (relicIconImage != null)
+                {
+                    relicIconImage.color = Color.white;
+                    relicIconImage.transform.localScale = Vector3.one;
+                    _pulseTween?.Kill();
+                    _pulseTween = relicIconImage.transform
+                        .DOScale(1.12f, 0.55f)
+                        .SetLoops(-1, DG.Tweening.LoopType.Yoyo)
+                        .SetEase(DG.Tweening.Ease.InOutSine);
                 }
+
                 Debug.Log($"[RelicHandler] {_relic.relicName} ĐÃ SẴN SÀNG! Chờ người chơi click...");
             }
             
@@ -163,7 +186,17 @@ namespace ProjectM.Cards
             IsReadyToSpawn   = false;
             _currentCooldown = _relic != null ? _relic.cycleSpeed : 0;
             Debug.Log($"[RelicHandler] {_relic?.relicName}: Skill đã dùng, reset countdown = {_currentCooldown}");
-            
+
+            // Dừng pulse nếu vẫn còn chạy
+            _pulseTween?.Kill();
+            _pulseTween = null;
+            if (relicIconImage != null)
+            {
+                relicIconImage.transform.localScale = Vector3.one;
+                relicIconImage.color = Color.white;
+            }
+            if (relicButton != null) relicButton.interactable = false;
+
             UpdateCooldownUI();
         }
 
@@ -180,11 +213,16 @@ namespace ProjectM.Cards
 
             IsReadyToSpawn   = false;
             SkillPending     = true;
-            _currentCooldown = _relic.cycleSpeed; // Reset ngay để UI không hiện số âm
-            
-            // Khóa nút lại sau khi đã spawn
-            if (relicButton != null) relicButton.interactable = false;
-            if (relicIconImage != null) relicIconImage.color = new Color(0.6f, 0.6f, 0.6f, 1f); // Hơi tối đi
+            _currentCooldown = _relic.cycleSpeed;
+
+            // Dừng pulse và reset scale
+            _pulseTween?.Kill();
+            _pulseTween = null;
+            if (relicIconImage != null)
+            {
+                relicIconImage.transform.DOScale(1f, 0.15f);
+                relicIconImage.color = new Color(0.6f, 0.6f, 0.6f, 1f); // Hơi tối đi
+            }
 
             // 4. Nếu dùng thẻ thành công, Spawn 1 Skill ngẫu nhiên từ Relic
             var skillToSpawn = _relic.possibleSkills[Random.Range(0, _relic.possibleSkills.Count)];

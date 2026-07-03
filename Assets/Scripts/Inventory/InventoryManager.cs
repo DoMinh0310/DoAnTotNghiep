@@ -308,6 +308,18 @@ namespace ProjectM.Inventory
                 skillDisplay.InitSkill(skill);
             }
 
+            // 4b. Building Deck — hiện cùng lưới với Support Deck
+            if (_setup.buildingDeck != null)
+            {
+                foreach (var building in _setup.buildingDeck)
+                {
+                    if (building == null) continue;
+                    var buildGo = Instantiate(cardPrefab, skillGrid);
+                    var buildDisplay = buildGo.AddComponent<InventoryCardDisplay>();
+                    buildDisplay.InitChampion(building); // Building cũng là CardData, dùng InitChampion để hiện art/stats
+                }
+            }
+
             // 5. Thêm Signature Cards của tướng vào lưới bài luôn
             foreach (var champEntry in _setup.champions)
             {
@@ -379,31 +391,42 @@ namespace ProjectM.Inventory
                     continue;
                 }
 
-                // Nếu không phải Skill thì tìm trong CardData (Tướng)
+                // Nếu không phải Skill thì tìm trong CardData (Tướng hoặc Building)
                 var cardAsset = allCardAssets.Find(c => c != null && c.name == itemID);
                 if (cardAsset != null)
                 {
-                    var go = Instantiate(cardPrefab, championRow); // Đã chuyển sang championRow
-                    var display = go.AddComponent<InventoryCardDisplay>();
-                    display.InitChampion(cardAsset);
-
-                    // Thêm các slot trang bị rỗng cho Tướng để giống bên Battle
-                    go.AddComponent<ChampionCardRelicDrop>();
-                    var rSlot = go.GetComponentInChildren<RelicSlotUI>(true);
-                    if (rSlot != null)
+                    if (cardAsset.cardType == ProjectM.Cards.CardType.Building)
                     {
-                        rSlot.gameObject.SetActive(true);
-                        rSlot.Setup(null, championIndex); // Tạm thời null vì RunData chưa lưu Relic trang bị
+                        // Building → hiện trong lưới bài (giống Skill)
+                        var go = Instantiate(cardPrefab, skillGrid);
+                        var display = go.AddComponent<InventoryCardDisplay>();
+                        display.InitChampion(cardAsset);
                     }
-
-                    var tSlot = go.GetComponentInChildren<TrinketSlotUI>(true);
-                    if (tSlot != null)
+                    else
                     {
-                        tSlot.gameObject.SetActive(true);
-                        tSlot.Setup(null, championIndex); // Tạm thời null
+                        // Tướng → hiện trong hàng tướng
+                        var go = Instantiate(cardPrefab, championRow);
+                        var display = go.AddComponent<InventoryCardDisplay>();
+                        display.InitChampion(cardAsset);
+
+                        // Thêm các slot trang bị rỗng cho Tướng để giống bên Battle
+                        go.AddComponent<ChampionCardRelicDrop>();
+                        var rSlot = go.GetComponentInChildren<RelicSlotUI>(true);
+                        if (rSlot != null)
+                        {
+                            rSlot.gameObject.SetActive(true);
+                            rSlot.Setup(null, championIndex);
+                        }
+
+                        var tSlot = go.GetComponentInChildren<TrinketSlotUI>(true);
+                        if (tSlot != null)
+                        {
+                            tSlot.gameObject.SetActive(true);
+                            tSlot.Setup(null, championIndex);
+                        }
+
+                        championIndex++;
                     }
-                    
-                    championIndex++;
                     continue;
                 }
 
@@ -490,6 +513,7 @@ namespace ProjectM.Inventory
 
             // Reload lại UI
             PopulateInventory();
+            ProjectM.Managers.BattleManager.Instance?.SyncChampionEquipments();
         }
 
         /// <summary>
@@ -510,6 +534,7 @@ namespace ProjectM.Inventory
             Debug.Log($"[Inventory] Đã tháo Relic '{source.currentRelic?.relicName}' khỏi tướng #{source.championIndex}.");
 
             PopulateInventory();
+            ProjectM.Managers.BattleManager.Instance?.SyncChampionEquipments();
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -566,6 +591,7 @@ namespace ProjectM.Inventory
 
             // Reload lại UI
             PopulateInventory();
+            ProjectM.Managers.BattleManager.Instance?.SyncChampionEquipments();
         }
 
         public void HandleTrinketUnequip(TrinketSlotUI source)
@@ -582,6 +608,7 @@ namespace ProjectM.Inventory
             Debug.Log($"[Inventory] Đã tháo Trinket '{source.currentTrinket?.trinketName}' khỏi tướng #{source.championIndex}.");
 
             PopulateInventory();
+            ProjectM.Managers.BattleManager.Instance?.SyncChampionEquipments();
         }
     }
 }

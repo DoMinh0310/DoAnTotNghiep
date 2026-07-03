@@ -55,7 +55,7 @@ namespace ProjectM.Skills
                     {
                         if (target == null || target.IsDead) continue;
                         Debug.Log($"[Skill] {Data.skillName} → {target.Data?.cardName}: -{Data.effectValue} HP");
-                        target.TakeDamage(Data.effectValue);
+                        target.TakeDamage(Data.effectValue, caster);
                         yield return new WaitForSeconds(0.15f); // Delay nhỏ nếu multi-target
                     }
                     break;

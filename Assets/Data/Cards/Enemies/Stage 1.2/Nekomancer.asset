@@ -15,8 +15,8 @@ MonoBehaviour:
   cardName: Nekomancer
   id: 035
   abilities: Apply Decay
-  attack: 4
-  health: 3
+  attack: 2
+  health: 6
   speed: 3
   ult: 0
   innateAttackElement: 1

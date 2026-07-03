@@ -113,7 +113,13 @@ namespace ProjectM.Elements
             _pendingBleedDamage += physicalDamage;
             Debug.Log($"[Bleed] {gameObject.name} nhận đòn vật lý {physicalDamage} khi đang Bleed → " +
                       $"Pending bleed damage: {_pendingBleedDamage}");
+            // Cập nhật UI ngay để icon Bleed hiển thị tổng sát thương sẽ nổ
+            _cardBattle.GetComponent<ProjectM.Cards.CardDisplay>()?.UpdateElementalUI(this);
         }
+
+        /// <summary>Trả về tổng sát thương Bleed sẽ nổ (stack gốc + sát thương vật lý tích lũy), dùng cho UI.</summary>
+        public int GetTotalBleedDamage()
+            => GetStacks(ElementType.Bleed) + _pendingBleedDamage;
 
         /// <summary>Lấy và reset lượng sát thương Bleed đang chờ nổ.</summary>
         public int ConsumePendingBleedDamage()

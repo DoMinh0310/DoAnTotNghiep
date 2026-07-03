@@ -169,7 +169,17 @@ namespace ProjectM.Cards
             }
             else
             {
-                yield return StartCoroutine(AnimateCounterTick());
+                // Tick Relic cùng lúc giảm speed (giống hệt cơ chế speed của tướng)
+                var relicHandler = GetComponent<RelicHandler>();
+                relicHandler?.OnCardTurnTick();
+
+                if (currentCounter > 0)
+                {
+                    // Chỉ chạy animation tick nếu counter vẫn còn > 0
+                    // Nếu counter đã về 0 từ trước (VD: Cat Ears, skill mid-turn), bỏ qua bước giảm
+                    // và rơi thẳng vào pha tấn công bên dưới
+                    yield return StartCoroutine(AnimateCounterTick());
+                }
             }
 
             // 3. TẤN CÔNG HOẶC FRAGILE (Nếu đủ speed, không đóng băng, và không phải thẻ bất động)
@@ -320,18 +330,26 @@ namespace ProjectM.Cards
             {
                 if (!target.IsDead)
                 {
-                    if (totalDamage != cardData.attack)
-                        Debug.Log($"[CardBattle] {cardData.cardName} đánh tăng cường! {cardData.attack} + {totalDamage - cardData.attack} bonus = {totalDamage}");
-                    target.TakeDamage(totalDamage);
+                    // Các nguyên tố chỉ áp stack, không gây sát thương vật lý trực tiếp
+                    bool isStackOnlyAttack = cardData != null &&
+                        (cardData.innateAttackElement == ProjectM.Elements.ElementType.Decay ||
+                         cardData.innateAttackElement == ProjectM.Elements.ElementType.Chain);
 
-                    // Bật VFX đòn đánh thường (nếu có)
-                    if (Managers.BattleManager.Instance != null && Managers.BattleManager.Instance.normalHitVfxPrefab != null)
+                    if (!isStackOnlyAttack)
                     {
-                        GameObject vfx = Instantiate(Managers.BattleManager.Instance.normalHitVfxPrefab, target.transform.position, Quaternion.identity, target.transform);
-                        vfx.transform.localPosition = new Vector3(0, 0, -50f); 
-                        vfx.transform.localScale = Vector3.one;
-                        foreach(var ps in vfx.GetComponentsInChildren<ParticleSystem>()) ps.Play(true);
-                        Destroy(vfx, 2f);
+                        if (totalDamage != cardData.attack)
+                            Debug.Log($"[CardBattle] {cardData.cardName} đánh tăng cường! {cardData.attack} + {totalDamage - cardData.attack} bonus = {totalDamage}");
+                        target.TakeDamage(totalDamage, this);
+
+                        // Bật VFX đòn đánh thường (nếu có)
+                        if (Managers.BattleManager.Instance != null && Managers.BattleManager.Instance.normalHitVfxPrefab != null)
+                        {
+                            GameObject vfx = Instantiate(Managers.BattleManager.Instance.normalHitVfxPrefab, target.transform.position, Quaternion.identity, target.transform);
+                            vfx.transform.localPosition = new Vector3(0, 0, -50f); 
+                            vfx.transform.localScale = Vector3.one;
+                            foreach(var ps in vfx.GetComponentsInChildren<ParticleSystem>()) ps.Play(true);
+                            Destroy(vfx, 2f);
+                        }
                     }
 
                     var targetElemental = target.GetComponent<ProjectM.Elements.ElementalHandler>();
@@ -339,16 +357,11 @@ namespace ProjectM.Cards
                     // Nếu thẻ này có Đòn đánh nguyên tố nội tại (Innate Attack Element)
                     if (cardData.innateAttackElement != ProjectM.Elements.ElementType.None && targetElemental != null)
                     {
-                        // Gây sát thương vật lý ở trên rồi, giờ áp thêm stack nguyên tố bằng đúng lượng sát thương
                         StartCoroutine(targetElemental.AddStacks(cardData.innateAttackElement, totalDamage));
                         Debug.Log($"[InnateElement] {cardData.cardName} đánh đòn {cardData.innateAttackElement}, áp {totalDamage} stack lên {target.Data?.cardName}");
-                        
-                        // Vẫn có thể gọi NotifyPhysicalDamageReceived nếu muốn Bleed được kích hoạt bởi cả đòn có kèm nguyên tố.
-                        // (Tùy logic game, ở đây gọi luôn để nhất quán)
-                        targetElemental.NotifyPhysicalDamageReceived(totalDamage);
                     }
                     // Đòn đánh vật lý thuần túy (không có nội tại nguyên tố)
-                    else if (isPhysicalAttack)
+                    else if (isPhysicalAttack && !isStackOnlyAttack)
                     {
                         targetElemental?.NotifyPhysicalDamageReceived(totalDamage);
 
@@ -387,7 +400,7 @@ namespace ProjectM.Cards
                         }
                     }
                 }
-                GetComponent<TrinketHandler>()?.OnCardAttacked(target);
+                GetComponent<TrinketHandler>()?.OnCardAttacked(target, totalDamage);
             }));
 
             // Tăng ult sau khi đánh
@@ -417,7 +430,7 @@ namespace ProjectM.Cards
         public void TakeDamage(int amount, CardBattle attacker = null)
         {
             if (isDead || cardData == null) return;
-            if (attacker != null) GetComponent<TrinketHandler>()?.OnCardTakeDamage(attacker);
+            GetComponent<TrinketHandler>()?.OnCardTakeDamage(attacker);
             if (amount <= 0) return;
 
             if (hasSecondPulse)
@@ -582,10 +595,18 @@ namespace ProjectM.Cards
             UpdateCounterUI();
             Debug.Log($"[Speed Buff] ⚡ {cardData?.cardName} giảm {amount} speed đếm ngược -> còn {currentCounter}");
 
-            // Kích hoạt tấn công ngay lập tức nếu speed về 0 do dùng skill bài ngoài lúc auto combat
-            if (currentCounter == 0 && Managers.BattleManager.Instance != null && !Managers.BattleManager.Instance.IsTurnProcessing)
+            // Kích hoạt tấn công ngay lập tức nếu speed về 0
+            // Điều kiện: thẻ đã được đặt lên sàn (có parent là CardDropZone)
+            bool isPlacedOnField = GetComponentInParent<Cards.CardDropZone>() != null;
+            if (currentCounter == 0 && isPlacedOnField &&
+                Managers.BattleManager.Instance != null)
             {
                 Debug.Log($"[CardBattle] ⚔️ {cardData?.cardName} được giảm speed về 0, LẬP TỨC TẤN CÔNG!");
+                // Reset counter NGAY LẬP TỨC trước khi animation chạy để tránh race condition:
+                // nếu người chơi bấm chuông trong lúc animation đang chạy, ProcessTurn sẽ thấy
+                // counter đã được reset (không còn = 0) và không kích hoạt thêm đòn thứ 2.
+                currentCounter = cardData.speed;
+                UpdateCounterUI();
                 StartCoroutine(AttackSequence());
             }
         }

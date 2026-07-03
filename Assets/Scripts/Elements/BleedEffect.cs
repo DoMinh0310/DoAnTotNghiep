@@ -45,24 +45,22 @@ namespace ProjectM.Elements
             int stacks = handler.GetStacks(ElementType.Bleed);
             if (stacks <= 0) yield break;
 
+            // Sát thương cơ bản = số stack, cộng thêm sát thương tích lũy từ đòn vật lý (nếu có)
             int pendingDamage = handler.ConsumePendingBleedDamage();
-            if (pendingDamage <= 0)
-            {
-                // Không có đòn vật lý nào vào kẻ địch này lượt này, Bleed không nổ
-                yield break;
-            }
+            int totalDamage = stacks + pendingDamage;
 
             var cardBattle = handler.CardBattle;
+
+            // Bleed luôn bị xóa sau 1 lượt
+            handler.SetStacks(ElementType.Bleed, 0);
+
             if (cardBattle == null || cardBattle.IsDead) yield break;
 
             float resist = cardBattle.Data?.GetElementalResistance(ElementType.Bleed) ?? 0f;
 
-            // Bleed nổ: sát thương = tổng pending vật lý, sau đó reset stack về 0
             Debug.Log($"[Bleed] 🩸 {cardBattle.Data?.cardName}: Bleed nổ! " +
-                      $"Sát thương = {pendingDamage} (kháng {resist * 100}%). Stack reset về 0.");
+                      $"Sát thương cơ bản={stacks} + cộng dồn={pendingDamage} = tổng {totalDamage} (kháng {resist * 100}%). Stack reset về 0.");
 
-            handler.SetStacks(ElementType.Bleed, 0);
-            
             if (Managers.BattleManager.Instance != null && Managers.BattleManager.Instance.bleedHitVfxPrefab != null)
             {
                 GameObject vfx = GameObject.Instantiate(Managers.BattleManager.Instance.bleedHitVfxPrefab, cardBattle.transform.position, Quaternion.identity, cardBattle.transform);
@@ -71,7 +69,7 @@ namespace ProjectM.Elements
                 GameObject.Destroy(vfx, 2f);
             }
 
-            handler.ApplyElementalDamage(pendingDamage, resist);
+            handler.ApplyElementalDamage(totalDamage, resist);
 
             yield break;
         }

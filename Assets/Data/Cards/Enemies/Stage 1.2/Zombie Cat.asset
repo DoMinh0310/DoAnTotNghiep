@@ -16,7 +16,7 @@ MonoBehaviour:
   id: 030
   abilities: 
   attack: 3
-  health: 3
+  health: 4
   speed: 3
   ult: 0
   innateAttackElement: 4

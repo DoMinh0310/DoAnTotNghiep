@@ -16,8 +16,8 @@ MonoBehaviour:
   id: 034
   abilities: Apply Bleed
   attack: 3
-  health: 9
-  speed: 3
+  health: 12
+  speed: 5
   ult: 0
   innateAttackElement: 0
   cardType: 4

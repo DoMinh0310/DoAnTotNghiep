@@ -50,6 +50,9 @@ namespace ProjectM.Inventory
         // ── Static drag state ─────────────────────────────────────────────
         public static TrinketSlotUI Dragging { get; private set; }
 
+        // ── Static tooltip state (chỉ có 1 tooltip hiển tại một thời điểm) ────
+        private static TrinketSlotUI _activeTooltipSlot;
+
         // ══════════════════════════════════════════════════════════════════
         // SETUP
         // ══════════════════════════════════════════════════════════════════
@@ -270,10 +273,10 @@ namespace ProjectM.Inventory
             if (eventData.dragging || eventData.pointerDrag != null || Dragging != null) return;
 
             if (currentTrinket == null || tooltipPanel == null) return;
-            
-            // Nếu tooltip đang bị quăng đi đâu đó, kéo nó về để sửa position
-            if (tooltipPanel.transform.parent != this.transform)
-                tooltipPanel.transform.SetParent(this.transform, false);
+
+            // ── Ẩn tooltip cũ (nếu có slot khác đang mở) trước khi mở cái mới ──
+            if (_activeTooltipSlot != null && _activeTooltipSlot != this)
+                _activeTooltipSlot.HideTooltip();
 
             // Tự động đảo ngược hướng hiển thị (trái/phải)
             Vector3 basePos = _originalTooltipLocalPos;
@@ -291,14 +294,12 @@ namespace ProjectM.Inventory
                 tooltipPanel.transform.SetAsLastSibling();
                 
                 // CHỈ phóng to nếu đang ở trên thẻ tướng (championIndex >= 0)
-                // Sidebar (championIndex < 0) giữ nguyên scale chuẩn
                 if (championIndex >= 0)
-                {
                     tooltipPanel.transform.localScale *= 1.5f;
-                }
             }
 
             tooltipPanel.SetActive(true);
+            _activeTooltipSlot = this;
 
             if (tooltipText != null)
                 tooltipText.text = $"<b>{currentTrinket.trinketName}</b>\n{currentTrinket.description}";
@@ -312,14 +313,18 @@ namespace ProjectM.Inventory
                 ShowGlow(true);
             }
 
-            if (tooltipPanel != null) 
-            {
-                tooltipPanel.SetActive(false);
-                // Trả về chỗ cũ để dọn dẹp
-                tooltipPanel.transform.SetParent(this.transform, true);
-                // Reset lại đúng bằng 1 để không bị cộng dồn ở lần bật sau
-                tooltipPanel.transform.localScale = Vector3.one;
-            }
+            HideTooltip();
+        }
+
+        /// <summary>Dọn tooltip và trả về vị trí gốc an toàn. Có thể gọi từ bên ngoài.</summary>
+        public void HideTooltip()
+        {
+            if (tooltipPanel == null) return;
+            tooltipPanel.SetActive(false);
+            tooltipPanel.transform.SetParent(this.transform, true);
+            tooltipPanel.transform.localScale = Vector3.one;
+            if (_activeTooltipSlot == this)
+                _activeTooltipSlot = null;
         }
 
         // ══════════════════════════════════════════════════════════════════

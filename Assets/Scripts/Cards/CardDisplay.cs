@@ -463,9 +463,13 @@ namespace ProjectM.Cards
         {
             if (handler == null) return;
 
-            // Chỉ thẻ Enemy mới hiển thị icon nguyên tố
-            bool isEnemy = cardData != null && cardData.cardType == CardType.Enemy;
-            if (!isEnemy)
+            // Các thẻ trên sàn (Champion, Building, Enemy) đều có thể hiển thị nguyên tố
+            bool canShowElements = cardData != null && 
+                                  (cardData.cardType == CardType.Enemy || 
+                                   cardData.cardType == CardType.Champion || 
+                                   cardData.cardType == CardType.Building);
+                                   
+            if (!canShowElements)
             {
                 HideAllElementalIcons();
                 return;
@@ -476,10 +480,10 @@ namespace ProjectM.Cards
             SetElementalIconVisible(frostIconObj, frostStacks > 0);
             if (frostText != null) frostText.text = frostStacks.ToString();
 
-            // Bleed
-            int bleedStacks = handler.GetStacks(ProjectM.Elements.ElementType.Bleed);
-            SetElementalIconVisible(bleedIconObj, bleedStacks > 0);
-            if (bleedText != null) bleedText.text = bleedStacks.ToString();
+            // Bleed — hiển thị tổng sát thương sẽ nổ = stack gốc + pending vật lý tích lũy
+            int bleedTotal = handler.GetTotalBleedDamage();
+            SetElementalIconVisible(bleedIconObj, bleedTotal > 0);
+            if (bleedText != null) bleedText.text = bleedTotal.ToString();
 
             // Chain
             int chainStacks = handler.GetStacks(ProjectM.Elements.ElementType.Chain);

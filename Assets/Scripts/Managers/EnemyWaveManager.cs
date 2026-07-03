@@ -93,6 +93,7 @@ namespace ProjectM.Managers
 
         // Được set trong OnTurnStart() — ProcessTurn đọc để quyết định có skip combat không
         public bool WaveJustSpawned { get; private set; } = false;
+        public bool HasPendingWaveSpawn => _waveSpawnCountdown > 0;
 
         /// <summary>
         /// Gọi ĐẦU MỖI LƯỢT (trong ProcessTurn) để kiểm tra pending wave spawn.

@@ -22,7 +22,7 @@ namespace ProjectM.Skills
             foreach (var target in targets)
             {
                 if (target == null || target.IsDead) continue;
-                target.TakeDamage(ownerDamage);
+                target.TakeDamage(ownerDamage, caster);
                 yield return new WaitForSeconds(0.1f);
             }
         }

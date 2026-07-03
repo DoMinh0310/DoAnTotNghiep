@@ -14,13 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
   cardName: Catbag
   id: 032
-  abilities: 
+  abilities: Aimless
   attack: 1
   health: 8
   speed: 2
   ult: 0
+  innateAttackElement: 4
   cardType: 4
   rarity: 0
+  attacksRandomTarget: 1
   cost: 1
   description: 
   signatureCards: []

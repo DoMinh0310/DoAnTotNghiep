@@ -15,16 +15,16 @@ MonoBehaviour:
   champions:
   - championData: {fileID: 11400000, guid: d17532f265edb0e4b860f34b32f6cd2e, type: 2}
     equippedRelic: {fileID: 0}
-    equippedTrinket: {fileID: 11400000, guid: 2d3169cdc9b55ab4ea4d858c8900cf6d, type: 2}
+    equippedTrinket: {fileID: 11400000, guid: 5c1a51598d7a32c4ea47bf25f1b4a5d3, type: 2}
   - championData: {fileID: 11400000, guid: 173f0048d3fc8904496091ce9eeaafde, type: 2}
     equippedRelic: {fileID: 0}
-    equippedTrinket: {fileID: 11400000, guid: c603688b9c054af429d5862ae481bdcd, type: 2}
+    equippedTrinket: {fileID: 11400000, guid: 49fa0cc4320485041a7cc5efe99fd544, type: 2}
   - championData: {fileID: 11400000, guid: 238e5c1b657f4de46a318b6194b8c4cb, type: 2}
     equippedRelic: {fileID: 0}
-    equippedTrinket: {fileID: 11400000, guid: 2f4039d9f71a36543879c69c90654b77, type: 2}
+    equippedTrinket: {fileID: 11400000, guid: 448c53940d8b78e4a91de236b30edfe7, type: 2}
   - championData: {fileID: 11400000, guid: 7c0380cd6251ec64cbe2613321e15f60, type: 2}
     equippedRelic: {fileID: 0}
-    equippedTrinket: {fileID: 11400000, guid: b248fd7ae3a3274488777859790aaf29, type: 2}
+    equippedTrinket: {fileID: 11400000, guid: c6df6dd691e6d2645870a8c650ea38b2, type: 2}
   unchosenChampions: []
   supportDeck: []
   buildingDeck: []

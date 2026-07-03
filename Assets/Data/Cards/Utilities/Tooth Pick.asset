@@ -20,7 +20,8 @@ MonoBehaviour:
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 0
-  effectType: 0
+  effectType: 1
   effectValue: 5
-  elementType: 4
+  elementType: 0
   customOverride: {fileID: 0}
+  isExhaust: 0

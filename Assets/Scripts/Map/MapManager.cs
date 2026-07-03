@@ -504,11 +504,11 @@ namespace ProjectM.Map
 
             int myDepth = _slotDepths[i];
 
-            // Kiểm tra xem có slot nào cùng độ sâu đã được ghé thăm không
+            // Kiểm tra xem có slot nào cùng độ sâu đã được ghé thăm hoặc đang đứng ở đó không
             for (int j = 0; j < slots.Count; j++)
             {
                 if (j == i) continue;
-                if (_slotDepths[j] == myDepth && _runData.HasVisited(j))
+                if (_slotDepths[j] == myDepth && (_runData.HasVisited(j) || _runData.currentSlotIndex == j))
                     return true;
             }
             return false;
@@ -526,17 +526,19 @@ namespace ProjectM.Map
 
             if (cur == -1)
             {
-                // Chưa đi bước nào → chỉ Row1 (index 0,1,2) accessible
-                return i <= 2;
+                // Chưa đi bước nào → có thể chọn bất kỳ node nào nối từ Start (node 0)
+                if (slots.Count > 0 && slots[0].nextSlots != null)
+                    return slots[0].nextSlots.Contains(i);
+                return false;
             }
 
-            // --- KIỂM TRA COMBAT CHƯA HOÀN THÀNH ---
-            if (cur >= 0 && cur < slots.Count && (slots[cur].isCombat || slots[cur].isBoss))
+            // --- KIỂM TRA NODE CHƯA HOÀN THÀNH ---
+            if (cur >= 0 && cur < slots.Count)
             {
                 if (!_runData.HasVisited(cur))
                 {
-                    // Đang đứng ở combat nhưng chưa hoàn thành (do out game giữa chừng)
-                    // Bắt buộc phải click lại chính ô combat này để đánh tiếp, không được đi tiếp
+                    // Đang đứng ở node nhưng chưa hoàn thành (do out game giữa chừng)
+                    // Bắt buộc phải click lại chính ô này để làm tiếp, không được đi tiếp
                     return i == cur;
                 }
             }
@@ -553,7 +555,10 @@ namespace ProjectM.Map
         // ══════════════════════════════════════════════════════════════
         public void OnNodeClicked(MapNode node)
         {
+            if (GameManager.Instance != null && GameManager.Instance.RunData == null) return;
+
             int idx = node.SlotIndex;
+            var nodeType = node.NodeType;
 
             // Nếu đang trong Event mà người chơi tạm ẩn Panel để xem Map:
             // CHỈ CHO PHÉP BẤM VÀO ĐÚNG NODE HIỆN TẠI ĐỂ MỞ LẠI PANEL!
@@ -570,30 +575,33 @@ namespace ProjectM.Map
                 return; // Chặn hoàn toàn các xử lý di chuyển khác
             }
 
-            // Nếu bấm vào đúng node hiện tại đang đứng, và node đó là Shop -> mở lại Shop
-            if (idx == _runData.currentSlotIndex && node.NodeType == NodeType.Shop)
+            // Nếu bấm vào đúng node hiện tại đang đứng, và node đó là Shop ĐÃ HOÀN THÀNH -> mở lại Shop
+            if (idx == _runData.currentSlotIndex && nodeType == NodeType.Shop && _runData.HasVisited(idx))
             {
                 shopEventPanel?.Reopen();
                 return;
             }
 
-            // Bấm lại đúng ô combat dở dang
-            if (idx == _runData.currentSlotIndex && (slots[idx].isCombat || slots[idx].isBoss) && !_runData.HasVisited(idx))
+            // Bấm lại đúng ô dở dang (chưa hoàn thành do out game)
+            if (idx == _runData.currentSlotIndex && !_runData.HasVisited(idx))
             {
-                GameManager.Instance?.OnCombatNodeEntered();
+                if (slots[idx].isCombat || slots[idx].isBoss)
+                {
+                    GameManager.Instance?.OnCombatNodeEntered();
+                }
+                else
+                {
+                    // Xử lý lại như click bình thường nhưng KHÔNG tăng counter
+                    StartCoroutine(MoveAndTrigger(slots[idx].position, false, false, nodeType, node));
+                }
                 return;
             }
 
             if (!IsReachable(idx)) return;
 
             var def      = slots[idx];
-            var nodeType = node.NodeType;
 
-            // Mark visited ngay khi click (CHỈ NẾU KHÔNG PHẢI LÀ COMBAT/BOSS)
-            if (!def.isCombat && !def.isBoss)
-            {
-                _runData.visitedSlots.Add(idx);
-            }
+            // Đánh dấu slot hiện tại là idx (chưa được visited cho đến khi CompleteCurrentEvent)
             _runData.currentSlotIndex = idx;
 
             // Cập nhật counter và StageData
@@ -977,10 +985,23 @@ namespace ProjectM.Map
 
         public void CompleteCurrentEvent()
         {
+            // Đánh dấu hoàn thành event hiện tại
+            if (_runData.currentSlotIndex >= 0 && _runData.currentSlotIndex < slots.Count)
+            {
+                var def = slots[_runData.currentSlotIndex];
+                if (!def.isCombat && !def.isBoss && !_runData.HasVisited(_runData.currentSlotIndex))
+                {
+                    _runData.visitedSlots.Add(_runData.currentSlotIndex);
+                }
+            }
+
             // Mở khóa Map
             SetEventInProgress(false, null);
             GameManager.Instance?.OnEventCompleted();
             Debug.Log("[MapManager] Event hoàn tất. Mời đi tiếp!");
+            
+            // Cập nhật lại giao diện các node trên Map
+            RefreshAllNodeStates();
         }
         // ══════════════════════════════════════════════════════════════
         // GIZMOS (VẼ TRƯỚC VỊ TRÍ TRONG SCENE VIEW ĐỂ DỄ THIẾT KẾ)

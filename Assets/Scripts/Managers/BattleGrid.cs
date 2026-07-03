@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using ProjectM.Cards;
+using DG.Tweening;
 
 namespace ProjectM.Managers
 {
@@ -258,7 +259,7 @@ namespace ProjectM.Managers
 
         private IEnumerator ShiftAfterFrame(CardDropZone[] row)
         {
-            yield return null; // Đợi Destroy() hoàn hoàn tất
+            yield return null; // Đợi Destroy() hoàn tất
             ShiftRow(row);
         }
 
@@ -301,17 +302,27 @@ namespace ProjectM.Managers
             }
             else
             {
+                Vector3 worldPos = card.transform.position;
                 card.transform.SetParent(newSlot.transform);
 
                 RectTransform cardRect = card.GetComponent<RectTransform>();
-                if (cardRect != null)
+                RectTransform slotRect = newSlot.GetComponent<RectTransform>();
+                if (cardRect != null && slotRect != null)
                 {
-                    card.transform.localRotation = Quaternion.identity;
-                    cardRect.anchoredPosition = Vector2.zero;
+                    card.transform.DOKill();
+                    card.transform.position = worldPos;
+
+                    float scaleFactor = slotRect.rect.width > 0 && cardRect.rect.width > 0 
+                        ? slotRect.rect.width / cardRect.rect.width : 1f;
+                    Vector3 newScale = new Vector3(scaleFactor, scaleFactor, 1f);
+
+                    cardRect.DOAnchorPos(Vector2.zero, 0.2f).SetEase(DG.Tweening.Ease.OutQuad);
+                    card.transform.DOScale(newScale, 0.2f).SetEase(DG.Tweening.Ease.OutQuad);
+                    card.transform.DOLocalRotateQuaternion(Quaternion.identity, 0.2f).SetEase(DG.Tweening.Ease.OutQuad);
                 }
             }
 
-            Debug.Log($"[BattleGrid] Dồn {card.Data.cardName} → {newSlot.name}");
+            Debug.Log($"[BattleGrid] Dồn {card.Data?.cardName ?? card.name} → {newSlot.name}");
         }
 
         // ══════════════════════════════════════════
@@ -381,12 +392,12 @@ namespace ProjectM.Managers
         // ══════════════════════════════════════════
 
         /// <summary>
-        /// Lấy tất cả thẻ bài trên bàn đấu theo thứ tự đánh do thiết kế quy định.
-        /// Thứ tự: 3, 4, 2, 5, 1, 6, 9, 10, 8, 11, 7, 12
+        /// Lấy tất cả thẻ bài trên bàn đấu theo thứ tự đánh do thiết kế quy định (Địch ưu tiên đánh trước).
+        /// Thứ tự: 4, 3, 5, 2, 6, 1, 10, 9, 11, 8, 12, 7
         /// </summary>
         public List<CardBattle> GetAllCardsInAttackOrder()
         {
-            var attackOrder = new int[] { 3, 4, 2, 5, 1, 6, 9, 10, 8, 11, 7, 12 };
+            var attackOrder = new int[] { 4, 3, 5, 2, 6, 1, 10, 9, 11, 8, 12, 7 };
             var list = new List<CardBattle>();
             
             var allSlots = new List<CardDropZone>();
@@ -504,7 +515,12 @@ namespace ProjectM.Managers
             if (slot == null) return null;
             if (slot.transform.childCount == 0) return null;
 
-            return slot.GetComponentInChildren<CardBattle>();
+            foreach (var card in slot.GetComponentsInChildren<CardBattle>())
+            {
+                if (card != null && !card.IsDead)
+                    return card;
+            }
+            return null;
         }
 
         private int GetIndexInRow(CardDropZone slot, CardDropZone[] row)

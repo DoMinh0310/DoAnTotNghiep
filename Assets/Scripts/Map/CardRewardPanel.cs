@@ -202,13 +202,21 @@ namespace ProjectM.Map
                 string itemID = chosen.name;
                 runData.playerDeckIDs.Add(itemID);
 
-                // 2. Sync vào championSetup.supportDeck trong RAM
-                // (Inventory và SkillHandManager đọc từ đây, cho phép lấy trùng thẻ có sẵn)
-                if (runData.championSetup != null && chosen is ProjectM.Skills.SkillData sd)
+                // 2. Sync vào championSetup trong RAM
+                if (runData.championSetup != null)
                 {
-                    runData.championSetup.supportDeck.Add(sd);
-                    Debug.Log($"[CardReward] Synced '{sd.skillName}' vào championSetup.supportDeck " +
-                              $"(total: {runData.championSetup.supportDeck.Count}).");
+                    if (chosen is ProjectM.Skills.SkillData sd)
+                    {
+                        runData.championSetup.supportDeck.Add(sd);
+                        Debug.Log($"[CardReward] Synced '{sd.skillName}' vào championSetup.supportDeck " +
+                                  $"(total: {runData.championSetup.supportDeck.Count}).");
+                    }
+                    else if (chosen is ProjectM.Cards.CardData cd)
+                    {
+                        runData.championSetup.buildingDeck.Add(cd);
+                        Debug.Log($"[CardReward] Synced Building '{cd.cardName}' vào championSetup.buildingDeck " +
+                                  $"(total: {runData.championSetup.buildingDeck.Count}).");
+                    }
                 }
 
                 GameManager.Instance.SaveGame();

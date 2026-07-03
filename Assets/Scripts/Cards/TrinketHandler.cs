@@ -49,8 +49,9 @@ namespace ProjectM.Cards
 
         /// <summary>Được gọi bởi CardBattle mỗi khi thẻ này thực hiện xong 1 đòn tấn công.
         /// lastTarget: mục tiêu vừa bị tấn công (dùng để áp hiệu ứng lên đúng kẻ thù).
+        /// actualDamage: sát thương thực tế đã gây ra (dùng để scale stack Bleed/Chain).
         /// </summary>
-        public void OnCardAttacked(CardBattle lastTarget = null)
+        public void OnCardAttacked(CardBattle lastTarget = null, int actualDamage = 0)
         {
             if (_trinket == null || _card == null || _card.IsDead) return;
 
@@ -104,6 +105,27 @@ namespace ProjectM.Cards
                     }
                 }
             }
+            // ── ElementalPassive: Áp stack nguyên tố lên mục tiêu khi tấn công ──
+            if (_trinket.effectType == TrinketEffectType.ElementalPassive &&
+                _trinket.elementTrigger == TrinketTrigger.OnAttack &&
+                _trinket.elementType != ElementType.None &&
+                lastTarget != null && !lastTarget.IsDead)
+            {
+                var handler = lastTarget.GetComponent<ElementalHandler>();
+                if (handler != null)
+                {
+                    // Bleed và Chain scale theo sát thương thực tế
+                    // Frost và Decay dùng giá trị cố định từ config trinket
+                    bool scaleWithDamage = _trinket.elementType == ElementType.Bleed ||
+                                          _trinket.elementType == ElementType.Chain;
+                    int stacksToApply = scaleWithDamage
+                        ? Mathf.Max(1, actualDamage)
+                        : _trinket.elementStackPerTrigger;
+
+                    StartCoroutine(handler.AddStacks(_trinket.elementType, stacksToApply));
+                    Debug.Log($"[Trinket] ✨ {_trinket.trinketName} kích hoạt! Áp {stacksToApply} stack {_trinket.elementType} lên '{lastTarget.Data?.cardName}'");
+                }
+            }
         }
 
         /// <summary>Được gọi bởi CardBattle mỗi khi thẻ này bị tấn công bởi kẻ địch.</summary>
@@ -126,6 +148,19 @@ namespace ProjectM.Cards
                 Debug.Log($"[Trinket] 🦷 Pocket Spikes kích hoạt! Thêm 1 thẻ Tooth_pick lên tay.");
                 if (SkillHandManager.Instance != null)
                     StartCoroutine(SkillHandManager.Instance.AddSpecificSkillToHand("Tooth Pick"));
+            }
+            // ── ElementalPassive: Áp stack nguyên tố lên kẻ tấn công mình ──
+            if (_trinket.effectType == TrinketEffectType.ElementalPassive &&
+                _trinket.elementTrigger == TrinketTrigger.OnHit &&
+                _trinket.elementType != ElementType.None &&
+                attacker != null && !attacker.IsDead)
+            {
+                var handler = attacker.GetComponent<ElementalHandler>();
+                if (handler != null)
+                {
+                    StartCoroutine(handler.AddStacks(_trinket.elementType, _trinket.elementStackPerTrigger));
+                    Debug.Log($"[Trinket] ✨ {_trinket.trinketName} kích hoạt! Áp {_trinket.elementStackPerTrigger} stack {_trinket.elementType} lên kẻ tấn công '{attacker.Data?.cardName}'");
+                }
             }
         }
     }

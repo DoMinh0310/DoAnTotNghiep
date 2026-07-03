@@ -99,14 +99,83 @@ namespace ProjectM.Skills
             // ── Ưu tiên lấy ChampionSetup từ GameManager.RunData (đã chọn từ màn hình chọn tướng)
             // Đặt trong Awake() để đảm bảo BattleManager (gọi trong Start) đọc đúng data.
             var gm = GameManager.Instance;
-            if (gm != null && gm.RunData != null && gm.RunData.championSetup != null)
+            if (gm != null && gm.RunData != null)
             {
-                championSetup = gm.RunData.championSetup;
-                Debug.Log($"[SkillHandManager] Đọc ChampionSetup từ GameManager.RunData: '{championSetup.name}' ({championSetup.champions.Count} tướng).");
+                if (gm.RunData.championSetup != null)
+                {
+                    championSetup = gm.RunData.championSetup;
+                    Debug.Log($"[SkillHandManager] Đọc ChampionSetup từ GameManager.RunData: '{championSetup.name}' ({championSetup.champions.Count} tướng).");
+                }
+                else if (championSetup != null)
+                {
+                    // LÀM LẠI CHAMPION SETUP TỪ FILE SAVE
+                    Debug.Log("[SkillHandManager] Đang phục hồi ChampionSetup từ Save File dựa trên Inspector fallback...");
+                    
+                    var rebuiltSetup = ScriptableObject.CreateInstance<ChampionSetup>();
+                    rebuiltSetup.name = "Rebuilt_From_Save";
+                    
+                    // Khôi phục danh sách Tướng đã chọn
+                    rebuiltSetup.champions = new List<ChampionEntry>();
+                    rebuiltSetup.unchosenChampions = new List<ChampionEntry>();
+                    
+                    foreach (var entry in championSetup.champions)
+                    {
+                        if (entry.championData != null && gm.RunData.playerDeckIDs.Contains(entry.championData.name))
+                        {
+                            rebuiltSetup.champions.Add(new ChampionEntry 
+                            { 
+                                championData = entry.championData,
+                                equippedRelic = entry.equippedRelic,
+                                equippedTrinket = entry.equippedTrinket
+                            });
+                        }
+                        else
+                        {
+                            rebuiltSetup.unchosenChampions.Add(entry);
+                        }
+                    }
+
+                    // Khôi phục Support Deck (tạm thời chỉ khôi phục được các thẻ có sẵn trong Starter Deck)
+                    rebuiltSetup.supportDeck = new List<SkillData>();
+                    if (championSetup.supportDeck != null)
+                    {
+                        foreach (var card in championSetup.supportDeck)
+                        {
+                            if (card != null && gm.RunData.playerDeckIDs.Contains(card.name))
+                                rebuiltSetup.supportDeck.Add(card);
+                        }
+                    }
+
+                    rebuiltSetup.buildingDeck = new List<ProjectM.Cards.CardData>(championSetup.buildingDeck);
+
+                    // Khôi phục Relics & Trinkets (từ Starter Deck)
+                    rebuiltSetup.ownedRelics = new List<RelicData>();
+                    if (championSetup.ownedRelics != null)
+                    {
+                        foreach (var r in championSetup.ownedRelics)
+                        {
+                            if (r != null && gm.RunData.ownedRelicIDs.Contains(r.name))
+                                rebuiltSetup.ownedRelics.Add(r);
+                        }
+                    }
+                    
+                    rebuiltSetup.ownedTrinkets = new List<TrinketData>();
+                    if (championSetup.ownedTrinkets != null)
+                    {
+                        foreach (var t in championSetup.ownedTrinkets)
+                        {
+                            if (t != null && gm.RunData.ownedTrinketIDs.Contains(t.name))
+                                rebuiltSetup.ownedTrinkets.Add(t);
+                        }
+                    }
+
+                    gm.RunData.championSetup = rebuiltSetup;
+                    championSetup = rebuiltSetup;
+                }
             }
             else
             {
-                Debug.Log("[SkillHandManager] Không có GameManager.RunData, dùng ChampionSetup từ Inspector (test mode).");
+                Debug.Log("[SkillHandManager] Không có GameManager.RunData, dùng ChampionSetup mặc định từ Inspector (test mode).");
             }
         }
 
@@ -331,21 +400,54 @@ namespace ProjectM.Skills
 
             foreach (var skill in allSources)
             {
-                if (skill != null && skill.name == skillAssetName)
+                if (skill != null && (string.Equals(skill.name, skillAssetName, System.StringComparison.OrdinalIgnoreCase) ||
+                                      string.Equals(skill.skillName, skillAssetName, System.StringComparison.OrdinalIgnoreCase)))
                 {
                     found = skill;
                     break;
                 }
             }
 
-            // Nếu không tìm thấy trong deck, thử tìm trong Resources
+            // Nếu không tìm thấy trong deck, tra cứu trong toàn bộ database của InventoryManager
+            if (found == null && ProjectM.Inventory.InventoryManager.Instance != null && ProjectM.Inventory.InventoryManager.Instance.allSkillAssets != null)
+            {
+                found = ProjectM.Inventory.InventoryManager.Instance.allSkillAssets.Find(s => s != null && 
+                    (string.Equals(s.name, skillAssetName, System.StringComparison.OrdinalIgnoreCase) || 
+                     string.Equals(s.skillName, skillAssetName, System.StringComparison.OrdinalIgnoreCase)));
+            }
+
+            // Nếu vẫn không tìm thấy, thử tìm trong Resources ở các đường dẫn phổ biến
             if (found == null)
+            {
                 found = Resources.Load<SkillData>($"Skills/{skillAssetName}");
+                if (found == null)
+                    found = Resources.Load<SkillData>($"Cards/Utilities/{skillAssetName}");
+            }
+
+#if UNITY_EDITOR
+            // Tự động tìm trong toàn bộ project khi chạy trong Editor để hỗ trợ test ngay tức thì
+            if (found == null)
+            {
+                string[] guids = UnityEditor.AssetDatabase.FindAssets($"t:SkillData {skillAssetName}");
+                foreach (string guid in guids)
+                {
+                    string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                    var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<SkillData>(path);
+                    if (asset != null && (string.Equals(asset.name, skillAssetName, System.StringComparison.OrdinalIgnoreCase) ||
+                                          string.Equals(asset.skillName, skillAssetName, System.StringComparison.OrdinalIgnoreCase)))
+                    {
+                        found = asset;
+                        Debug.Log($"[SkillHandManager] ⚙️ Editor Auto-Loaded '{skillAssetName}' từ path '{path}'. (LƯU Ý: Kéo asset này vào 'All Skill Assets' của InventoryManager để chạy được trên bản Build!)");
+                        break;
+                    }
+                }
+            }
+#endif
 
             if (found == null)
             {
                 Debug.LogWarning($"[SkillHandManager] Không tìm thấy SkillData tên '{skillAssetName}'! " +
-                                 $"Hãy đặt file trong Resources/Skills/ hoặc kiểm tra tên asset.");
+                                 $"Hãy kiểm tra đã kéo thẻ vào danh sách All Skill Assets trong InventoryManager chưa.");
                 yield break;
             }
 

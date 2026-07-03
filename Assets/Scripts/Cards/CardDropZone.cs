@@ -106,7 +106,13 @@ namespace ProjectM.Cards
         /// </summary>
         public CardBattle SpawnEnemyCard(GameObject prefab, CardData data)
         {
-            if (transform.childCount >= capacity)
+            int aliveCount = 0;
+            foreach (var card in GetComponentsInChildren<CardBattle>())
+            {
+                if (card != null && !card.IsDead) aliveCount++;
+            }
+
+            if (aliveCount >= capacity)
             {
                 Debug.LogWarning($"[CardDropZone] Slot {name} đã đầy, không spawn được!");
                 return null;
