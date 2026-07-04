@@ -21,7 +21,7 @@ MonoBehaviour:
   artScale: 1
   targetType: 0
   effectType: 1
-  effectValue: 5
+  effectValue: 2
   elementType: 0
   customOverride: {fileID: 0}
   isExhaust: 0

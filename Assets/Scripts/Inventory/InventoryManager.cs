@@ -105,9 +105,23 @@ namespace ProjectM.Inventory
         // ANIMATION MỞ / ĐÓNG
         // ══════════════════════════════════════════════════════════════════
 
+        public void SetBagIconInteractable(bool interactable)
+        {
+            if (bagIcon != null)
+            {
+                var bagBtn = bagIcon.GetComponent<Button>();
+                if (bagBtn != null) bagBtn.interactable = interactable;
+            }
+        }
+
         public void OpenInventory()
         {
             if (ProjectM.Managers.BattleManager.IsInputBlocked) return;
+            if (ProjectM.Managers.BattleManager.Instance != null && ProjectM.Managers.BattleManager.Instance.IsPreparationPhase)
+            {
+                Debug.Log("[InventoryManager] Đang trong giai đoạn chuẩn bị đặt tướng, không thể mở Inventory.");
+                return;
+            }
             if (_isOpen || inventoryPanel == null || circleReveal == null) return;
             
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.inventoryToggleClip);

@@ -142,6 +142,14 @@ namespace ProjectM.Skills
                 return;
             }
 
+            // Chặn click nếu chuột đang nằm trong khu vực tay bài (Hand Region)
+            if (IsPointerOverHandRegion(mouseScreen))
+            {
+                _suppressNextClick = true;
+                ExitTargetingMode();
+                return;
+            }
+
             if (targetType == SkillTargetType.AllEnemies)
             {
                 // AllEnemies: chỉ kích hoạt khi cursor đang hover trên ít nhất 1 thẻ địch
@@ -363,6 +371,12 @@ namespace ProjectM.Skills
                 _isDragTargeting = false;
 
                 Vector2 mouseScreen = Mouse.current.position.ReadValue();
+                if (IsPointerOverHandRegion(mouseScreen))
+                {
+                    ExitTargetingMode();
+                    return;
+                }
+
                 CardBattle targetCard = GetCardUnderScreenPos(mouseScreen);
 
                 if (targetCard != null && IsValidTarget(targetCard, _executor.Data.targetType))
@@ -618,13 +632,36 @@ namespace ProjectM.Skills
             else _hoveredTarget.HideTargetHighlight();
         }
 
-        private static bool IsValidTarget(CardBattle card, SkillTargetType targetType) => targetType switch
+        private static bool IsValidTarget(CardBattle card, SkillTargetType targetType)
         {
-            SkillTargetType.SingleAlly  =>  card.IsPlayerCard,
-            SkillTargetType.SingleEnemy => !card.IsPlayerCard,
-            SkillTargetType.EnemyRow    => !card.IsPlayerCard,
-            _                           => false,
-        };
+            if (card == null || card.IsDead) return false;
+            var dropZone = card.transform.parent != null ? card.transform.parent.GetComponent<CardDropZone>() : null;
+            if (dropZone == null) return false;
+
+            return targetType switch
+            {
+                SkillTargetType.SingleAlly  =>  card.IsPlayerCard,
+                SkillTargetType.SingleEnemy => !card.IsPlayerCard,
+                SkillTargetType.EnemyRow    => !card.IsPlayerCard,
+                _                           => false,
+            };
+        }
+
+        private bool IsPointerOverHandRegion(Vector2 screenPos)
+        {
+            var pointerData = new PointerEventData(EventSystem.current) { position = screenPos };
+            var results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointerData, results);
+            foreach (var r in results)
+            {
+                if (r.gameObject.GetComponentInParent<SkillHandManager>() != null ||
+                    r.gameObject.GetComponentInParent<PlayerHand>() != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         // ════════════════════════════════════════════════════════════════
         // POSITION HELPERS

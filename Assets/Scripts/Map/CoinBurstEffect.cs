@@ -59,7 +59,24 @@ namespace ProjectM.Map
             _overlay = go.AddComponent<Canvas>();
             _overlay.renderMode  = RenderMode.ScreenSpaceOverlay;
             _overlay.sortingOrder = 999;
-            go.AddComponent<CanvasScaler>();
+            
+            var scaler = go.AddComponent<CanvasScaler>();
+            var parentCanvas = GetComponentInParent<Canvas>();
+            var parentScaler = parentCanvas != null ? parentCanvas.GetComponent<CanvasScaler>() : null;
+            if (parentScaler != null)
+            {
+                scaler.uiScaleMode = parentScaler.uiScaleMode;
+                scaler.referenceResolution = parentScaler.referenceResolution;
+                scaler.screenMatchMode = parentScaler.screenMatchMode;
+                scaler.matchWidthOrHeight = parentScaler.matchWidthOrHeight;
+            }
+            else
+            {
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
+            }
+
             _overlayRect = go.GetComponent<RectTransform>();
         }
 

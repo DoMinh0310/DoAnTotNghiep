@@ -2,28 +2,23 @@ using UnityEngine;
 using System.Collections;
 using ProjectM.Cards;
 using ProjectM.Elements;
-using ProjectM.Managers;
 
 namespace ProjectM.Skills
 {
     /// <summary>
     /// Magic Eraser: Remove all elemental debuffs (Bleed, Frost, Decay, Chain)
-    /// from ALL player cards currently on the battlefield.
+    /// from the targeted ally card.
     /// </summary>
     [CreateAssetMenu(menuName = "Project M/Skills/Overrides/Magic Eraser")]
     public class SkillOverride_MagicEraser : SkillOverrideBase
     {
         public override IEnumerator Execute(CardBattle caster, CardBattle[] targets)
         {
-            var grid = BattleGrid.Instance;
-            if (grid == null) yield break;
-
-            var playerCards = grid.GetAllPlayerCards();
-            if (playerCards == null || playerCards.Count == 0) yield break;
+            if (targets == null || targets.Length == 0) yield break;
 
             int totalCleansed = 0;
 
-            foreach (var card in playerCards)
+            foreach (var card in targets)
             {
                 if (card == null || card.IsDead) continue;
 
@@ -43,12 +38,15 @@ namespace ProjectM.Skills
                         Debug.Log($"[Magic Eraser] ✨ Xóa {stacks} stack {type} khỏi '{card.Data?.cardName}'");
                     }
                 }
+
+                // Clear luôn sát thương Bleed vật lý ngầm tích lũy (nếu có)
+                elemental.ConsumePendingBleedDamage();
             }
 
             if (totalCleansed > 0)
-                Debug.Log($"[Magic Eraser] ✅ Đã xóa tổng cộng {totalCleansed} stack debuff khỏi đồng minh!");
+                Debug.Log($"[Magic Eraser] ✅ Đã xóa tổng cộng {totalCleansed} stack debuff khỏi đồng minh được chỉ định!");
             else
-                Debug.Log("[Magic Eraser] Không có debuff nào cần xóa.");
+                Debug.Log("[Magic Eraser] Mục tiêu không có debuff nào cần xóa.");
 
             yield break;
         }

@@ -94,8 +94,9 @@ namespace ProjectM.Managers
             if (waveManager != null)
                 yield return StartCoroutine(waveManager.StartStage());
 
-            // 3. Vẫn khóa nút chuông — chờ người chơi đặt tướng lên sàn
+            // 3. Vẫn khóa nút chuông và túi đồ — chờ người chơi đặt tướng lên sàn
             SetEndTurnButtonInteractable(false);
+            InventoryManager.Instance?.SetBagIconInteractable(false);
             BattleDebugger.Log("⚔️ Quái đã xuất hiện! Giai đoạn CHUẨN BỊ bắt đầu — Đặt tất cả tướng lên sàn!");
         }
 
@@ -259,6 +260,7 @@ namespace ProjectM.Managers
             if (isPreparationPhase)
             {
                 isPreparationPhase = false;
+                InventoryManager.Instance?.SetBagIconInteractable(true);
                 BattleDebugger.Log("✅ Giai đoạn chuẩn bị kết thúc. Bắt đầu chiến đấu!");
                 StartCoroutine(ProcessTurn(drawCard));
                 return;
@@ -308,6 +310,7 @@ namespace ProjectM.Managers
             {
                 BattleDebugger.Log("✅ Tất cả tướng đã được đặt! Bắt đầu deal skill...");
                 isPreparationPhase = false;
+                InventoryManager.Instance?.SetBagIconInteractable(true);
                 IsInputLocked = true;
                 StartCoroutine(DealSkillsAndBeginCombat());
             }
