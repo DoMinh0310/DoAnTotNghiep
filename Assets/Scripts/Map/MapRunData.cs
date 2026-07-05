@@ -57,6 +57,7 @@ namespace ProjectM.Map
         /// Danh sách ID các Trinket/Relic đang được trang bị.
         /// </summary>
         public List<string> playerTrinketIDs = new List<string>();
+        public List<string> playerRelicIDs = new List<string>();
 
         /// <summary>
         /// Lưu bonus chỉ số tích lũy cho từng tướng từ Smith Event.
@@ -134,6 +135,7 @@ namespace ProjectM.Map
             gold              = 10; // Vàng ban đầu
             playerDeckIDs     = new List<string>();
             playerTrinketIDs  = new List<string>();
+            playerRelicIDs    = new List<string>();
             ownedRelicIDs     = new List<string>();
             ownedTrinketIDs   = new List<string>();
             currentCombatStageID = "";

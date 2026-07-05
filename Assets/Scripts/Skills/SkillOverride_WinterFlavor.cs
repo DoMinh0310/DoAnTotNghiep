@@ -12,10 +12,11 @@ namespace ProjectM.Skills
     {
         public override IEnumerator Execute(CardBattle caster, CardBattle[] targets)
         {
-            if (caster == null) yield break;
+            if (targets == null || targets.Length == 0 || targets[0] == null) yield break;
 
-            Debug.Log($"[Winter Flavor] ❄️ {caster.Data?.cardName} uống hương vị mùa đông! Đòn đánh vật lý tiếp theo sẽ kèm Frost theo sát thương.");
-            caster.applyFrostOnNextAttack = true;
+            CardBattle targetAlly = targets[0];
+            Debug.Log($"[Winter Flavor] ❄️ {targetAlly.Data?.cardName} uống hương vị mùa đông! Đòn đánh vật lý tiếp theo sẽ kèm Frost theo sát thương.");
+            targetAlly.applyFrostOnNextAttack = true;
 
             yield break;
         }

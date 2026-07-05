@@ -55,6 +55,10 @@ namespace ProjectM.Inventory
         public List<SkillData> allSkillAssets = new List<SkillData>();
         [Tooltip("Kéo tất cả CardData asset vào đây để Inventory có thể tra cứu theo ID khi ở Map Scene.")]
         public List<CardData> allCardAssets = new List<CardData>();
+        [Tooltip("Kéo tất cả RelicData asset vào đây (hoặc để tự động tra cứu từ MapManager/Shop).")]
+        public List<RelicData> allRelicAssets = new List<RelicData>();
+        [Tooltip("Kéo tất cả TrinketData asset vào đây (hoặc để tự động tra cứu từ MapManager/Shop).")]
+        public List<TrinketData> allTrinketAssets = new List<TrinketData>();
 
         private ChampionSetup _setup;
         private bool _isOpen = false;
@@ -89,16 +93,147 @@ namespace ProjectM.Inventory
 
         private void Start()
         {
-            // Khởi tạo tham chiếu tới setup
-            if (SkillHandManager.Instance != null)
+            EnsureChampionSetup();
+        }
+
+        public void EnsureChampionSetup()
+        {
+            if (SkillHandManager.Instance != null && SkillHandManager.Instance.championSetup != null)
             {
                 _setup = SkillHandManager.Instance.championSetup;
+                if (GameManager.Instance?.RunData != null)
+                    GameManager.Instance.RunData.championSetup = _setup;
+                return;
             }
-            else if (GameManager.Instance?.RunData?.championSetup != null)
+
+            var runData = GameManager.Instance?.RunData;
+            if (runData == null) return;
+
+            if (runData.championSetup != null)
             {
-                // Đang ở Map Scene — dùng ChampionSetup được lưu trong RunData
-                _setup = GameManager.Instance.RunData.championSetup;
+                _setup = runData.championSetup;
+                return;
             }
+
+            Debug.Log("[InventoryManager] Rebuilding ChampionSetup from RunData after Continue...");
+            var rebuilt = ScriptableObject.CreateInstance<ChampionSetup>();
+            rebuilt.name = "Rebuilt_From_Save";
+            rebuilt.champions = new List<ChampionEntry>();
+            rebuilt.unchosenChampions = new List<ChampionEntry>();
+            rebuilt.supportDeck = new List<SkillData>();
+            rebuilt.buildingDeck = new List<CardData>();
+            rebuilt.ownedRelics = new List<RelicData>();
+            rebuilt.ownedTrinkets = new List<TrinketData>();
+
+            // 1. Khôi phục Tướng, Support Deck, Building Deck
+            int champIdx = 0;
+            if (runData.playerDeckIDs != null)
+            {
+                foreach (var id in runData.playerDeckIDs)
+                {
+                    // Thử tìm trong SkillData trước
+                    var skill = FindSkillAsset(id);
+                    if (skill != null)
+                    {
+                        rebuilt.supportDeck.Add(skill);
+                        continue;
+                    }
+
+                    // Thử tìm trong CardData
+                    var card = FindCardAsset(id);
+                    if (card != null)
+                    {
+                        if (card.cardType == ProjectM.Cards.CardType.Building)
+                        {
+                            rebuilt.buildingDeck.Add(card);
+                        }
+                        else
+                        {
+                            // Đây là Tướng -> Khôi phục trang bị đang đeo
+                            RelicData eqRelic = null;
+                            if (runData.playerRelicIDs != null && champIdx < runData.playerRelicIDs.Count)
+                                eqRelic = FindRelicAsset(runData.playerRelicIDs[champIdx]);
+
+                            TrinketData eqTrinket = null;
+                            if (runData.playerTrinketIDs != null && champIdx < runData.playerTrinketIDs.Count)
+                                eqTrinket = FindTrinketAsset(runData.playerTrinketIDs[champIdx]);
+
+                            rebuilt.champions.Add(new ChampionEntry
+                            {
+                                championData = card,
+                                equippedRelic = eqRelic,
+                                equippedTrinket = eqTrinket
+                            });
+                            champIdx++;
+                        }
+                        continue;
+                    }
+                    Debug.LogWarning($"[InventoryManager] Rebuild: Không tìm thấy asset cho ID '{id}'.");
+                }
+            }
+
+            // 2. Khôi phục Relics trong túi
+            if (runData.ownedRelicIDs != null)
+            {
+                foreach (var rId in runData.ownedRelicIDs)
+                {
+                    var r = FindRelicAsset(rId);
+                    if (r != null && !rebuilt.ownedRelics.Contains(r))
+                        rebuilt.ownedRelics.Add(r);
+                }
+            }
+
+            // 3. Khôi phục Trinkets trong túi
+            if (runData.ownedTrinketIDs != null)
+            {
+                foreach (var tId in runData.ownedTrinketIDs)
+                {
+                    var t = FindTrinketAsset(tId);
+                    if (t != null && !rebuilt.ownedTrinkets.Contains(t))
+                        rebuilt.ownedTrinkets.Add(t);
+                }
+            }
+
+            runData.championSetup = rebuilt;
+            _setup = rebuilt;
+            Debug.Log($"[InventoryManager] Rebuild ChampionSetup thành công! Tướng: {rebuilt.champions.Count}, Support: {rebuilt.supportDeck.Count}, Relics: {rebuilt.ownedRelics.Count}, Trinkets: {rebuilt.ownedTrinkets.Count}.");
+        }
+
+        private RelicData FindRelicAsset(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            var r = allRelicAssets?.Find(x => x != null && x.name == name);
+            if (r == null && Map.MapManager.Instance?.relicPool != null)
+                r = Map.MapManager.Instance.relicPool.Find(x => x != null && x.name == name);
+            if (r == null && Map.MapManager.Instance?.shopEventPanel?.relicPool != null)
+                r = Map.MapManager.Instance.shopEventPanel.relicPool.Find(x => x != null && x.name == name);
+            return r;
+        }
+
+        private TrinketData FindTrinketAsset(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            var t = allTrinketAssets?.Find(x => x != null && x.name == name);
+            if (t == null && Map.MapManager.Instance?.trinketPool != null)
+                t = Map.MapManager.Instance.trinketPool.Find(x => x != null && x.name == name);
+            if (t == null && Map.MapManager.Instance?.shopEventPanel?.trinketPool != null)
+                t = Map.MapManager.Instance.shopEventPanel.trinketPool.Find(x => x != null && x.name == name);
+            return t;
+        }
+
+        private SkillData FindSkillAsset(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            var s = allSkillAssets?.Find(x => x != null && x.name == name);
+            if (s == null && Map.MapManager.Instance?.shopEventPanel?.skillPool != null)
+                s = Map.MapManager.Instance.shopEventPanel.skillPool.Find(x => x != null && x.name == name);
+            return s;
+        }
+
+        private CardData FindCardAsset(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            return allCardAssets?.Find(x => x != null && x.name == name);
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -127,10 +262,7 @@ namespace ProjectM.Inventory
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.inventoryToggleClip);
             
             // LUÔN cập nhật lại _setup từ dữ liệu runtime thực tế (tránh lỗi do gán cứng trong Inspector)
-            if (SkillHandManager.Instance != null)
-                _setup = SkillHandManager.Instance.championSetup;
-            else if (GameManager.Instance?.RunData?.championSetup != null)
-                _setup = GameManager.Instance.RunData.championSetup;
+            EnsureChampionSetup();
 
             _isOpen = true;
             inventoryPanel.gameObject.SetActive(true);
@@ -180,7 +312,11 @@ namespace ProjectM.Inventory
 
         private void PopulateInventory()
         {
-            // Nếu đang ở Map Scene (không có SkillHandManager) thì đọc dữ liệu từ RunData
+            // Nếu đang ở Map Scene (không có SkillHandManager) thì đảm bảo _setup đã được khởi tạo
+            if (_setup == null)
+            {
+                EnsureChampionSetup();
+            }
             if (_setup == null)
             {
                 PopulateFromRunData();
@@ -334,7 +470,8 @@ namespace ProjectM.Inventory
                 }
             }
 
-            // 5. Thêm Signature Cards của tướng vào lưới bài luôn
+            // 5. Thêm Signature Cards của tướng vào lưới bài luôn (Đã ngắt theo yêu cầu mới)
+            /*
             foreach (var champEntry in _setup.champions)
             {
                 if (champEntry?.championData?.signatureCards != null)
@@ -348,6 +485,7 @@ namespace ProjectM.Inventory
                     }
                 }
             }
+            */
         }
 
         private void ClearInventory()

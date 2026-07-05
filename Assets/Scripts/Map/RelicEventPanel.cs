@@ -343,6 +343,7 @@ namespace ProjectM.Map
 
         private void SaveToRunData()
         {
+            ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
             var runData = GameManager.Instance?.RunData;
             if (runData == null) return;
 

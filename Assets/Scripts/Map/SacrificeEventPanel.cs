@@ -371,6 +371,7 @@ namespace ProjectM.Map
         private List<ProjectM.Skills.SkillData> GetPlayerUtilityCards()
         {
             var result = new List<ProjectM.Skills.SkillData>();
+            ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
             var runData = GameManager.Instance?.RunData;
             if (runData == null) return result;
 
@@ -506,6 +507,7 @@ namespace ProjectM.Map
                 if (idx >= 0) runData.playerDeckIDs.RemoveAt(idx);
 
                 // Xoá khỏi RAM (championSetup.supportDeck)
+                ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
                 if (runData.championSetup != null)
                 {
                     runData.championSetup.supportDeck.Remove(card);

@@ -48,6 +48,7 @@ namespace ProjectM.Cards
         // Giáp Khiên & Phản Dame (Thorns)
         public int currentShield = 0;
         public bool hasThorns = false;
+        public ProjectM.Skills.SkillData sourceSummonSkill;
 
         public bool hasSecondPulse = false;
         public bool secondPulseTriggeredThisTurn = false;
@@ -640,7 +641,23 @@ namespace ProjectM.Cards
 
             // Thông báo cho WaveManager nếu đây là thẻ địch
             if (!isPlayerCard)
+            {
                 Managers.EnemyWaveManager.Instance?.OnEnemyDied(this);
+            }
+            else
+            {
+                // Thẻ công trình của người chơi khi chết đưa vào bộ bài bỏ (discard pile)
+                if (sourceSummonSkill != null)
+                {
+                    Debug.Log($"[CardBattle] 🏗️ Công trình '{cardData?.cardName}' đã chết! Đưa thẻ Summon tương ứng vào Discard Pile.");
+                    Skills.SkillHandManager.Instance?.AddCardToDiscardPile(sourceSummonSkill);
+                }
+                else if (cardData != null && cardData.cardType == CardType.Building)
+                {
+                    Debug.Log($"[CardBattle] 🏗️ Công trình '{cardData.cardName}' (từ khay công trình) đã chết! Tìm và đưa thẻ Summon tương ứng vào Discard Pile.");
+                    Skills.SkillHandManager.Instance?.AddBuildingCardToDiscardPile(cardData);
+                }
+            }
 
             // Animation bị đánh (giật lùi) 1 lần cuối trước khi tan biến
             if (battleAnim != null)

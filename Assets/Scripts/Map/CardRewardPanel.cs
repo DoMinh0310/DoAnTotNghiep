@@ -193,6 +193,7 @@ namespace ProjectM.Map
             // Phát tiếng nhận vật phẩm (2 layer)
             AudioManager.Instance?.PlayAcquireItemCombo();
 
+            ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
             // Thêm thẻ vào Deck trong RunData
             if (GameManager.Instance?.RunData != null)
             {

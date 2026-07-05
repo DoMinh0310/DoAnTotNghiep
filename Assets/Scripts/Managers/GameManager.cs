@@ -64,7 +64,8 @@ namespace ProjectM
                     {
                         RunData.playerDeckIDs.Add(entry.championData.name);
                         
-                        // HƯỚNG 1: Gộp bài Trấn phái (Signature Cards) của Tướng vào Starter Deck
+                        // HƯỚNG 1: Gộp bài Trấn phái (Signature Cards) của Tướng vào Starter Deck (Đã ngắt theo yêu cầu mới)
+                        /*
                         if (entry.championData.signatureCards != null)
                         {
                             foreach (var sig in entry.championData.signatureCards)
@@ -72,8 +73,13 @@ namespace ProjectM
                                 if (sig != null) RunData.playerDeckIDs.Add(sig.name);
                             }
                         }
+                        */
                     }
+                    if (entry?.equippedRelic != null) RunData.playerRelicIDs.Add(entry.equippedRelic.name);
+                    else RunData.playerRelicIDs.Add("");
+
                     if (entry?.equippedTrinket != null) RunData.playerTrinketIDs.Add(entry.equippedTrinket.name);
+                    else RunData.playerTrinketIDs.Add("");
                 }
 
             if (selectedSetup.ownedRelics != null)
@@ -166,9 +172,60 @@ namespace ProjectM
         public void SaveGame()
         {
             if (RunData == null) return;
+            SyncSetupToRunData();
             string json = JsonUtility.ToJson(RunData, prettyPrint: true);
             File.WriteAllText(SavePath, json);
             Debug.Log($"[GameManager] Game saved → {SavePath}");
+        }
+
+        private void SyncSetupToRunData()
+        {
+            if (RunData == null || RunData.championSetup == null) return;
+            var setup = RunData.championSetup;
+
+            // 1. Sync Deck
+            RunData.playerDeckIDs.Clear();
+            if (setup.champions != null)
+            {
+                foreach (var c in setup.champions)
+                    if (c?.championData != null) RunData.playerDeckIDs.Add(c.championData.name);
+            }
+            if (setup.supportDeck != null)
+            {
+                foreach (var s in setup.supportDeck)
+                    if (s != null) RunData.playerDeckIDs.Add(s.name);
+            }
+            if (setup.buildingDeck != null)
+            {
+                foreach (var b in setup.buildingDeck)
+                    if (b != null) RunData.playerDeckIDs.Add(b.name);
+            }
+
+            // 2. Sync Equipped Relics & Trinkets
+            RunData.playerRelicIDs.Clear();
+            RunData.playerTrinketIDs.Clear();
+            if (setup.champions != null)
+            {
+                foreach (var c in setup.champions)
+                {
+                    RunData.playerRelicIDs.Add(c?.equippedRelic != null ? c.equippedRelic.name : "");
+                    RunData.playerTrinketIDs.Add(c?.equippedTrinket != null ? c.equippedTrinket.name : "");
+                }
+            }
+
+            // 3. Sync Owned Relics & Trinkets
+            RunData.ownedRelicIDs.Clear();
+            if (setup.ownedRelics != null)
+            {
+                foreach (var r in setup.ownedRelics)
+                    if (r != null && !RunData.ownedRelicIDs.Contains(r.name)) RunData.ownedRelicIDs.Add(r.name);
+            }
+            RunData.ownedTrinketIDs.Clear();
+            if (setup.ownedTrinkets != null)
+            {
+                foreach (var t in setup.ownedTrinkets)
+                    if (t != null && !RunData.ownedTrinketIDs.Contains(t.name)) RunData.ownedTrinketIDs.Add(t.name);
+            }
         }
 
         public bool HasSaveFile() => File.Exists(SavePath);

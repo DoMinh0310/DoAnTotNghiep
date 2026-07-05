@@ -383,7 +383,7 @@ namespace ProjectM.Managers
             if (drawCard)
             {
                 if (skillHand != null)
-                    yield return StartCoroutine(skillHand.DrawOneCardIfNeeded());
+                    yield return StartCoroutine(skillHand.RedrawHandOnEndTurn());
                 yield return StartCoroutine(DrawBuildingIfNeeded());
             }
 

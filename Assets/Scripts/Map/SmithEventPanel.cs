@@ -579,6 +579,7 @@ namespace ProjectM.Map
             var runData = GameManager.Instance?.RunData;
             if (runData == null) return result;
 
+            ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
             if (runData.championSetup != null)
             {
                 foreach (var entry in runData.championSetup.champions)

@@ -538,9 +538,17 @@ namespace ProjectM.Map
             {
                 if (!_runData.HasVisited(cur))
                 {
-                    // Đang đứng ở node nhưng chưa hoàn thành (do out game giữa chừng)
-                    // Bắt buộc phải click lại chính ô này để làm tiếp, không được đi tiếp
-                    return i == cur;
+                    // Nếu node hiện tại là Shop, cho phép vừa có thể click lại Shop (i == cur) vừa có thể đi tiếp sang các node kế tiếp
+                    if (_spawnedNodes != null && cur < _spawnedNodes.Length && _spawnedNodes[cur] != null && _spawnedNodes[cur].NodeType == NodeType.Shop)
+                    {
+                        if (i == cur) return true;
+                    }
+                    else
+                    {
+                        // Đang đứng ở node không phải Shop nhưng chưa hoàn thành (do out game giữa chừng)
+                        // Bắt buộc phải click lại chính ô này để làm tiếp, không được đi tiếp
+                        return i == cur;
+                    }
                 }
             }
 
@@ -577,12 +585,7 @@ namespace ProjectM.Map
                 return; // Chặn hoàn toàn các xử lý di chuyển khác
             }
 
-            // Nếu bấm vào đúng node hiện tại đang đứng, và node đó là Shop ĐÃ HOÀN THÀNH -> mở lại Shop
-            if (idx == _runData.currentSlotIndex && nodeType == NodeType.Shop && _runData.HasVisited(idx))
-            {
-                shopEventPanel?.Reopen();
-                return;
-            }
+            // (Đã gỡ bỏ logic Reopen Shop khi đã Visited vì Shop sẽ hoàn thành khi đi tiếp sang ô khác)
 
             // Bấm lại đúng ô dở dang (chưa hoàn thành do out game)
             if (idx == _runData.currentSlotIndex && !_runData.HasVisited(idx))
@@ -591,16 +594,27 @@ namespace ProjectM.Map
                 {
                     GameManager.Instance?.OnCombatNodeEntered();
                 }
+                else if (nodeType == NodeType.Resource && node != null)
+                {
+                    TriggerResourceEvent(node);
+                }
                 else
                 {
-                    // Xử lý lại như click bình thường nhưng KHÔNG tăng counter
-                    _isMovingToken = true;
-                    StartCoroutine(MoveAndTrigger(slots[idx].position, false, false, nodeType, node));
+                    TriggerNonCombatEvent(nodeType);
                 }
                 return;
             }
 
             if (!IsReachable(idx)) return;
+
+            // Nếu rời khỏi ô Shop hiện tại để đi tiếp sang ô khác -> chính thức hoàn thành ô Shop đó
+            if (_runData.currentSlotIndex >= 0 && _runData.currentSlotIndex < slots.Count &&
+                _spawnedNodes != null && _runData.currentSlotIndex < _spawnedNodes.Length && _spawnedNodes[_runData.currentSlotIndex] != null && _spawnedNodes[_runData.currentSlotIndex].NodeType == NodeType.Shop &&
+                !_runData.HasVisited(_runData.currentSlotIndex))
+            {
+                _runData.visitedSlots.Add(_runData.currentSlotIndex);
+                GameManager.Instance?.OnEventCompleted();
+            }
 
             var def      = slots[idx];
 
@@ -671,7 +685,7 @@ namespace ProjectM.Map
             _isMovingToken = false;
         }
 
-        private void RefreshAllNodeStates()
+        public void RefreshAllNodeStates()
         {
             for (int i = 0; i < slots.Count; i++)
             {
@@ -726,6 +740,7 @@ namespace ProjectM.Map
 
             Vector2 startPos = playerToken.anchoredPosition;
             float   dist     = Vector2.Distance(startPos, targetPos);
+            if (dist < 1f) yield break; // Đã ở đúng đích -> không nhảy tại chỗ
 
             // Khoảng cách giữa node 4 và node 7 làm mốc (khoảng ~664px)
             float threshold4To7 = slots.Count > 7 ? Vector2.Distance(slots[4].position, slots[7].position) : 664f;
@@ -855,6 +870,17 @@ namespace ProjectM.Map
             }
         }
 
+        /// <summary>
+        /// Trả về một bộ sinh số ngẫu nhiên (RNG) cố định theo hạt giống (seed) của ván chơi
+        /// và chỉ số ô hiện tại (currentSlotIndex). Giúp đảm bảo khi người chơi thoát ra vào lại,
+        /// phần thưởng của sự kiện không bị thay đổi (chống gian lận Save-scumming).
+        /// </summary>
+        public System.Random GetNodeRNG()
+        {
+            int seed = _runData != null ? _runData.mapSeed + (_runData.currentSlotIndex * 1000) : UnityEngine.Random.Range(0, 999999);
+            return new System.Random(seed);
+        }
+
         private void TriggerRelicEvent()
         {
             if (relicEventPanel == null)
@@ -865,9 +891,10 @@ namespace ProjectM.Map
             }
 
             var runData = GameManager.Instance?.RunData;
+            var rng = GetNodeRNG();
 
             // Quyết định random Relic hay Trinket
-            bool pickRelic = UnityEngine.Random.value < relicChance;
+            bool pickRelic = rng.NextDouble() < relicChance;
 
             if (pickRelic && relicPool != null && relicPool.Count > 0)
             {
@@ -877,7 +904,7 @@ namespace ProjectM.Map
 
                 if (available.Count == 0) available = relicPool.FindAll(r => r != null); // fallback
 
-                var chosen = available[UnityEngine.Random.Range(0, available.Count)];
+                var chosen = available[rng.Next(0, available.Count)];
                 relicEventPanel.ShowRelic(chosen, () => CompleteCurrentEvent());
             }
             else if (!pickRelic && trinketPool != null && trinketPool.Count > 0)
@@ -887,7 +914,7 @@ namespace ProjectM.Map
 
                 if (available.Count == 0) available = trinketPool.FindAll(t => t != null);
 
-                var chosen = available[UnityEngine.Random.Range(0, available.Count)];
+                var chosen = available[rng.Next(0, available.Count)];
                 relicEventPanel.ShowTrinket(chosen, () => CompleteCurrentEvent());
             }
             else
@@ -934,7 +961,7 @@ namespace ProjectM.Map
             AudioManager.Instance?.PlayShopEventMusic();
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.shopEnterClip);
 
-            shopEventPanel.Open(() => CompleteCurrentEvent());
+            shopEventPanel.Open(() => CompleteCurrentEvent(), GetNodeRNG());
         }
 
 
@@ -943,7 +970,8 @@ namespace ProjectM.Map
             SetEventInProgress(true, null);
             AudioManager.Instance?.PlayGoldEventMusic();
             
-            int randomGoldReward = UnityEngine.Random.Range(resourceGoldRewardMin, resourceGoldRewardMax + 1);
+            var rng = GetNodeRNG();
+            int randomGoldReward = rng.Next(resourceGoldRewardMin, resourceGoldRewardMax + 1);
 
             if (coinBurstEffect == null || goldIconRect == null)
             {
@@ -979,7 +1007,7 @@ namespace ProjectM.Map
             }
 
             // Mở Panel, lấy 3 thẻ ngẫu nhiên. Cho phép dùng PeekMap.
-            var choices = cardRewardPool.GetRandomChoices();
+            var choices = cardRewardPool.GetRandomChoices(GetNodeRNG());
             
             // Set active panel trước khi Show (nếu nó đang bị tắt)
             panel.gameObject.SetActive(true);

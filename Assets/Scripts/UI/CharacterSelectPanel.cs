@@ -40,6 +40,20 @@ namespace ProjectM.UI
         [Tooltip("Kéo file Starter Deck_1 (ChampionSetup) vào đây. Tất cả tướng trong file này sẽ hiện ra để chọn.")]
         public ChampionSetup baseStarterData;
 
+        [System.Serializable]
+        public class PresetDeck
+        {
+            public string deckName = "New Preset Deck";
+            public List<SkillData> cards = new List<SkillData>();
+        }
+
+        [Header("3 Random Starter Decks (Preset Decks)")]
+        [Tooltip("Cấu hình 3 bộ bài mẫu ở đây. Hệ thống sẽ random 1 trong các bộ bài này khi người chơi bấm Let's Go. Nếu danh sách này trống, sẽ lấy từ baseStarterData.supportDeck.")]
+        public List<PresetDeck> randomPresetDecks = new List<PresetDeck>();
+
+        [Tooltip("Hoặc có thể kéo 3 file ScriptableObject ChampionSetup (nếu có) vào đây làm 3 Starter Decks.")]
+        public List<ChampionSetup> randomStarterSetupDecks = new List<ChampionSetup>();
+
         private List<int> _selectedIndices = new List<int>();
         private List<SelectableCharacterCard> _spawnedCards = new List<SelectableCharacterCard>();
 
@@ -209,8 +223,39 @@ namespace ProjectM.UI
                 }
             }
 
-            // Copy toàn bộ Support Deck và thư viện ngọc sở hữu từ cục gốc
-            setup.supportDeck = new List<SkillData>(baseStarterData.supportDeck);
+            // ── Chọn ngẫu nhiên 1 trong 3 Deck cố định ──
+            if (randomPresetDecks != null && randomPresetDecks.Count > 0)
+            {
+                int randomIdx = UnityEngine.Random.Range(0, randomPresetDecks.Count);
+                var chosenPreset = randomPresetDecks[randomIdx];
+                if (chosenPreset != null && chosenPreset.cards != null && chosenPreset.cards.Count > 0)
+                {
+                    setup.supportDeck = new List<SkillData>(chosenPreset.cards);
+                    Debug.Log($"[CharacterSelectPanel] 🎲 Đã random trúng Preset Deck: '{chosenPreset.deckName}' ({setup.supportDeck.Count} lá)");
+                }
+                else
+                {
+                    setup.supportDeck = new List<SkillData>(baseStarterData.supportDeck);
+                }
+            }
+            else if (randomStarterSetupDecks != null && randomStarterSetupDecks.Count > 0)
+            {
+                int randomIdx = UnityEngine.Random.Range(0, randomStarterSetupDecks.Count);
+                var chosenSetup = randomStarterSetupDecks[randomIdx];
+                if (chosenSetup != null && chosenSetup.supportDeck != null)
+                {
+                    setup.supportDeck = new List<SkillData>(chosenSetup.supportDeck);
+                    Debug.Log($"[CharacterSelectPanel] 🎲 Đã random trúng Setup Deck: '{chosenSetup.name}' ({setup.supportDeck.Count} lá)");
+                }
+                else
+                {
+                    setup.supportDeck = new List<SkillData>(baseStarterData.supportDeck);
+                }
+            }
+            else
+            {
+                setup.supportDeck = new List<SkillData>(baseStarterData.supportDeck);
+            }
             setup.ownedRelics = new List<RelicData>(baseStarterData.ownedRelics);
             setup.ownedTrinkets = new List<TrinketData>(baseStarterData.ownedTrinkets);
 

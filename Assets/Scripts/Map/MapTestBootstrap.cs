@@ -74,6 +74,8 @@ namespace ProjectM.Map
                         if (entry?.championData != null) 
                         {
                             runData.playerDeckIDs.Add(entry.championData.name);
+                            // HƯỚNG 1: Gộp bài Trấn phái (Signature Cards) của Tướng (Đã ngắt theo yêu cầu mới)
+                            /*
                             if (entry.championData.signatureCards != null)
                             {
                                 foreach (var sig in entry.championData.signatureCards)
@@ -81,6 +83,7 @@ namespace ProjectM.Map
                                     if (sig != null) runData.playerDeckIDs.Add(sig.name);
                                 }
                             }
+                            */
                         }
                     }
                     Debug.Log($"[MapTestBootstrap] Đã nạp bản sao của '{starterDeck.name}' vào RunData.");

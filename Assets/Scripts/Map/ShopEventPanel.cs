@@ -100,6 +100,7 @@ namespace ProjectM.Map
 
         private List<ShopSlot> _slots = new List<ShopSlot>();
         private ShopSlot _activePopupSlot;
+        private System.Random _rng;
 
         // ══════════════════════════════════════════════════════════════
         // UNITY
@@ -139,9 +140,11 @@ namespace ProjectM.Map
         // PUBLIC API
         // ══════════════════════════════════════════════════════════════
 
-        public void Open(System.Action onComplete)
+        public void Open(System.Action onComplete, System.Random rng = null)
         {
+            ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
             _onComplete = onComplete;
+            _rng = rng ?? new System.Random();
 
             ClearSlots();
             if (itemDetailPanelRoot != null) itemDetailPanelRoot.SetActive(false);
@@ -188,7 +191,7 @@ namespace ProjectM.Map
             for (int i = 0; i < count; i++)
             {
                 var data = picked[i];
-                int price = Mathf.Max(1, skillBasePrice + Random.Range(-skillPriceVariance, skillPriceVariance + 1));
+                int price = Mathf.Max(1, skillBasePrice + (_rng != null ? _rng.Next(-skillPriceVariance, skillPriceVariance + 1) : Random.Range(-skillPriceVariance, skillPriceVariance + 1)));
 
                 var go = Instantiate(skillCardPrefab, skillRowContainer);
                 go.SetActive(true); // Đảm bảo Prefab luôn được bật nếu lỡ bị tắt trong thư mục
@@ -237,7 +240,7 @@ namespace ProjectM.Map
             // Trộn ngẫu nhiên vị trí 4 item
             for (int i = 0; i < combined.Count; i++)
             {
-                int rnd = Random.Range(0, combined.Count);
+                int rnd = _rng != null ? _rng.Next(0, combined.Count) : Random.Range(0, combined.Count);
                 var temp = combined[i];
                 combined[i] = combined[rnd];
                 combined[rnd] = temp;
@@ -253,7 +256,7 @@ namespace ProjectM.Map
                 bool isRelicItem = data is RelicData;
                 int baseP = isRelicItem ? relicBasePrice : trinketBasePrice;
                 int varP  = isRelicItem ? relicPriceVariance : trinketPriceVariance;
-                int price = Mathf.Max(1, baseP + Random.Range(-varP, varP + 1));
+                int price = Mathf.Max(1, baseP + (_rng != null ? _rng.Next(-varP, varP + 1) : Random.Range(-varP, varP + 1)));
 
                 Sprite icon = isRelicItem ? ((RelicData)data).icon : ((TrinketData)data).icon;
                 string dName = isRelicItem ? ((RelicData)data).relicName : ((TrinketData)data).trinketName;
@@ -588,6 +591,7 @@ namespace ProjectM.Map
             // Phát tiếng mua hàng (trừ tiền)
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.buyItemClip);
 
+            ProjectM.Inventory.InventoryManager.Instance?.EnsureChampionSetup();
             if (slot.isSkill)
             {
                 runData.playerDeckIDs.Add(slot.data.name);
@@ -661,12 +665,8 @@ namespace ProjectM.Map
             panelCanvasGroup.DOFade(0f, 0.25f).OnComplete(() =>
             {
                 gameObject.SetActive(false);
-                if (_onComplete != null)
-                {
-                    var cb = _onComplete;
-                    _onComplete = null;
-                    cb.Invoke();
-                }
+                MapManager.Instance?.SetEventInProgress(false, null);
+                MapManager.Instance?.RefreshAllNodeStates();
             });
         }
 
@@ -693,7 +693,7 @@ namespace ProjectM.Map
 
             for (int i = 0; i < count; i++)
             {
-                int idx = Random.Range(0, available.Count);
+                int idx = _rng != null ? _rng.Next(0, available.Count) : Random.Range(0, available.Count);
                 result.Add(available[idx]);
                 available.RemoveAt(idx);
             }

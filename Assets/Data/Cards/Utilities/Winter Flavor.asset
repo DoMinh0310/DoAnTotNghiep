@@ -17,7 +17,7 @@ MonoBehaviour:
   artwork: {fileID: -7295589071786844878, guid: 0050cab4f4eb17e44a2b9c3a6797c55e, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
-  targetType: 0
+  targetType: 4
   effectType: 0
   effectValue: 5
   elementType: 4

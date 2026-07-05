@@ -73,6 +73,7 @@ namespace ProjectM.Skills
         private readonly List<SkillData> _drawPile    = new();
         private readonly List<SkillData> _hand        = new();
         private readonly List<SkillData> _discardPile = new();
+        private readonly List<SkillData> _allKnownSkills = new();
 
         // ── Hand card tracking (handler → data) ───────────────────────────
         private readonly Dictionary<SkillDragHandler, SkillData>    _handCards    = new();
@@ -200,7 +201,8 @@ namespace ProjectM.Skills
                         if (card != null) pool.Add(card);
                 }
 
-                // Thêm Signature Cards từ các Tướng đang có
+                // Thêm Signature Cards từ các Tướng đang có (Đã ngắt theo yêu cầu mới: bài chơi chỉ lấy từ supportDeck)
+                /*
                 if (championSetup.champions != null)
                 {
                     foreach (var entry in championSetup.champions)
@@ -214,6 +216,7 @@ namespace ProjectM.Skills
                         }
                     }
                 }
+                */
             }
 
             if (pool.Count == 0)
@@ -229,6 +232,8 @@ namespace ProjectM.Skills
 
             ShuffleList(pool);
             _drawPile.AddRange(pool);
+            _allKnownSkills.Clear();
+            _allKnownSkills.AddRange(pool);
 
             // Deal tối đa maxHandSize lá đầu tiên
             int dealCount = Mathf.Min(maxHandSize, _drawPile.Count);
@@ -333,10 +338,16 @@ namespace ProjectM.Skills
             {
                 _hand.Remove(data);
                 
-                // Skill từ Trinket (specificGeneratedSkills) hoặc Relic sẽ KHÔNG vào discard (chưa có list specificGeneratedSkills ở đây, nhưng tạm thời dùng isExhaust)
+                bool isBuildingSummon = data != null && data.customOverride != null && data.customOverride is SkillOverride_Summon;
+
                 if (data.isExhaust)
                 {
                     Debug.Log($"[SkillHandManager] Đã dùng skill '{data.skillName}'. Thẻ có cờ Exhaust nên bị tiêu hủy khỏi trận đấu.");
+                }
+                else if (isBuildingSummon)
+                {
+                    Debug.Log($"[SkillHandManager] Đã dùng thẻ Summon Công Trình '{data.skillName}'. Thẻ tạm thời chưa vào Discard Pile (sẽ vào khi công trình trên bàn chết).");
+                    // KHÔNG add vào _discardPile ở đây
                 }
                 else
                 {
@@ -349,6 +360,106 @@ namespace ProjectM.Skills
             }
 
             Destroy(handler.gameObject);
+        }
+
+        /// <summary>Được gọi khi một thẻ cần được thêm vào bộ bài bỏ (ví dụ công trình trên bàn chết).</summary>
+        public void AddCardToDiscardPile(SkillData data)
+        {
+            if (data == null) return;
+            if (data.isExhaust)
+            {
+                Debug.Log($"[SkillHandManager] Thẻ '{data.skillName}' có cờ Exhaust nên tiêu hủy khỏi game.");
+                return;
+            }
+            Debug.Log($"[SkillHandManager] Đưa skill '{data.skillName}' vào Discard Pile.");
+            _discardPile.Add(data);
+        }
+
+        /// <summary>Được gọi khi một công trình (từ khay bên trái hoặc bàn cờ) bị chết để đưa thẻ Skill Summon tương ứng vào bộ bài bỏ.</summary>
+        public void AddBuildingCardToDiscardPile(CardData buildingData)
+        {
+            if (buildingData == null) return;
+
+            SkillData match = _allKnownSkills.Find(s => s != null && s.customOverride != null && 
+                s.customOverride is SkillOverride_Summon sum && sum.buildingData == buildingData);
+
+            if (match == null && ProjectM.Inventory.InventoryManager.Instance != null && ProjectM.Inventory.InventoryManager.Instance.allSkillAssets != null)
+            {
+                match = ProjectM.Inventory.InventoryManager.Instance.allSkillAssets.Find(s => s != null && s.customOverride != null && 
+                    s.customOverride is SkillOverride_Summon sum && sum.buildingData == buildingData);
+            }
+
+            if (match != null)
+            {
+                Debug.Log($"[SkillHandManager] 🏗️ Công trình '{buildingData.cardName}' chết -> Đưa thẻ Summon '{match.skillName}' vào Discard Pile.");
+                AddCardToDiscardPile(match);
+            }
+            else
+            {
+                Debug.LogWarning($"[SkillHandManager] Không tìm thấy thẻ SkillData Summon cho công trình '{buildingData.cardName}' để đưa vào Discard Pile!");
+            }
+        }
+
+        /// <summary>
+        /// Gọi bởi BattleManager khi bấm chuông (End Turn).
+        /// - Thu hồi toàn bộ thẻ chưa đánh trên tay về Draw Pile (trừ thẻ từ Relic).
+        /// - Xáo trộn lại Draw Pile.
+        /// - Kiểm tra: nếu Draw Pile không đủ maxHandSize (6 lá), xáo toàn bộ Discard Pile vào Draw Pile.
+        /// - Rút và phát 6 lá mới cho người chơi.
+        /// </summary>
+        public IEnumerator RedrawHandOnEndTurn()
+        {
+            Debug.Log("[SkillHandManager] 🔔 Bấm chuông: Thu hồi tay bài, xáo lại draw pile và rút 6 lá mới.");
+
+            // 1. Thu hồi các lá còn lại trên tay về Draw Pile (trừ các lá sinh ra từ Relic)
+            var handCardsList = new List<SkillDragHandler>(_handCards.Keys);
+            foreach (var handler in handCardsList)
+            {
+                if (handler == null) continue;
+                if (_handCards.TryGetValue(handler, out var data))
+                {
+                    _hand.Remove(data);
+                    
+                    if (_relicCards.TryGetValue(handler, out var relicHandler))
+                    {
+                        relicHandler?.OnRelicSkillUsed();
+                        _relicCards.Remove(handler);
+                    }
+                    else
+                    {
+                        _drawPile.Add(data);
+                    }
+                }
+                if (handler.gameObject != null)
+                {
+                    Destroy(handler.gameObject);
+                }
+            }
+            _handCards.Clear();
+            _hand.Clear();
+            _spawnedInOrder.Clear();
+            _relicCards.Clear();
+
+            // 2. Xáo trộn lại Draw Pile (chỉ chứa những lá chưa đánh)
+            ShuffleList(_drawPile);
+
+            // 3. Kiểm tra đủ maxHandSize lá không. Nếu ít hơn maxHandSize, xáo Discard Pile vào Draw Pile!
+            if (_drawPile.Count < maxHandSize && _discardPile.Count > 0)
+            {
+                Debug.Log($"[SkillHandManager] Draw pile chỉ còn {_drawPile.Count} lá (không đủ {maxHandSize}). Xáo {_discardPile.Count} lá từ Discard Pile vào!");
+                _drawPile.AddRange(_discardPile);
+                _discardPile.Clear();
+                ShuffleList(_drawPile);
+            }
+
+            // 4. Rút tối đa maxHandSize lá từ Draw Pile
+            int dealCount = Mathf.Min(maxHandSize, _drawPile.Count);
+            if (dealCount > 0)
+            {
+                var toDeal = _drawPile.GetRange(0, dealCount);
+                _drawPile.RemoveRange(0, dealCount);
+                yield return StartCoroutine(DealCardsWithAnimation(toDeal));
+            }
         }
 
         // ═════════════════════════════════════════════════════════════════

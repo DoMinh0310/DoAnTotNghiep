@@ -252,6 +252,7 @@ namespace ProjectM.Skills
         // DRAG & DROP (Dành riêng cho thẻ Summon / EmptySlot)
         // ════════════════════════════════════════════════════════════════
         public static CardDropZone targetDropZoneForSummon; // Pass slot cho SkillOverride_Summon
+        public static SkillData lastUsedSkillData; // Pass SkillData cho SkillOverride_Summon
         private Transform _previousParent;
         private bool _isDragTargeting;
 
@@ -605,6 +606,7 @@ namespace ProjectM.Skills
             // -----------------------
 
             yield return new WaitForEndOfFrame();
+            lastUsedSkillData = _executor?.Data;
             yield return StartCoroutine(_executor.Execute(caster, targets));
 
             BattleDebugger.Log($"✅ '{_executor.Data?.skillName}' dùng xong.");

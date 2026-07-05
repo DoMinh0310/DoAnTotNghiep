@@ -72,6 +72,8 @@ namespace ProjectM.Skills
             CardBattle newCard = newObj.GetComponent<CardBattle>();
             if (newCard != null)
             {
+                newCard.sourceSummonSkill = SkillDragHandler.lastUsedSkillData;
+                SkillDragHandler.lastUsedSkillData = null;
                 // Đăng ký vào grid (với tư cách là Player Card)
                 grid.RegisterCard(newCard, true);
             }

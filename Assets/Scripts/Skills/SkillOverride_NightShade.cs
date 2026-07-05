@@ -12,10 +12,11 @@ namespace ProjectM.Skills
     {
         public override IEnumerator Execute(CardBattle caster, CardBattle[] targets)
         {
-            if (caster == null) yield break;
+            if (targets == null || targets.Length == 0 || targets[0] == null) yield break;
 
-            Debug.Log($"[Night Shade] ☠️ {caster.Data?.cardName} bao phủ bóng đêm! Các đòn đánh vật lý từ nay gây thêm +1 Decay.");
-            caster.bonusDecayOnPhysicalAttack += 1;
+            CardBattle targetAlly = targets[0];
+            Debug.Log($"[Night Shade] ☠️ {targetAlly.Data?.cardName} bao phủ bóng đêm! Các đòn đánh vật lý từ nay gây thêm +1 Decay.");
+            targetAlly.bonusDecayOnPhysicalAttack += 1;
 
             yield break;
         }
