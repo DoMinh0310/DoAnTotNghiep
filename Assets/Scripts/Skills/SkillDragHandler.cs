@@ -90,8 +90,8 @@ namespace ProjectM.Skills
 
             var targetType = _executor.Data.targetType;
 
-            // Vị trí đỉnh thẻ (start) và cursor (end)
-            Vector2 startScreen = GetCardTopScreenPos();
+            // Vị trí tâm thẻ (start) và cursor (end)
+            Vector2 startScreen = GetCardCenterScreenPos();
             Vector2 mouseScreen = Mouse.current.position.ReadValue();
 
             // Card dưới chuột
@@ -101,7 +101,10 @@ namespace ProjectM.Skills
             // Cập nhật arrow — AllEnemies chỉ show target icon khi cursor trên thẻ địch
             bool overEnemyForArrow = targetType == SkillTargetType.AllEnemies && cardUnder != null && !cardUnder.IsPlayerCard;
             bool showTargetIcon = isValid || overEnemyForArrow;
-            _arrow?.SetPositions(startScreen, mouseScreen, showTargetIcon);
+
+            // Khóa nam châm (Magnetic Snap): Nếu đang trên thẻ mục tiêu hợp lệ, khóa điểm cuối vào tâm thẻ đó
+            Vector2 endScreen = (showTargetIcon && cardUnder != null) ? GetCardCenterScreenPos(cardUnder) : mouseScreen;
+            _arrow?.SetPositions(startScreen, endScreen, showTargetIcon);
 
             // Cập nhật hover highlight (trừ AllEnemies đã pre-highlight)
             if (targetType != SkillTargetType.AllEnemies)
@@ -448,6 +451,14 @@ namespace ProjectM.Skills
                 }
             }
 
+            // Nhích thẻ lên 10 pixel theo trục Y so với vị trí hiện tại (hover) để làm nổi bật
+            if (_rectTransform != null)
+            {
+                _rectTransform.DOKill();
+                float currentY = _rectTransform.anchoredPosition.y;
+                _rectTransform.DOAnchorPosY(currentY + 10f, 0.15f).SetEase(Ease.OutCubic);
+            }
+
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.cardPickUpClip);
         }
 
@@ -471,7 +482,7 @@ namespace ProjectM.Skills
             // Trả thẻ về layer cũ
             transform.SetSiblingIndex(_siblingIndex);
             
-            // Ép thẻ nguồn thu nhỏ lại
+            // Ép thẻ nguồn thu nhỏ lại và trả về đúng base position
             GetComponent<ProjectM.Cards.CardHoverHandler>()?.ForceStopHover();
         }
 
@@ -666,23 +677,32 @@ namespace ProjectM.Skills
         // ════════════════════════════════════════════════════════════════
         // POSITION HELPERS
         // ════════════════════════════════════════════════════════════════
-        private Vector2 GetCardTopScreenPos()
+        private Vector2 GetCardCenterScreenPos(CardBattle card = null)
         {
-            if (_rectTransform == null) return Vector2.zero;
+            RectTransform targetRt = card != null ? card.GetComponent<RectTransform>() : _rectTransform;
+            if (targetRt == null) return Vector2.zero;
+
+            // Nếu là thẻ mục tiêu và có TargetHighlight, lấy luôn tâm của TargetHighlight để đường Bezier ghim chính xác 100% vào tâm động
+            if (card != null)
+            {
+                var th = card.GetComponentInChildren<TargetHighlight>(true);
+                if (th != null) targetRt = th.GetComponent<RectTransform>();
+            }
+
             if (_mainCanvas == null) _mainCanvas = GetComponentInParent<Canvas>();
 
             var corners = new Vector3[4];
-            _rectTransform.GetWorldCorners(corners);
+            targetRt.GetWorldCorners(corners);
             // corners: [0]=bottomLeft [1]=topLeft [2]=topRight [3]=bottomRight
-            Vector3 topCenter = (corners[1] + corners[2]) * 0.5f;
+            Vector3 center = (corners[0] + corners[2]) * 0.5f;
 
             if (_mainCanvas != null && _mainCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
             {
                 // Với Overlay, World Coordinates đã chính xác là Screen Coordinates
-                return topCenter;
+                return center;
             }
 
-            return RectTransformUtility.WorldToScreenPoint(_mainCanvas?.worldCamera, topCenter);
+            return RectTransformUtility.WorldToScreenPoint(_mainCanvas?.worldCamera, center);
         }
 
         private CardBattle GetCardUnderScreenPos(Vector2 screenPos)

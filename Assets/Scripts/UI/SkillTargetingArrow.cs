@@ -18,12 +18,13 @@ namespace ProjectM.UI
         [Header("Line")]
         [SerializeField] private UIBezierLine bezierLine;
         [SerializeField] private Color lineColor = new Color(1f, 0.45f, 0.1f, 1f);
-        [SerializeField] private float lineWidth = 22f;
+        [SerializeField] private float lineWidth = 18f;
         [SerializeField] private int   segmentCount = 24;
         [SerializeField] private float curveHeight  = 160f;
 
-        [Header("ArrowHead")]
+        [Header("ArrowHead & TargetIcon")]
         [SerializeField] private RectTransform arrowHead;
+        [SerializeField] private RectTransform targetIcon;
 
         // ── Runtime ──────────────────────────────────────────────────────
         private Canvas        _canvas;
@@ -40,34 +41,38 @@ namespace ProjectM.UI
             // Cập phát sẵn mảng để tránh tạo rác (Garbage) mỗi frame làm tụt FPS
             _bezierPoints = new Vector2[segmentCount + 1];
 
-            // ── Tự động xóa TargetIcon cũ nếu vẫn còn thừa trong prefab ──
-            foreach (Transform child in transform)
+            // ── Setup TargetIcon ──
+            if (targetIcon == null)
             {
-                if (child.name.Contains("TargetIcon"))
-                {
-                    Destroy(child.gameObject);
-                }
+                var found = transform.Find("TargetIcon");
+                if (found != null) targetIcon = found.GetComponent<RectTransform>();
+            }
+            if (targetIcon != null)
+            {
+                targetIcon.gameObject.SetActive(false);
+                var img = targetIcon.GetComponent<Image>();
+                if (img != null) img.raycastTarget = false;
             }
 
             // ── Tự động thêm Canvas để render đè lên các thẻ ──
             var myCanvas = gameObject.GetComponent<Canvas>();
             if (myCanvas == null) myCanvas = gameObject.AddComponent<Canvas>();
             myCanvas.overrideSorting = true;
-            myCanvas.sortingOrder    = 100; // Đảm bảo luôn nằm trên cùng
+            myCanvas.sortingOrder    = 500; // Đảm bảo luôn nằm trên cùng (trên cả thẻ bài đang targeting có order 100)
 
             // ── Tìm root canvas ──
             _canvas = FindRootCanvas();
             _canvasRect = _canvas != null ? _canvas.GetComponent<RectTransform>() : null;
 
-            // ── Đảm bảo ROOT của prefab stretch-fill để tọa độ khớp canvas ──
+            // ── Đảm bảo ROOT của prefab cố định ở tâm (0.5, 0.5) để không bị squashed khi stretch ──
             var rootRt = GetComponent<RectTransform>();
             if (rootRt != null)
             {
-                rootRt.anchorMin        = Vector2.zero;
-                rootRt.anchorMax        = Vector2.one;
-                rootRt.offsetMin        = Vector2.zero;
-                rootRt.offsetMax        = Vector2.zero;
-                rootRt.anchoredPosition = Vector2.zero;
+                rootRt.anchorMin        = new Vector2(0.5f, 0.5f);
+                rootRt.anchorMax        = new Vector2(0.5f, 0.5f);
+                rootRt.pivot            = new Vector2(0.5f, 0.5f);
+                rootRt.sizeDelta        = Vector2.zero;
+                rootRt.localScale       = Vector3.one;
             }
 
             // ── Setup UIBezierLine ──
@@ -76,15 +81,16 @@ namespace ProjectM.UI
                 bezierLine.color     = lineColor;
                 bezierLine.LineWidth = lineWidth;
 
-                // Stretch-fill
+                // Cố định ở giữa Root với tỷ lệ chuẩn 1:1, không stretch
                 var lr = bezierLine.GetComponent<RectTransform>();
                 if (lr != null)
                 {
-                    lr.anchorMin        = Vector2.zero;
-                    lr.anchorMax        = Vector2.one;
-                    lr.offsetMin        = Vector2.zero;
-                    lr.offsetMax        = Vector2.zero;
+                    lr.anchorMin        = new Vector2(0.5f, 0.5f);
+                    lr.anchorMax        = new Vector2(0.5f, 0.5f);
+                    lr.pivot            = new Vector2(0.5f, 0.5f);
+                    lr.sizeDelta        = Vector2.zero;
                     lr.anchoredPosition = Vector2.zero;
+                    lr.localScale       = Vector3.one;
                 }
 
                 // Tắt raycast để không chặn click
@@ -128,6 +134,23 @@ namespace ProjectM.UI
             // Overlay canvas không dùng camera
             Camera cam = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay ? _canvas.worldCamera : null;
 
+            // Kéo root mũi tên về đúng vị trí xuất phát (tâm/đỉnh của thẻ) để không gian local chuẩn 1:1, tránh bị squashed
+            RectTransform parentRt = rootRt.parent as RectTransform;
+            if (parentRt != null)
+            {
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRt, startScreen, cam, out Vector2 rootLocalPos))
+                {
+                    rootRt.anchoredPosition = rootLocalPos;
+                }
+            }
+            else if (_canvasRect != null)
+            {
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvasRect, startScreen, cam, out Vector2 rootLocalPos))
+                {
+                    rootRt.anchoredPosition = rootLocalPos;
+                }
+            }
+
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     rootRt, startScreen, cam, out Vector2 start)) return;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -161,11 +184,16 @@ namespace ProjectM.UI
             Vector2 lineEnd = end;
             float arrowLength = 80f; // Default fallback
 
-            if (arrowHead != null && arrowHead.gameObject.scene.IsValid() || arrowHead != null)
+            if (hasValidTarget && targetIcon != null)
+            {
+                lineEnd = end; // Khóa đường Bezier nối thẳng vào tâm thẻ mục tiêu
+            }
+            else if (arrowHead != null && arrowHead.gameObject.scene.IsValid() || arrowHead != null)
             {
                 arrowLength = arrowHead.rect.height;
-                // Cắt ngắn đường kẻ để nó kết thúc vừa khít với mặt đáy của mũi tên
-                lineEnd = end - approxTangent * (arrowLength * 0.6f);
+                // Cắt ngắn đường kẻ nhưng không vượt quá 50% khoảng cách để tránh bị đẩy ngược ra sau tâm thẻ
+                float backoff = Mathf.Min(arrowLength * 0.6f, dist * 0.5f);
+                lineEnd = end - approxTangent * backoff;
             }
 
             // Sinh điểm Bezier dùng mảng cấp sẵn
@@ -179,34 +207,48 @@ namespace ProjectM.UI
             }
 
             // Cập nhật line
-            bezierLine?.SetPoints(_bezierPoints);
-
-            // Cập nhật arrowhead
-            if (arrowHead != null)
+            if (bezierLine != null)
             {
-                arrowHead.gameObject.SetActive(true);
+                bezierLine.FadeAtEnd = hasValidTarget;
+                bezierLine.SetPoints(_bezierPoints);
+            }
 
-                arrowHead.anchorMin = new Vector2(0.5f, 0.5f);
-                arrowHead.anchorMax = new Vector2(0.5f, 0.5f);
-                arrowHead.pivot     = new Vector2(0.5f, 0.5f);
+            // Ẩn cả TargetIcon nhỏ (vì đã dùng TargetHighlight to lắc lư của lá bài ở layer 600)
+            if (targetIcon != null) targetIcon.gameObject.SetActive(false);
 
-                // Lấy hướng của đoạn thẳng cuối cùng vừa được vẽ
-                Vector2 actualDir = (_bezierPoints[segmentCount] - _bezierPoints[segmentCount - 1]).normalized;
-                // Dự phòng: nếu tiếp tuyến suy biến (2 điểm trùng nhau), dùng hướng tổng thể
-                if (actualDir.sqrMagnitude < 0.01f)
-                    actualDir = (end - start).normalized;
+            // Cập nhật ArrowHead
+            if (hasValidTarget)
+            {
+                if (arrowHead != null) arrowHead.gameObject.SetActive(false);
+            }
+            else
+            {
+                if (arrowHead != null)
+                {
+                    arrowHead.gameObject.SetActive(true);
 
-                // Gắn mũi tên sao cho ĐÁY của nó khớp chuẩn 100% với lineEnd
-                // Tâm mũi tên sẽ tiến lên phía trước dọc theo hướng actualDir
-                arrowHead.anchoredPosition = lineEnd + actualDir * (arrowLength * 0.35f);
+                    arrowHead.anchorMin = new Vector2(0.5f, 0.5f);
+                    arrowHead.anchorMax = new Vector2(0.5f, 0.5f);
+                    arrowHead.pivot     = new Vector2(0.5f, 0.5f);
 
-                // Mũi tên gốc chỉ lên trên, nên ta trừ đi 90 độ
-                float angle = Mathf.Atan2(actualDir.y, actualDir.x) * Mathf.Rad2Deg - 90f;
-                arrowHead.localRotation = Quaternion.Euler(0f, 0f, angle);
+                    // Lấy hướng của đoạn thẳng cuối cùng vừa được vẽ
+                    Vector2 actualDir = (_bezierPoints[segmentCount] - _bezierPoints[segmentCount - 1]).normalized;
+                    if (actualDir.sqrMagnitude < 0.01f)
+                        actualDir = (end - start).normalized;
 
-                var img = arrowHead.GetComponent<Image>();
-                if (img != null)
-                    img.color = lineColor; // Luôn đặc (Alpha = 1) và đồng bộ màu với đường vẽ
+                    float forwardOffset = Mathf.Min(arrowLength * 0.35f, dist * 0.35f);
+                    arrowHead.anchoredPosition = lineEnd + actualDir * forwardOffset;
+
+                    float angle = Mathf.Atan2(actualDir.y, actualDir.x) * Mathf.Rad2Deg - 90f;
+                    arrowHead.localRotation = Quaternion.Euler(0f, 0f, angle);
+
+                    float scale = Mathf.Clamp(dist / 60f, 0.2f, 1f);
+                    arrowHead.localScale = new Vector3(scale, scale, 1f);
+
+                    var img = arrowHead.GetComponent<Image>();
+                    if (img != null)
+                        img.color = lineColor; // Luôn đặc (Alpha = 1) và đồng bộ màu với đường vẽ
+                }
             }
         }
 

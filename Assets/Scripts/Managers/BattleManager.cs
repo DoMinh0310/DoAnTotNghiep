@@ -65,6 +65,25 @@ namespace ProjectM.Managers
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+
+            // Dọn dẹp toàn bộ cờ static tránh rò rỉ trạng thái (Static State Leak) từ các scene/trận trước
+            ResetAllInputLocks();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                ResetAllInputLocks();
+            }
+        }
+
+        public static void ResetAllInputLocks()
+        {
+            IsInputLocked = false;
+            Cards.CardDragHandler.isAnyCardDragging = false;
+            ProjectM.Skills.SkillDragHandler.isAnySkillFocused = false;
+            ProjectM.Skills.SkillDragHandler.isAnySkillTargeting = false;
         }
 
         private void Start()
@@ -106,10 +125,13 @@ namespace ProjectM.Managers
         /// </summary>
         private IEnumerator SpawnChampionsFromSetup()
         {
+            IsInputLocked = true; // Khóa input trong lúc sinh thẻ tướng để tránh spam nhấp chuột gây kẹt cờ
+
             var skillHand = Skills.SkillHandManager.Instance;
             if (skillHand == null || skillHand.championSetup == null)
             {
                 Debug.LogWarning("[BattleManager] Chưa gán ChampionSetup vào SkillHandManager!");
+                IsInputLocked = false;
                 yield break;
             }
 
@@ -124,12 +146,14 @@ namespace ProjectM.Managers
             if (championPrefab == null)
             {
                 Debug.LogWarning("[BattleManager] Chưa gán Champion Prefab (Card_Prefab) vào BattleManager!");
+                IsInputLocked = false;
                 yield break;
             }
 
             if (championHandRegion == null)
             {
                 Debug.LogWarning("[BattleManager] Chưa gán Champion Hand Region!");
+                IsInputLocked = false;
                 yield break;
             }
 
@@ -195,6 +219,8 @@ namespace ProjectM.Managers
 
             // Nhường 1 frame để PlayerHand.UpdateHandLayout() xếp bài đúng vị trí
             yield return null;
+
+            IsInputLocked = false; // Mở khóa input sau khi hoàn tất sinh thẻ tướng
         }
 
         /// <summary>

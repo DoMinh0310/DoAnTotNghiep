@@ -51,8 +51,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.UI.SkillTargetingArrow
   bezierLine: {fileID: 2757861880540608142}
-  lineColor: {r: 0.9960785, g: 0.09019608, b: 0, a: 1}
-  lineWidth: 80
+  lineColor: {r: 1, g: 0.26640627, b: 0.118867874, a: 1}
+  lineWidth: 45
   segmentCount: 30
   curveHeight: 160
   arrowHead: {fileID: 3032149680340473960, guid: 6e366595b67dbbf488d9d3e1cccd7e5f, type: 3}
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  lineWidth: 50
+  lineWidth: 18
 --- !u!1 &4263650709173649919
 GameObject:
   m_ObjectHideFlags: 0

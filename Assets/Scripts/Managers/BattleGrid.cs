@@ -26,6 +26,12 @@ namespace ProjectM.Managers
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+
+            // Đảm bảo các ô được gán đúng quyền sở hữu ngay từ đầu
+            if (playerSlotsTop != null) foreach (var s in playerSlotsTop) if (s != null) s.isPlayerZone = true;
+            if (playerSlotsBot != null) foreach (var s in playerSlotsBot) if (s != null) s.isPlayerZone = true;
+            if (enemySlotsTop != null) foreach (var s in enemySlotsTop) if (s != null) s.isPlayerZone = false;
+            if (enemySlotsBot != null) foreach (var s in enemySlotsBot) if (s != null) s.isPlayerZone = false;
         }
 
         // ══════════════════════════════════════════
@@ -420,10 +426,10 @@ namespace ProjectM.Managers
         }
 
         public List<CardBattle> GetAllPlayerCards() =>
-            CollectCards(playerSlotsTop, playerSlotsBot);
+            CollectCards(playerSlotsTop, playerSlotsBot, expectPlayer: true);
 
         public List<CardBattle> GetAllEnemyCards() =>
-            CollectCards(enemySlotsTop, enemySlotsBot);
+            CollectCards(enemySlotsTop, enemySlotsBot, expectPlayer: false);
 
         /// <summary>
         /// Trả về tất cả kẻ địch còn sống trong cùng hàng với target.
@@ -452,18 +458,18 @@ namespace ProjectM.Managers
             foreach (var slot in row)
             {
                 CardBattle card = GetCardInSlot(slot);
-                if (card != null && !card.IsDead)
+                if (card != null && !card.IsDead && !card.IsPlayerCard)
                     result.Add(card);
             }
             return result;
         }
 
-        private List<CardBattle> CollectCards(CardDropZone[] row1, CardDropZone[] row2)
+        private List<CardBattle> CollectCards(CardDropZone[] row1, CardDropZone[] row2, bool expectPlayer)
         {
             var list = new List<CardBattle>();
             // Lọc bỏ thẻ đã chết (IsDead=true) — chúng vẫn còn trên scene trong lúc animation dissolve chạy
-            foreach (var s in row1) { var c = GetCardInSlot(s); if (c != null && !c.IsDead) list.Add(c); }
-            foreach (var s in row2) { var c = GetCardInSlot(s); if (c != null && !c.IsDead) list.Add(c); }
+            foreach (var s in row1) { var c = GetCardInSlot(s); if (c != null && !c.IsDead && c.IsPlayerCard == expectPlayer) list.Add(c); }
+            foreach (var s in row2) { var c = GetCardInSlot(s); if (c != null && !c.IsDead && c.IsPlayerCard == expectPlayer) list.Add(c); }
             return list;
         }
 

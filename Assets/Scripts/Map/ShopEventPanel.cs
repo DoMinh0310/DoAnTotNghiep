@@ -156,6 +156,7 @@ namespace ProjectM.Map
             panelCanvasGroup.DOFade(1f, fadeInDuration);
 
             MapManager.Instance?.SetEventInProgress(true, Reopen);
+            AudioManager.Instance?.PlayShopEventMusic();
         }
 
         public void Reopen()
@@ -167,6 +168,7 @@ namespace ProjectM.Map
             panelCanvasGroup.DOFade(1f, fadeInDuration);
 
             RefreshPriceColors();
+            AudioManager.Instance?.PlayShopEventMusic();
         }
 
         // ══════════════════════════════════════════════════════════════

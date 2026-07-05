@@ -13,7 +13,8 @@ namespace ProjectM.Cards
         public float hoverScaleMultiplier = 1.2f;
         [Tooltip("Thời gian animation hover (giây)")]
         public float hoverDuration = 0.15f;
-        public float hoverYOffset = 30f;
+        [Tooltip("Độ cao thẻ bài nhấc lên khi hover (pixel)")]
+        public float hoverYOffset = 50f;
 
         private RectTransform rectTransform;
 

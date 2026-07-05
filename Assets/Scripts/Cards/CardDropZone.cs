@@ -33,7 +33,7 @@ namespace ProjectM.Cards
             // Không cho phép thực hiện thao tác thả bài nếu đang bị block input (đang trong combat)
             if (Managers.BattleManager.IsInputBlocked) return;
 
-            if (!isPlayerZone)
+            if (!isPlayerZone || (Managers.BattleGrid.Instance != null && Managers.BattleGrid.Instance.IsEnemyZone(this)))
             {
                 Debug.Log("[CardDropZone] Ô này là của địch, không thể đặt bài vào!");
                 return;
@@ -68,6 +68,13 @@ namespace ProjectM.Cards
                     CardDragHandler targetCard = transform.GetChild(0).GetComponent<CardDragHandler>();
                     if (targetCard != null && targetCard != draggableCard)
                     {
+                        CardBattle targetBattle = targetCard.GetComponent<CardBattle>();
+                        if (targetBattle != null && !targetBattle.IsPlayerCard)
+                        {
+                            Debug.Log("[CardDropZone] Không thể Swap vị trí giữa Tướng và Quái!");
+                            return;
+                        }
+
                         draggableCard.SetNewParent(this.transform);
                         targetCard.SetNewParent(oldZone);
                         

@@ -144,9 +144,18 @@ public class AudioManager : MonoBehaviour
         StopMusic();
         if (shopEventMusic != null)
         {
+            if (shopEventMusic.clip == null)
+            {
+                Debug.LogWarning("[AudioManager] ⚠️ AudioSource ShopBg chưa được kéo file nhạc (Audio Clip) vào trong Inspector!");
+            }
             shopEventMusic.loop = true;
-            shopEventMusic.volume = defaultVolume;
+            shopEventMusic.volume = defaultVolume > 0f ? defaultVolume : 0.3f;
             shopEventMusic.Play();
+            Debug.Log($"[AudioManager] 🎵 Bật nhạc Shop: Clip={shopEventMusic.clip?.name}, Vol={shopEventMusic.volume}, IsPlaying={shopEventMusic.isPlaying}");
+        }
+        else
+        {
+            Debug.LogWarning("[AudioManager] ⚠️ Biến shopEventMusic trong AudioManager đang bị null!");
         }
     }
 
@@ -190,6 +199,9 @@ public class AudioManager : MonoBehaviour
         defaultVolume = volume; // Cập nhật lại gốc để CustomLoop không đè lại
         if (menuMusic != null) menuMusic.volume = volume;
         if (battleMusic != null) battleMusic.volume = volume;
+        if (mapMusic != null) mapMusic.volume = volume;
+        if (goldEventMusic != null) goldEventMusic.volume = volume;
+        if (shopEventMusic != null) shopEventMusic.volume = volume;
     }
 
     public void SetSFXVolume(float volume)

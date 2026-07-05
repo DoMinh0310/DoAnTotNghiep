@@ -109,7 +109,33 @@ namespace ProjectM.UI
         {
             if (dropdownResolution == null || toggleFullscreen == null) return;
 
-            resolutions = Screen.resolutions;
+            Resolution[] rawResolutions = Screen.resolutions;
+            System.Collections.Generic.Dictionary<string, Resolution> bestResMap = new System.Collections.Generic.Dictionary<string, Resolution>();
+            System.Collections.Generic.List<string> orderKeys = new System.Collections.Generic.List<string>();
+
+            // Lọc trùng lặp: mỗi kích thước Width x Height chỉ giữ lại 1 option có tần số quét tốt nhất
+            for (int i = 0; i < rawResolutions.Length; i++)
+            {
+                Resolution r = rawResolutions[i];
+                string key = r.width + "x" + r.height;
+                if (!bestResMap.ContainsKey(key))
+                {
+                    bestResMap[key] = r;
+                    orderKeys.Add(key);
+                }
+                else
+                {
+                    bestResMap[key] = r; // Lấy bản có tần số quét cao hơn (đứng sau)
+                }
+            }
+
+            System.Collections.Generic.List<Resolution> uniqueList = new System.Collections.Generic.List<Resolution>();
+            foreach (var k in orderKeys)
+            {
+                uniqueList.Add(bestResMap[k]);
+            }
+
+            resolutions = uniqueList.ToArray();
             dropdownResolution.ClearOptions();
 
             System.Collections.Generic.List<string> options = new System.Collections.Generic.List<string>();
@@ -129,7 +155,10 @@ namespace ProjectM.UI
 
             dropdownResolution.AddOptions(options);
 
-            dropdownResolution.value = PlayerPrefs.GetInt("ResolutionIndex", currentResIndex);
+            int savedIndex = PlayerPrefs.GetInt("ResolutionIndex", currentResIndex);
+            if (savedIndex >= resolutions.Length || savedIndex < 0) savedIndex = currentResIndex;
+
+            dropdownResolution.value = savedIndex;
             dropdownResolution.RefreshShownValue();
             
             dropdownResolution.onValueChanged.AddListener(SetResolution);

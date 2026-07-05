@@ -149,6 +149,14 @@ namespace ProjectM.Cards
                 if (SkillHandManager.Instance != null)
                     StartCoroutine(SkillHandManager.Instance.AddSpecificSkillToHand("Tooth Pick"));
             }
+
+            // 7. Survival Guide: each time hit, add 1 Plaster skill card to hand
+            if (tName.Contains("survival") || tName.Contains("guide"))
+            {
+                Debug.Log($"[Trinket] 🩹 Survival Guide kích hoạt! Thêm 1 thẻ Plaster lên tay.");
+                if (SkillHandManager.Instance != null)
+                    StartCoroutine(SkillHandManager.Instance.AddSpecificSkillToHand("Plaster"));
+            }
             // ── ElementalPassive: Áp stack nguyên tố lên kẻ tấn công mình ──
             if (_trinket.effectType == TrinketEffectType.ElementalPassive &&
                 _trinket.elementTrigger == TrinketTrigger.OnHit &&

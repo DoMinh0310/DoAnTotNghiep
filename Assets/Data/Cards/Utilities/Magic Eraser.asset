@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Magic Eraser
   m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Skills.SkillData
   skillName: Magic Eraser
-  description: Remove all debufff
+  description: Remove all debuff
   artwork: {fileID: 6329209087899093807, guid: d720be20182bee846be309220d7e773c, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1

@@ -107,6 +107,7 @@ namespace ProjectM.Map
         // Trạng thái: Đang trong Event (đang chọn thẻ, mua đồ...) nhưng người chơi tạm ẩn UI để xem Map.
         public bool IsEventInProgress { get; private set; }
         private System.Action _reopenActiveEventAction;
+        private bool _isMovingToken = false; // Khóa chuột trong lúc token đang nhảy + 0.2s buffer
 
         // Pool event types có thể random (không phải combat)
         private static readonly NodeType[] NonCombatPool =
@@ -555,6 +556,7 @@ namespace ProjectM.Map
         // ══════════════════════════════════════════════════════════════
         public void OnNodeClicked(MapNode node)
         {
+            if (_isMovingToken) return; // Khóa input trong suốt thời gian token di chuyển + buffer 0.2s
             if (GameManager.Instance != null && GameManager.Instance.RunData == null) return;
 
             int idx = node.SlotIndex;
@@ -592,6 +594,7 @@ namespace ProjectM.Map
                 else
                 {
                     // Xử lý lại như click bình thường nhưng KHÔNG tăng counter
+                    _isMovingToken = true;
                     StartCoroutine(MoveAndTrigger(slots[idx].position, false, false, nodeType, node));
                 }
                 return;
@@ -642,6 +645,7 @@ namespace ProjectM.Map
             StartCoroutine(ScrollToSlot(idx));
 
             // Di chuyển token TRƯỜC, rồi mới trigger event SAU
+            _isMovingToken = true;
             StartCoroutine(MoveAndTrigger(def.position, def.isBoss, def.isCombat, nodeType, node));
         }
 
@@ -652,6 +656,9 @@ namespace ProjectM.Map
             // Đợi token di chuyển xong
             yield return StartCoroutine(MoveToken(targetPos));
 
+            // Đợi thêm khoảng đệm 0.2s để UI event ổn định
+            yield return new WaitForSeconds(0.2f);
+
             // Trigger event
             if (isBoss || isCombat)
                 GameManager.Instance?.OnCombatNodeEntered();
@@ -659,6 +666,9 @@ namespace ProjectM.Map
                 TriggerResourceEvent(sourceNode);
             else
                 TriggerNonCombatEvent(nodeType);
+
+            // Mở khóa input (lúc này IsEventInProgress đã nhận cờ block map nếu đang trong event)
+            _isMovingToken = false;
         }
 
         private void RefreshAllNodeStates()

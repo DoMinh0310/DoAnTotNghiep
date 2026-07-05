@@ -36,6 +36,12 @@ namespace ProjectM.Cards
             _cg = GetComponent<CanvasGroup>();
             if (_cg == null) _cg = gameObject.AddComponent<CanvasGroup>();
 
+            // ── Tự động thêm Canvas để render nổi lên trên cả đường Bezier (order 500) ──
+            var myCanvas = GetComponent<Canvas>();
+            if (myCanvas == null) myCanvas = gameObject.AddComponent<Canvas>();
+            myCanvas.overrideSorting = true;
+            myCanvas.sortingOrder    = 600; // Đảm bảo luôn nổi lên trên cả đường Bezier Line (order 500)
+
             // Bắt đầu ẩn
             _cg.alpha          = 0f;
             _cg.blocksRaycasts = false;
@@ -48,6 +54,16 @@ namespace ProjectM.Cards
         public void Show()
         {
             gameObject.SetActive(true);
+
+            // Đảm bảo tâm động luôn nằm chính giữa tâm của lá bài để khớp chuẩn 100% với đường Bezier
+            var rt = GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot     = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = Vector2.zero;
+            }
 
             // Phóng to toàn bộ thẻ bài (để giống với scale khi hover bình thường)
             _cardScaleTween?.Kill();

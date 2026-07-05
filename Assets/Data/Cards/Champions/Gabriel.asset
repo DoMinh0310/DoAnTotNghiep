@@ -30,7 +30,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
   - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
   - {fileID: 11400000, guid: dbfd1b1e7fe095b438d1dd95aa864804, type: 2}
-  - {fileID: 11400000, guid: 1f6ff6df4bcc7644180f095858f0ba86, type: 2}
+  - {fileID: 11400000, guid: e3dbe2f5a4ea9e144a2be1ecb1ae1dd3, type: 2}
   defaultHeartType: 0
   customAbility: {fileID: 0}
   characterArt: {fileID: -6750560406962594444, guid: 82ebef1a881cfab4f95c326f38febad4, type: 3}

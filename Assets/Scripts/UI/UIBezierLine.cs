@@ -12,7 +12,10 @@ namespace ProjectM.UI
     {
         private Vector2[] _points;
 
-        [SerializeField] private float lineWidth = 22f;
+        [SerializeField] private float lineWidth = 18f;
+
+        private bool _fadeAtEnd = false;
+        public bool FadeAtEnd { get => _fadeAtEnd; set { if (_fadeAtEnd != value) { _fadeAtEnd = value; SetVerticesDirty(); } } }
 
         public float LineWidth { get => lineWidth; set { lineWidth = value; SetVerticesDirty(); } }
 
@@ -41,9 +44,18 @@ namespace ProjectM.UI
                 // Tính toán Alpha và Width tại điểm này
                 float a = Mathf.InverseLerp(0f, 0.7f, t);
                 a = Mathf.Max(0.05f, a);
+
+                // Khi đang khóa vào thẻ mục tiêu, làm cho phần đầu của đường Bezier (gần tâm thẻ) mờ dần về 0 để tạo hiệu ứng tan biến mềm mại vào trong tâm thẻ
+                if (_fadeAtEnd && t > 0.5f)
+                {
+                    float fadeOut = Mathf.InverseLerp(1f, 0.5f, t);
+                    a *= fadeOut;
+                }
+
                 Color c = new Color(color.r, color.g, color.b, a);
 
-                float w = Mathf.Lerp(lineWidth * 0.25f, lineWidth, t);
+                // Đường kẻ giữ nguyên độ rộng đều đặn và thon gọn từ gốc đến ngọn, không bị phình to dần
+                float w = lineWidth;
 
                 // Tính toán vector hướng của đường cong (bao gồm trước và sau để lấy trung bình)
                 Vector2 dirPrev = i > 0 ? (_points[i] - _points[i - 1]).normalized : Vector2.zero;
@@ -60,7 +72,7 @@ namespace ProjectM.UI
                 {
                     Vector2 perpNext = new Vector2(-dirNext.y, dirNext.x);
                     miterDot = Vector2.Dot(perp, perpNext);
-                    if (miterDot < 0.2f) miterDot = 0.2f; // Giới hạn độ nhọn để tránh vỡ lưới
+                    if (miterDot < 0.5f) miterDot = 0.5f; // Giới hạn độ nhọn để tránh vỡ lưới (Miter spike)
                 }
                 perp = perp / miterDot; // Bù đắp độ dày khi đường cong gập lại
 
