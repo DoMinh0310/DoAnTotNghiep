@@ -33,7 +33,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dbfd1b1e7fe095b438d1dd95aa864804, type: 2}
   defaultHeartType: 0
   customAbility: {fileID: 0}
-  characterArt: {fileID: -5079658060621106028, guid: 30b5d7652b423d0418e4dadb46bc6e1b, type: 3}
+  characterArt: {fileID: -587203377155130380, guid: 1077e3b2d63fba247929206528689064, type: 3}
   cardArtwork: {fileID: 0}
   cardFrame: {fileID: 4043450107612474682, guid: 2afa38fe6edfe5a4fb18e5da628cf681, type: 3}
   artOffset: {x: 0, y: 0}

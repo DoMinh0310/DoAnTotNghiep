@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Single
 
     Shield +3'
-  artwork: {fileID: -913471109019537669, guid: 8a3aa684e0f65874195816071b8c3efc, type: 3}
+  artwork: {fileID: 5375461903863232777, guid: d0360c0eeac775c4ba658fe9f69c3e04, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 4
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 3
   elementType: 4
   customOverride: {fileID: 0}
+  isExhaust: 0

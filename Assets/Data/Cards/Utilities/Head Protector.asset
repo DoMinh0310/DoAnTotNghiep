@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Ally
 
     Shield +5'
-  artwork: {fileID: -3930808688015335582, guid: 829379c00fdc6344c8d39dd31d24965e, type: 3}
+  artwork: {fileID: 938543032419735807, guid: d60c9dfdd9214bd47be5b0782f9d8e93, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 4
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 5
   elementType: 4
   customOverride: {fileID: 0}
+  isExhaust: 0

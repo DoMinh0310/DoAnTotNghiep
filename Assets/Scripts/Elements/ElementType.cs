@@ -10,6 +10,7 @@ namespace ProjectM.Elements
         Decay,    // 1: Phân rã — gây sát thương theo thời gian sau khi địch đánh
         Frost,    // 2: Băng 
         Chain,    // 3: Dây chuyền
-        None      // 4: Không có nguyên tố
+        None,     // 4: Không có nguyên tố
+        Aim       // 5: Nhắm bắn — tích stack và nổ sát thương vật lý ở đầu lượt địch
     }
 }

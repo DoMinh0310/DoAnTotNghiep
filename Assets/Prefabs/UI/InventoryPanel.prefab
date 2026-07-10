@@ -943,6 +943,8 @@ MonoBehaviour:
   emptySlotColor: {r: 0.15, g: 0.1, b: 0.05, a: 0.55}
   allSkillAssets: []
   allCardAssets: []
+  allRelicAssets: []
+  allTrinketAssets: []
 --- !u!1 &5120386151050206490
 GameObject:
   m_ObjectHideFlags: 0

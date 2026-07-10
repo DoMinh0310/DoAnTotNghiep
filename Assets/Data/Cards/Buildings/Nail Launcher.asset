@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f893981490d9b84f9e410ad432cc7ed, type: 3}
+  m_Name: Nail Launcher
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectM.Cards.CardData
+  cardName: Nail Launcher
+  id: 204
+  abilities: When allies apply Bleed, apply Bleed +1 to the same target
+  attack: 0
+  health: 6
+  speed: 0
+  ult: 0
+  innateAttackElement: 4
+  cardType: 1
+  rarity: 0
+  attacksRandomTarget: 0
+  cost: 1
+  description: 
+  signatureCards: []
+  defaultHeartType: 1
+  customAbility: {fileID: 11400000, guid: ec4db161f5ba2a64080c92c2b8741883, type: 2}
+  characterArt: {fileID: -1008234882189317178, guid: a7b9cc7993515ff45b82cf20376fe921, type: 3}
+  cardArtwork: {fileID: 0}
+  cardFrame: {fileID: 117287806889079950, guid: 8834f50f5968f3e4eaddc23fecfa3840, type: 3}
+  artOffset: {x: 0, y: 0}
+  artScale: 1
+  elementalConfigs: []

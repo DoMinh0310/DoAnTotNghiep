@@ -464,6 +464,39 @@ namespace ProjectM.Managers
             return result;
         }
 
+        /// <summary>
+        /// Trả về tất cả đồng minh còn sống trong cùng hàng với target.
+        /// Dùng bởi SkillExecutor khi skill có TargetType = AllyRow.
+        /// </summary>
+        public List<CardBattle> GetAlliesInSameRow(CardBattle target)
+        {
+            var result = new List<CardBattle>();
+            if (target == null) return result;
+
+            // Xác định hàng chứa target
+            CardDropZone[] row = null;
+            if (target.transform.parent != null)
+            {
+                var slot = target.transform.parent.GetComponent<CardDropZone>();
+                if (slot != null)
+                {
+                    if (GetIndexInRow(slot, playerSlotsTop) >= 0) row = playerSlotsTop;
+                    else if (GetIndexInRow(slot, playerSlotsBot) >= 0) row = playerSlotsBot;
+                }
+            }
+
+            if (row == null) return result;
+
+            // Thu thập tất cả thẻ đồng minh còn sống trong hàng đó
+            foreach (var slot in row)
+            {
+                CardBattle card = GetCardInSlot(slot);
+                if (card != null && !card.IsDead && card.IsPlayerCard)
+                    result.Add(card);
+            }
+            return result;
+        }
+
         private List<CardBattle> CollectCards(CardDropZone[] row1, CardDropZone[] row2, bool expectPlayer)
         {
             var list = new List<CardBattle>();

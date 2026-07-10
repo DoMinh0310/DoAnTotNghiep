@@ -630,6 +630,12 @@ namespace ProjectM.Skills
                 if (row != null) foreach (var c in row) c.ShowTargetHighlight();
                 else card.ShowTargetHighlight();
             }
+            else if (targetType == SkillTargetType.AllyRow)
+            {
+                var row = BattleGrid.Instance?.GetAlliesInSameRow(card);
+                if (row != null) foreach (var c in row) c.ShowTargetHighlight();
+                else card.ShowTargetHighlight();
+            }
             else card.ShowTargetHighlight();
         }
 
@@ -639,6 +645,12 @@ namespace ProjectM.Skills
             if (targetType == SkillTargetType.EnemyRow)
             {
                 var row = BattleGrid.Instance?.GetEnemiesInSameRow(_hoveredTarget);
+                if (row != null) foreach (var c in row) c.HideTargetHighlight();
+                else _hoveredTarget.HideTargetHighlight();
+            }
+            else if (targetType == SkillTargetType.AllyRow)
+            {
+                var row = BattleGrid.Instance?.GetAlliesInSameRow(_hoveredTarget);
                 if (row != null) foreach (var c in row) c.HideTargetHighlight();
                 else _hoveredTarget.HideTargetHighlight();
             }
@@ -656,6 +668,7 @@ namespace ProjectM.Skills
                 SkillTargetType.SingleAlly  =>  card.IsPlayerCard,
                 SkillTargetType.SingleEnemy => !card.IsPlayerCard,
                 SkillTargetType.EnemyRow    => !card.IsPlayerCard,
+                SkillTargetType.AllyRow     =>  card.IsPlayerCard,
                 _                           => false,
             };
         }

@@ -3666,8 +3666,6 @@ MonoBehaviour:
   randomPresetDecks: []
   randomStarterSetupDecks:
   - {fileID: 11400000, guid: 88820a05a6bcb0c42ad3f1d4ae3ff171, type: 2}
-  - {fileID: 11400000, guid: b76b3311c918b344288a5658b9c0ecd4, type: 2}
-  - {fileID: 11400000, guid: 012aff8995370e141ab1af1fb4c41bf9, type: 2}
 --- !u!114 &1630764130
 MonoBehaviour:
   m_ObjectHideFlags: 0

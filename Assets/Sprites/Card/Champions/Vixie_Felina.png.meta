@@ -116,12 +116,12 @@ TextureImporter:
       name: Vixie_Felina_0
       rect:
         serializedVersion: 2
-        x: 42
-        y: 115
-        width: 337
-        height: 570
+        x: 0
+        y: 139
+        width: 512
+        height: 546
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: f03098b9c7f38e44aa9ea362e00e2aff
     internalID: 0
     vertices: []
     indices: 

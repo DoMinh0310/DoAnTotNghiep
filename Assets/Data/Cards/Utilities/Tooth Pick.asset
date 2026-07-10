@@ -15,13 +15,13 @@ MonoBehaviour:
   skillName: Tooth Pick
   description: 'Single
 
-    Bleed +2'
-  artwork: {fileID: -6808103567550086622, guid: e7a1e169f693f9e43abe66f71e89d6e9, type: 3}
+    Bleed +1'
+  artwork: {fileID: -7214711472207970255, guid: d7e0e0e9aef8c474b9361aa43a0d9c3b, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 0
   effectType: 1
-  effectValue: 2
+  effectValue: 1
   elementType: 0
   customOverride: {fileID: 0}
   isExhaust: 0

@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Single
 
     HP +3'
-  artwork: {fileID: 4034979744300668655, guid: d98d49fe72210bd4dadcc29101f32cc7, type: 3}
+  artwork: {fileID: -9222862326986702807, guid: 99c762563c70f3347946b3d3211f1037, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 4
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 3
   elementType: 4
   customOverride: {fileID: 0}
+  isExhaust: 0

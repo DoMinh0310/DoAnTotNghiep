@@ -18,28 +18,36 @@ MonoBehaviour:
     bold: 0
     italic: 0
     caseInsensitive: 1
+    explanation: Bleed causes enemies to suffer an addictional instance of damage
+      equal to their Bleed stacks before they can even attack. All subsequent Physical
+      attacks this turn inflict equal addictional Bleed stacks.
   - keyword: Frost
     color: {r: 0.043137256, g: 0.8352942, b: 0.9960785, a: 0}
     bold: 0
     italic: 0
     caseInsensitive: 1
+    explanation: 
   - keyword: Decay
     color: {r: 0.5018867, g: 0.5018867, b: 0.5018867, a: 0}
     bold: 0
     italic: 0
     caseInsensitive: 1
+    explanation: 
   - keyword: Chain
     color: {r: 0.09019608, g: 0.44705886, b: 0.89019614, a: 0}
     bold: 0
     italic: 0
     caseInsensitive: 1
+    explanation: 
   - keyword: Sharp pencil
     color: {r: 1, g: 0.6784314, b: 0, a: 0}
     bold: 0
     italic: 0
     caseInsensitive: 1
+    explanation: 
   - keyword: HP
     color: {r: 1, g: 0.57169807, b: 0.9650042, a: 0}
     bold: 0
     italic: 0
     caseInsensitive: 1
+    explanation: 

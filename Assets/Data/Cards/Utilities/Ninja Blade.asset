@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Single
 
     Bleed +3'
-  artwork: {fileID: 8422336085811078489, guid: 277933d5775881d4fae2a2c7d1eb1dc0, type: 3}
+  artwork: {fileID: -8392722417489550463, guid: 5fef55e37e13c2841a8d29eb7124caab, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 0
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 3
   elementType: 0
   customOverride: {fileID: 0}
+  isExhaust: 0

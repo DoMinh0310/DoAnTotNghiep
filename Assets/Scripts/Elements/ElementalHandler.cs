@@ -26,6 +26,7 @@ namespace ProjectM.Elements
             new DecayEffect(),
             new FrostEffect(),
             new ChainEffect(),
+            new AimEffect(),
         };
 
         // ── Dữ liệu runtime ──────────────────────────────────────────────
@@ -34,6 +35,12 @@ namespace ProjectM.Elements
         // Bleed: tích lũy sát thương vật lý trong 1 lượt action của ĐỒNG MINH
         // (Được cộng dồn khi có đòn đánh vật lý vào unit này, reset sau mỗi lần Bleed nổ)
         private int _pendingBleedDamage = 0;
+
+        // ── Global Event ────────────────────────────────────────────────
+        public static event System.Action<CardBattle, ElementType, int> OnStacksAddedGlobal;
+
+        // Quản lý delay của Aim (nổ trễ 1 lượt)
+        public int aimTurnDelay = 0;
 
         // ── References ───────────────────────────────────────────────────
         private CardBattle _cardBattle;
@@ -56,6 +63,12 @@ namespace ProjectM.Elements
         {
             if (amount <= 0) yield break;
 
+            if (element == ElementType.Aim)
+            {
+                // Mỗi khi gắn thêm Aim, reset lại thời gian chờ (1 lượt sau mới nổ)
+                aimTurnDelay = 1;
+            }
+
             _stacks[element] = GetStacks(element) + amount;
             Debug.Log($"[Elemental] {gameObject.name} nhận {amount} stack {element} → Tổng: {_stacks[element]}");
 
@@ -64,6 +77,8 @@ namespace ProjectM.Elements
             var effect = GetEffect(element);
             if (effect != null)
                 yield return StartCoroutine(effect.OnStackAdded(this, _stacks[element]));
+                
+            OnStacksAddedGlobal?.Invoke(_cardBattle, element, amount);
         }
 
         // ════════════════════════════════════════════════════════════════
@@ -99,6 +114,13 @@ namespace ProjectM.Elements
         public IEnumerator TriggerAfterPlayerAction()
         {
             if (_cardBattle.IsDead) yield break;
+            
+            // 1. Aim nổ trước để sát thương vật lý của nó cộng dồn vào Bleed
+            yield return StartCoroutine(GetEffect(ElementType.Aim).OnAfterPlayerAction(this));
+            
+            if (_cardBattle.IsDead) yield break;
+            
+            // 2. Bleed nổ sau cùng, gom hết sát thương vật lý (kể cả từ Aim vừa nổ)
             yield return StartCoroutine(GetEffect(ElementType.Bleed).OnAfterPlayerAction(this));
         }
 

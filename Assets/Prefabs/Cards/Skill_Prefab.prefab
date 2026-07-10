@@ -1699,6 +1699,8 @@ MonoBehaviour:
   decayText: {fileID: 442458190158573721}
   chainIconObj: {fileID: 5291541341580119785}
   chainText: {fileID: 2509574278096956732}
+  aimIconObj: {fileID: 0}
+  aimText: {fileID: 0}
 --- !u!225 &465249928398414173
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -1788,6 +1790,7 @@ MonoBehaviour:
   bonusDecayOnPhysicalAttack: 0
   currentShield: 0
   hasThorns: 0
+  sourceSummonSkill: {fileID: 0}
   hasSecondPulse: 0
   secondPulseTriggeredThisTurn: 0
   permanentAttackBonus: 0
@@ -2922,7 +2925,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 8793955847584040318, guid: e41d9851399bb5b47817c2bd580c8a23, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

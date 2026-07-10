@@ -34,10 +34,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d3808adb641219646a840cc00c8de056, type: 2}
   - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
   - {fileID: 11400000, guid: 1f6ff6df4bcc7644180f095858f0ba86, type: 2}
+  - {fileID: 11400000, guid: 7e0550912bee86d4b9cf42cb8b97d6da, type: 2}
+  - {fileID: 11400000, guid: f84942672ebb4dc45b21ac32b28be910, type: 2}
   buildingPool:
   - {fileID: 11400000, guid: 8926468ea693ce542b7119897f376fcb, type: 2}
   - {fileID: 11400000, guid: 406d748d8c7de1742b8dcf77bd0f3871, type: 2}
   - {fileID: 11400000, guid: 885d3d426adc37e4983e6d72286411f6, type: 2}
   - {fileID: 11400000, guid: f1560efeda2d5434baf93ba5d84da27b, type: 2}
+  - {fileID: 11400000, guid: 44be118f0ba366040b21197011d5515d, type: 2}
   numberOfChoices: 3
   allowSkip: 0

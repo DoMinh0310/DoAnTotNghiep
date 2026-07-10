@@ -469,9 +469,9 @@ namespace ProjectM.Map
                 else if (IsReachable(i))
                     _spawnedNodes[i].Activate();
                 else if (IsSiblingSkipped(i))
-                    _spawnedNodes[i].SetDimmed();   // Cùng hàng nhưng bị bỏ qua → mờ đi
+                    _spawnedNodes[i].SetDimmed(skipped: true);   // Cùng hàng nhưng bị bỏ qua → mờ đi
                 else
-                    _spawnedNodes[i].SetDimmed();   // Node tương lai chưa tới
+                    _spawnedNodes[i].SetDimmed(skipped: false);  // Node tương lai chưa tới
             }
         }
 

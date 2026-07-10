@@ -31,7 +31,7 @@ namespace ProjectM.Map
         public Image relicIconImage;
         public Image glowImage;
         public float floatAmplitude = 18f;
-        public float floatSpeed = 0.6f;
+        public float floatSpeed = 0.08f;
         public Color glowColorA = new Color(1f, 0.85f, 0.3f, 0.6f);
         public Color glowColorB = new Color(1f, 0.5f, 0.1f, 1f);
         public float glowPulseDuration = 0.9f;
@@ -202,6 +202,7 @@ namespace ProjectM.Map
             gameObject.SetActive(true);
             _canvasGroup.alpha = 0f;
             _canvasGroup.DOFade(1f, panelFadeInDuration);
+            StartFloat();
         }
 
         private void PopulateInfoPanels(bool isRelic)

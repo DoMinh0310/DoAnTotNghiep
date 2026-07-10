@@ -179,20 +179,28 @@ namespace ProjectM.Skills
                     break;
 
                 case SkillTargetType.EnemyRow:
-                    // Lấy toàn bộ kẻ địch trong cùng hàng với mục tiêu được kéo vào
+                case SkillTargetType.AllyRow:
+                    // Lấy toàn bộ kẻ địch/đồng minh trong cùng hàng với mục tiêu được kéo vào
                     if (draggedTarget != null)
                     {
                         var grid = UnityEngine.Object.FindAnyObjectByType<Managers.BattleGrid>();
                         if (grid != null)
                         {
-                            var rowEnemies = grid.GetEnemiesInSameRow(draggedTarget);
-                            if (rowEnemies != null)
-                                result.AddRange(rowEnemies);
+                            if (Data.targetType == SkillTargetType.EnemyRow)
+                            {
+                                var rowEnemies = grid.GetEnemiesInSameRow(draggedTarget);
+                                if (rowEnemies != null) result.AddRange(rowEnemies);
+                            }
+                            else
+                            {
+                                var rowAllies = grid.GetAlliesInSameRow(draggedTarget);
+                                if (rowAllies != null) result.AddRange(rowAllies);
+                            }
                         }
                         else
                         {
-                            // Fallback nếu không tìm được BattleGrid: chỉ đánh mục tiêu đó
-                            UnityEngine.Debug.LogWarning("[SkillExecutor] Không tìm thấy BattleGrid, fallback → SingleEnemy");
+                            // Fallback nếu không tìm được BattleGrid
+                            UnityEngine.Debug.LogWarning("[SkillExecutor] Không tìm thấy BattleGrid, fallback → SingleTarget");
                             result.Add(draggedTarget);
                         }
                     }

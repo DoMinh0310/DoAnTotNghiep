@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Night Shade
   description: Upon use, physical attacks will also apply Decay +1, for the rest
     of the battle
-  artwork: {fileID: -1223944615704522590, guid: afbf4e68e48d25c40a160ef47daecb9a, type: 3}
+  artwork: {fileID: 5325107445066976298, guid: bd4cceb823558764eb34e8319a47e95b, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 4

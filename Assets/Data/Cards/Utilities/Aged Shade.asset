@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Row
 
     Chain +3'
-  artwork: {fileID: 5613029781706478124, guid: e011ad12522c3974bb0c87bdd437ac96, type: 3}
+  artwork: {fileID: 3833338014976982027, guid: 4216306fb3a67604f81b57ae872e2d4e, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 2
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 3
   elementType: 3
   customOverride: {fileID: 0}
+  isExhaust: 0

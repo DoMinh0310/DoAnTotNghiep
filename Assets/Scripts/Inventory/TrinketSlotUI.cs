@@ -273,7 +273,7 @@ namespace ProjectM.Inventory
             if (eventData.dragging || eventData.pointerDrag != null || Dragging != null) return;
 
             if (currentTrinket == null || tooltipPanel == null) return;
-
+            
             // ── Ẩn tooltip cũ (nếu có slot khác đang mở) trước khi mở cái mới ──
             if (_activeTooltipSlot != null && _activeTooltipSlot != this)
                 _activeTooltipSlot.HideTooltip();

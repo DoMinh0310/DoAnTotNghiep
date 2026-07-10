@@ -10,9 +10,12 @@ namespace ProjectM.Inventory
     /// mà không ảnh hưởng tới logic Drag-Drop của combat.
     /// </summary>
     [RequireComponent(typeof(CardDisplay))]
-    public class InventoryCardDisplay : MonoBehaviour
+    public class InventoryCardDisplay : MonoBehaviour, UnityEngine.EventSystems.IPointerEnterHandler, UnityEngine.EventSystems.IPointerExitHandler
     {
         private CardDisplay _display;
+        private CardData _champData;
+        private SkillData _skillData;
+        private string _extraAbilities = "";
 
         private void Awake()
         {
@@ -28,6 +31,7 @@ namespace ProjectM.Inventory
 
         public void InitChampion(CardData data)
         {
+            _champData = data;
             if (_display == null) _display = GetComponent<CardDisplay>();
             _display.LoadData(data);
         }
@@ -35,6 +39,8 @@ namespace ProjectM.Inventory
         /// <summary>Hiển thị tướng với chỉ số đã cộng bonus từ Smith Event và skill thêm từ Trinket/Relic.</summary>
         public void InitChampion(CardData data, int atkBonus, int hpBonus, string extraAbilities = "")
         {
+            _champData = data;
+            _extraAbilities = extraAbilities;
             if (_display == null) _display = GetComponent<CardDisplay>();
             _display.LoadData(data);
 
@@ -54,8 +60,64 @@ namespace ProjectM.Inventory
 
         public void InitSkill(SkillData data)
         {
+            _skillData = data;
             if (_display == null) _display = GetComponent<CardDisplay>();
             _display.LoadSkillData(data);
+        }
+
+        public void OnPointerEnter(UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (UI.TooltipManager.Instance == null) return;
+
+            string title = "";
+            string desc = "";
+
+            if (_champData != null)
+            {
+                title = _champData.cardName;
+                desc = _champData.abilities;
+                if (!string.IsNullOrEmpty(_extraAbilities))
+                {
+                    desc += "\n\n<color=#A0FFA0>" + _extraAbilities + "</color>";
+                }
+            }
+            else if (_skillData != null)
+            {
+                title = _skillData.skillName;
+                desc = _skillData.description;
+            }
+            else return;
+
+            // Xử lý giải thích nguyên tố (Keyword)
+            string keywordExplanations = "";
+            if (_display != null && _display.keywordDatabase != null && _display.keywordDatabase.keywords != null)
+            {
+                foreach (var kw in _display.keywordDatabase.keywords)
+                {
+                    if (string.IsNullOrEmpty(kw.explanation)) continue;
+
+                    bool contains = kw.caseInsensitive 
+                        ? desc.IndexOf(kw.keyword, System.StringComparison.OrdinalIgnoreCase) >= 0
+                        : desc.Contains(kw.keyword);
+
+                    if (contains)
+                    {
+                        if (!string.IsNullOrEmpty(keywordExplanations)) keywordExplanations += "\n\n";
+                        string colorHex = ColorUtility.ToHtmlStringRGBA(kw.color);
+                        keywordExplanations += $"<b><color=#{colorHex}>{kw.keyword}</color></b>\n{kw.explanation}";
+                    }
+                }
+            }
+
+            UI.TooltipManager.Instance.ShowTooltip(title, desc, keywordExplanations);
+        }
+
+        public void OnPointerExit(UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (UI.TooltipManager.Instance != null)
+            {
+                UI.TooltipManager.Instance.HideTooltip();
+            }
         }
     }
 }

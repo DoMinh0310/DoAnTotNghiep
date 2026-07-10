@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Ally
 
     Speed -2 '
-  artwork: {fileID: -9103266580023316802, guid: c3c78f7b03606cb4a8cfc3e4be89b109, type: 3}
+  artwork: {fileID: -6727535298922288463, guid: aef58413fe08f5742b9fbe62a146f74c, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 4
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 2
   elementType: 4
   customOverride: {fileID: 0}
+  isExhaust: 0

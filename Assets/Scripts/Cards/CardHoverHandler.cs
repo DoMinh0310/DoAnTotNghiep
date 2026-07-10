@@ -85,15 +85,25 @@ namespace ProjectM.Cards
         void Update()
         {
             // Nếu bất kỳ lá bài nào đang bị kéo → buộc reset hover ngay lập tức
-            // (không check isHovering vì OnPointerExit có thể không fire khi thẻ được đưa lên trên cùng)
             if (CardDragHandler.isAnyCardDragging)
             {
                 if (isHovering || overrideCanvas.overrideSorting)
                 {
-                    isHovering = false;
-                    overrideCanvas.overrideSorting = false;
-                    KillAllTweens();
-                    // Không tween về — drag handler đã quản lý transform
+                    CardDragHandler dragHandler = GetComponent<CardDragHandler>();
+                    bool isThisCardDragging = dragHandler != null && dragHandler.isDragging;
+                    
+                    if (isThisCardDragging)
+                    {
+                        // Thẻ này đang được kéo, drag handler sẽ quản lý transform, không cần tween về
+                        isHovering = false;
+                        overrideCanvas.overrideSorting = false;
+                        KillAllTweens();
+                    }
+                    else
+                    {
+                        // Thẻ khác đang được kéo nhưng thẻ này đang dính hover -> Force tween về để không bị kẹt
+                        ForceStopHover();
+                    }
                 }
             }
         }

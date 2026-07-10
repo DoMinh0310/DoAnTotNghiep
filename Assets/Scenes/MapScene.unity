@@ -3032,7 +3032,7 @@ MonoBehaviour:
   relicIconImage: {fileID: 1961129982}
   glowImage: {fileID: 528078984}
   floatAmplitude: 18
-  floatSpeed: 1.2
+  floatSpeed: 0.45
   glowColorA: {r: 1, g: 0.85, b: 0.3, a: 0.6}
   glowColorB: {r: 1, g: 0.70961255, b: 0.2980392, a: 1}
   glowPulseDuration: 0.9

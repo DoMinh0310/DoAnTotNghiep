@@ -30,6 +30,10 @@ namespace ProjectM.Skills
 
         [Tooltip("Nếu bật: 'FROST', 'frost' hay 'Frost' đều được xử lý giống nhau.")]
         public bool caseInsensitive = true;
+
+        [TextArea(2, 4)]
+        [Tooltip("Phần giải thích chi tiết cho từ khóa này (Sẽ hiển thị trên bảng Tooltip khi hover).")]
+        public string explanation = "";
     }
 
     // ════════════════════════════════════════════════════════════════════

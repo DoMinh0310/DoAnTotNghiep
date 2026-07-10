@@ -67,6 +67,9 @@ namespace ProjectM.Cards
         public GameObject chainIconObj;
         public TextMeshProUGUI chainText;
 
+        public GameObject aimIconObj;
+        public TextMeshProUGUI aimText;
+
         private bool _isInitialized = false;
 
         private void Awake()
@@ -122,12 +125,14 @@ namespace ProjectM.Cards
             decayIconObj = ValidateRef(decayIconObj, "DecayIcon");
             chainIconObj = ValidateRef(chainIconObj, "ChainIcon");
             shieldIconObj = ValidateRef(shieldIconObj, "ShieldIcon");
+            aimIconObj = ValidateRef(aimIconObj, "AimIcon");
 
             // Tự động tìm Text bên trong từng icon
             if (frostText == null) frostText = frostIconObj?.GetComponentInChildren<TextMeshProUGUI>();
             if (bleedText == null) bleedText = bleedIconObj?.GetComponentInChildren<TextMeshProUGUI>();
             if (decayText == null) decayText = decayIconObj?.GetComponentInChildren<TextMeshProUGUI>();
             if (chainText == null) chainText = chainIconObj?.GetComponentInChildren<TextMeshProUGUI>();
+            if (aimText == null) aimText = aimIconObj?.GetComponentInChildren<TextMeshProUGUI>();
 
             // Ẩn hết ngay khi Awake — trước khi LoadData() được gọi
             HideAllElementalIcons();
@@ -222,6 +227,9 @@ namespace ProjectM.Cards
             SetStatVisible(ref healthText, "HeartIcon", currentHp);
             SetStatVisible(ref speedText, "SpeedIcon", cardData.speed);
             SetStatVisible(ref ultText, "UltIcon", cardData.ult);
+            
+            // Cập nhật đúng loại tim cho nhân vật/công trình
+            SwapHeartIcon(cardData.defaultHeartType);
             
             // Ẩn Shield Icon mặc định khi mới load bài
             if (shieldIconObj != null) shieldIconObj.SetActive(false);
@@ -453,6 +461,7 @@ namespace ProjectM.Cards
             SetElementalIconVisible(bleedIconObj, false);
             SetElementalIconVisible(decayIconObj, false);
             SetElementalIconVisible(chainIconObj, false);
+            SetElementalIconVisible(aimIconObj, false);
         }
 
         /// <summary>
@@ -494,6 +503,11 @@ namespace ProjectM.Cards
             int decayDuration = handler.GetDotDuration(ProjectM.Elements.ElementType.Decay);
             SetElementalIconVisible(decayIconObj, decayDuration > 0);
             if (decayText != null) decayText.text = decayDuration.ToString();
+
+            // Aim
+            int aimStacks = handler.GetStacks(ProjectM.Elements.ElementType.Aim);
+            SetElementalIconVisible(aimIconObj, aimStacks > 0);
+            if (aimText != null) aimText.text = aimStacks.ToString();
         }
     }
 }

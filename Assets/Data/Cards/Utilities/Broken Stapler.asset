@@ -16,11 +16,11 @@ MonoBehaviour:
   description: 'Row
 
     Bleed +2'
-  artwork: {fileID: 4691273966100973346, guid: 4dca1a10bd0e2a246b978906a8de6991, type: 3}
+  artwork: {fileID: -4066434992690545178, guid: 5e5eb964586cf094386b02c6cd9b72b4, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 2
-  effectType: 0
+  effectType: 1
   effectValue: 2
   elementType: 0
   customOverride: {fileID: 0}

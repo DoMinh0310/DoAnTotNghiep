@@ -28,18 +28,12 @@ MonoBehaviour:
   unchosenChampions: []
   supportDeck:
   - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: bdbbe6b6799657548b8b4dffd5599062, type: 2}
-  - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
-  - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
-  - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
-  - {fileID: 11400000, guid: 902f7290c622c01448d6db1ac3053581, type: 2}
-  - {fileID: 11400000, guid: dbfd1b1e7fe095b438d1dd95aa864804, type: 2}
-  - {fileID: 11400000, guid: e15e64a3de5238043b7b01877021c77d, type: 2}
-  - {fileID: 11400000, guid: 1f6ff6df4bcc7644180f095858f0ba86, type: 2}
+  - {fileID: 11400000, guid: c817e3ee7e96efa418645270f61df881, type: 2}
   - {fileID: 11400000, guid: d3808adb641219646a840cc00c8de056, type: 2}
-  - {fileID: 11400000, guid: fdf23355def5bf443aea44610121c9af, type: 2}
+  - {fileID: 11400000, guid: dbfd1b1e7fe095b438d1dd95aa864804, type: 2}
+  - {fileID: 11400000, guid: 3fc7865dc29055945a30cb4b0e3a2dae, type: 2}
+  - {fileID: 11400000, guid: 995541020a3c2474b9db0e13dcd27d08, type: 2}
+  - {fileID: 11400000, guid: 1f6ff6df4bcc7644180f095858f0ba86, type: 2}
   - {fileID: 11400000, guid: fdf23355def5bf443aea44610121c9af, type: 2}
   - {fileID: 11400000, guid: b32fabb453a4b59489290bc6ab297ec6, type: 2}
   buildingDeck: []

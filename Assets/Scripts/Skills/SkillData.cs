@@ -11,6 +11,7 @@ namespace ProjectM.Skills
         Self        = 3, // Tự động áp lên bản thân
         SingleAlly  = 4, // Kéo vào 1 đồng minh cụ thể
         EmptySlot   = 5, // Kéo vào ô trống (dành cho thẻ Summon)
+        AllyRow     = 6, // Kéo vào 1 đồng minh → áp lên toàn bộ hàng chứa người đó
     }
 
     public enum SkillEffectType

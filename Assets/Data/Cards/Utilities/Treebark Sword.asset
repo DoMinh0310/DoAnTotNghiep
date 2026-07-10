@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 'Deal 3 Damage
 
 '
-  artwork: {fileID: -1716223577464485481, guid: 4bb026b3dfb80624e986fc1007cd17f2, type: 3}
+  artwork: {fileID: 8793955847584040318, guid: e41d9851399bb5b47817c2bd580c8a23, type: 3}
   artOffset: {x: 0, y: 0}
   artScale: 1
   targetType: 0
@@ -24,3 +24,4 @@ MonoBehaviour:
   effectValue: 3
   elementType: 4
   customOverride: {fileID: 0}
+  isExhaust: 0
